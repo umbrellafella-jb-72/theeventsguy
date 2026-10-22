@@ -1,0 +1,33 @@
+# Refreshes the listings from the Google Sheet on the 1st of every month (and on demand).
+# Pushing the new data/events.json makes Vercel redeploy automatically.
+name: Monthly listings refresh
+
+on:
+  schedule:
+    - cron: '17 6 1 * *'   # 06:17 UTC on the 1st
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Pull the sheet and rebuild tags
+        env:
+          SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
+          SHEET_TAB: UK & Ireland
+        run: npm run sync
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet -- data/events.json; then echo "No changes"; exit 0; fi
+          git config user.name "eventguy-bot"
+          git config user.email "eventguy-bot@users.noreply.github.com"
+          git add data/events.json
+          git commit -m "Monthly listings refresh $(date -u +%Y-%m)"
+          git push
