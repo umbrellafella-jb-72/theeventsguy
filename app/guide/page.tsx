@@ -18,9 +18,9 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   return (
     <>
       <div className="wrap guide-top">
-        <h1>UK & Ireland ecommerce events, month by month</h1>
+        <h1>Ecommerce events, month by month</h1>
         <p className="muted" style={{ margin: '8px 0 0' }}>
-          {events.length} events across conferences, expos, meetups, dinners and awards — tagged so you can find the ones worth your time.
+          {events.length} events and awards across the UK, Ireland and Europe — tagged by area, format, topic, country and price so you can find the ones worth your time.
         </p>
         {sp.welcome && <p className="note banner">You’re in. Every month is now unlocked — welcome to EventGuy.</p>}
         {sp.restored && <p className="note banner">Access restored on this device.</p>}

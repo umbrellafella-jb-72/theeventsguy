@@ -2,11 +2,13 @@ import dataset from '@/data/events.json';
 
 export type EventItem = {
   id: string;
+  kind: 'event' | 'award';
   name: string;
   dates: string;
   months: string[];
   sortKey: string;
   status: 'Confirmed' | 'Tentative' | 'TBC';
+  area: string;
   city: string;
   venue: string | null;
   organiser: string | null;
@@ -19,15 +21,24 @@ export type EventItem = {
   frequency: string | null;
   lastEdition: string | null;
   website: string | null;
+  scope?: string | null;
+  categories?: string | null;
+  entryDeadline?: string | null;
 };
 
-export type Taxonomy = { formats: string[]; topics: string[]; regions: string[]; prices: string[]; statuses: string[] };
+export type MediaItem = {
+  id: string; name: string; type: string; mediaType: string; hosts: string | null; organisation: string | null;
+  based: string | null; focus: string | null; frequency: string | null; url: string | null; whereText: string | null; topics: string[];
+};
+
+export type Taxonomy = { areas: string[]; formats: string[]; topics: string[]; regions: string[]; prices: string[]; statuses: string[]; mediaTypes: string[] };
 
 export const TBC = 'tbc';
-const data = dataset as unknown as { generatedAt: string; tab: string; taxonomy: Taxonomy; events: EventItem[] };
+const data = dataset as unknown as { generatedAt: string; tabs: string[]; taxonomy: Taxonomy; events: EventItem[]; media: MediaItem[] };
 
 export const events = data.events;
 export const taxonomy = data.taxonomy;
+export const media = data.media;
 export const generatedAt = data.generatedAt;
 
 /** "2027-03" in Europe/London, today. */
@@ -72,6 +83,8 @@ export function monthSummaries() {
       count: list.length,
       confirmed: list.filter(e => e.status === 'Confirmed').length,
       free: list.filter(e => e.priceTag === 'Free').length,
+      europe: list.filter(e => e.area === 'Europe').length,
+      awards: list.filter(e => e.format === 'Awards').length,
       formats: Object.entries(formats).sort((a, b) => b[1] - a[1]),
     };
   });

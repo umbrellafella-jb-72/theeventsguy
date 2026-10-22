@@ -52,10 +52,13 @@ export function EventCard({ e, month, past }: { e: EventItem; month: string | nu
         <div className="ev-badges">
           <span className={`badge ${statusTone[e.status]}`}>{e.status}</span>
           <span className="badge">{e.format}</span>
+          {e.area !== 'UK & Ireland' && <span className="badge">{e.area === 'Europe' ? e.region : e.area}</span>}
           <span className={`badge ${priceTone[e.priceTag] || ''}`}>{e.priceTag}</span>
           {past && <span className="badge">Past</span>}
         </div>
         {e.topics.length > 0 && <div className="ev-topics">{e.topics.map(t => <span key={t}>{t}</span>)}</div>}
+        {e.categories && <p className="ev-cats"><b>Categories:</b> {e.categories}</p>}
+        {e.entryDeadline && <p className="ev-cats"><b>Entries:</b> {e.entryDeadline}</p>}
         <div className="ev-more">
           {e.price && e.priceTag !== 'Price not published' && <>Price: {e.price}. </>}
           {e.frequency && <>{e.frequency}. </>}

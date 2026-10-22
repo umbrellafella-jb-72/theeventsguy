@@ -1,20 +1,31 @@
-# EventGuy — UK ecommerce events, month by month
+# EventGuy — UK & European ecommerce events, month by month
 
-A paid, month-by-month guide to UK & Ireland ecommerce events, built with Next.js for Vercel and styled with the EventGuy design system.
+A paid, month-by-month guide to ecommerce events and awards across the UK, Ireland and Europe, plus a directory of podcasts and webinars. Built with Next.js for Vercel and styled with the EventGuy design system.
 
-- **Free visitors** see the current month in full, plus event counts for every other month.
+## What's included
+
+| Sheet tab | Where it appears | Notes |
+|---|---|---|
+| UK & Ireland | The guide, area "UK & Ireland" | |
+| Rest of Europe | The guide, area "Europe" | Region is the country |
+| Awards | The guide, format "Awards" | Adds categories and entry deadlines. Awards also listed on the UK tab are merged into one. US, APAC and MENA awards are skipped for now |
+| Webinars & Podcasts | The Podcasts page (`/listen`) | A directory, not dated. Free visitors see 3 |
+| Americas, Australia & RoW | Not yet | |
+
+- **Free visitors** see the current month in full, event counts for every other month, and the first 3 podcasts.
 - **Subscribers** (Stripe) see every month and the "dates TBC" list. They can filter by tag and add events to their calendar.
 - **Listings refresh monthly** from the Google Sheet through a scheduled GitHub Action. Vercel redeploys on each refresh.
 
 ## Tagging
 
-Every event gets five kinds of tag. They are worked out in `scripts/tagging.mjs` from the sheet's Type, Event, Organiser, City and Price columns.
+Every event gets six kinds of tag. They are worked out in `scripts/tagging.mjs` from the sheet's Type, Event, Organiser, City and Price columns.
 
 | Tag | Values | Based on |
 |---|---|---|
+| Area (one) | UK & Ireland, Europe, Global & online | which tab; for awards, city and scope |
 | Format (one) | Conference & summit, Trade show & expo, Meetup & networking, Dinner & social, Forum & roundtable, Workshop & training, Festival, Awards, Other | `Type` |
 | Topic (any) | AI, Retail, DTC & brands, Marketing, Affiliate & partnerships, Search & SEO, Shopify, Marketplaces & Amazon, Payments & fintech, B2B commerce, Agencies, CX & retention, Fashion & beauty, Logistics & delivery, Data & analytics, Food drink & hospitality, Travel leisure & gaming, Tech & startups, Commerce tech, Ecommerce (general) | keywords in name, organiser, type and notes |
-| Region (one) | London, North West, Yorkshire, Midlands, North East, South & South West, Scotland, Wales, Northern Ireland, Ireland, Online, Multiple cities, Location TBC | `City` |
+| Region or country (one) | UK regions (London, North West, Yorkshire…), Ireland, Online, plus the European country (Germany, Spain, Netherlands…) | `City` |
 | Price (one) | Free, Paid, Invite only, Members only, Price not published | `Price Point` |
 | Date status (one) | Confirmed, Tentative, TBC | `Date Status` |
 
@@ -24,23 +35,33 @@ Events that list several dates, such as monthly series, appear in each of those 
 
 ### Privacy: the Notes column is never published
 
-The sheet's `Notes` column contains private material: contacts, partner terms, "you attended…" and Gmail references. The pipeline reads it only to infer topic tags and never writes it out. Bracketed text in `Organiser` and `2026 / 2025 Reference` is also stripped, because that's where contact details sit. If you want a public description per event, add a `Public summary` column and it can be wired in.
+The sheet's `Notes` column contains private material: contacts, partner terms, "you attended…" and Gmail references. The pipeline reads it only to infer topic tags and never writes it out. The same goes for the Awards tab's `Sponsors / partners` column (sponsorship contacts) and the Webinars tab's `Contact / socials`, `Why plug in`, `Priority` and `Last checked` columns. Bracketed text in `Organiser` and `2026 / 2025 Reference` is also stripped, because that's where contact details sit. If you want a public description per event, add a `Public summary` column and it can be wired in.
 
 ## Monthly refresh
 
 ```bash
-npm run sync -- path/to/export.csv          # one tab as CSV
-npm run sync -- path/to/multi-tab-export     # a "## Sheet name:" export; picks SHEET_TAB
-SHEET_CSV_URL=... npm run sync               # straight from Google Sheets
+npm run sync -- path/to/multi-tab-export     # a "## Sheet name:" export holding every tab
+npm run sync                                  # straight from Google Sheets, one CSV link per tab (below)
 ```
 
 This writes `data/events.json`. The file sits outside `public/`, so it's never served directly. Only the server renders it, and only to visitors who are allowed to see it.
 
-**Automated:** `.github/workflows/monthly-refresh.yml` runs on the 1st of every month, and can also be run on demand from the Actions tab. To set it up, add a repository secret `SHEET_CSV_URL` with this value:
+**Automated:** `.github/workflows/monthly-refresh.yml` runs on the 1st of every month, and can also be run on demand from the Actions tab. Add one repository secret per tab. Each tab's `gid` is the number after `gid=` in the address bar when that tab is open:
+
+| Secret | Tab |
+|---|---|
+| `SHEET_CSV_URL` | UK & Ireland (`gid=0`) |
+| `SHEET_CSV_URL_EUROPE` | Rest of Europe |
+| `SHEET_CSV_URL_AWARDS` | Awards |
+| `SHEET_CSV_URL_MEDIA` | Webinars & Podcasts |
+
+Each value has this form:
 
 ```
-https://docs.google.com/spreadsheets/d/<SHEET_ID>/export?format=csv&gid=0
+https://docs.google.com/spreadsheets/d/<SHEET_ID>/export?format=csv&gid=<TAB_GID>
 ```
+
+A tab with no secret is skipped, and the sync says so.
 
 The export URL only works if the sheet is shared as "Anyone with the link can view". That would expose the Notes column to anyone holding the link. The safer option is a separate sheet that pulls only the public columns with `=IMPORTRANGE(...)`; share that one and point `SHEET_CSV_URL` at it. Running `npm run sync` locally from a downloaded CSV and pushing the result also works.
 
@@ -69,4 +90,4 @@ npm run dev
 
 ## Next tabs
 
-The sync is per tab (`SHEET_TAB`). Adding *Rest of Europe* or *Americas, Australia & RoW* is mostly a matter of extending `regionOf()` with those countries and syncing each tab into the same dataset.
+Adding *Americas, Australia & RoW* means one more entry in the `TABS` list in `scripts/sync.mjs`, a new area, and the country names in `regionOf()`. At that point, also drop the US/APAC/MENA filter on awards.

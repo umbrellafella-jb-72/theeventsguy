@@ -9,9 +9,9 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 export const FORMAT_RULES = [
   ['Awards', /award/i],
   ['Festival', /festival|tech week|conference week/i],
-  ['Trade show & expo', /trade show|expo|exhibition|\bshow\b|fashion \/ retail/i],
+  ['Trade show & expo', /trade show|trade fair|expo|exhibition|\bshow\b|fashion \/ retail/i],
   ['Conference & summit', /conference|summit|congress|symposium|one-day event|half-day|programme day|customer event|talks|\bday\b/i],
-  ['Forum & roundtable', /forum|roundtable|panel|briefing/i],
+  ['Forum & roundtable', /forum|roundtable|panel|briefing|exchange|think tank/i],
   ['Workshop & training', /workshop|training|masterclass|course/i],
   ['Dinner & social', /dinner|lunch|social|drinks|comedy|padel|retreat|evening|supper|party|hospitality|golf/i],
   ['Meetup & networking', /meetup|networking|breakfast|community|club|meetings event|member|partner event|agency leader|morning event/i],
@@ -66,8 +66,10 @@ export function priceOf(p) {
   return 'Price not published';
 }
 
-// ---------- Region ----------
-const REGION_RULES = [
+// ---------- Area & region ----------
+export const AREAS = ['UK & Ireland', 'Europe', 'Global & online'];
+
+const UK_RULES = [
   ['Online', /online|virtual|webinar/i],
   ['Multiple cities', /\band\b|\+|\/|,/],
   ['London', /london|wembley|excel|olympia/i],
@@ -79,19 +81,45 @@ const REGION_RULES = [
   ['Scotland', /edinburgh|glasgow|aberdeen|dundee|scotland/i],
   ['Wales', /cardiff|swansea|newport|wales/i],
   ['Northern Ireland', /belfast|derry/i],
-  ['Ireland', /dublin|cork|galway|limerick|ireland/i],
+  ['Ireland', /dublin|cork|galway|limerick|kinsale|ireland/i],
 ];
-export const REGIONS = [...REGION_RULES.map(r => r[0]), 'Location TBC'];
+const UK_REGIONS = UK_RULES.map(r => r[0]);
 
-export function regionOf(city) {
-  const c = (city || '').trim();
-  if (!c || /^not stated|^uk$|tbc$/i.test(c)) return 'Location TBC';
-  // "London (venue TBC)" or "London (+ Leeds)": judge the part before the bracket first
-  const main = c.replace(/\(.*?\)/g, '').trim();
-  for (const [name, re] of REGION_RULES) {
-    if (name === 'Multiple cities') { if (re.test(main)) return name; continue; }
-    if (re.test(main)) return name;
+// European countries as written in the sheet ("Berlin, Germany", "Malta", "Brno, Czech Republic")
+const COUNTRY_ALIASES = { 'czech republic': 'Czechia', holland: 'Netherlands', 'the netherlands': 'Netherlands', türkiye: 'Turkey' };
+const COUNTRIES = ['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece',
+  'Hungary', 'Iceland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Monaco', 'Netherlands', 'Norway', 'Poland', 'Portugal', 'Romania',
+  'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Turkey', 'Ukraine'];
+export const REGIONS = [...UK_REGIONS, ...COUNTRIES, 'Location TBC'];
+
+// Cities that sometimes appear without their country
+const CITY_COUNTRY = { paris: 'France', berlin: 'Germany', amsterdam: 'Netherlands', barcelona: 'Spain', madrid: 'Spain', milan: 'Italy', munich: 'Germany', stockholm: 'Sweden', copenhagen: 'Denmark', lisbon: 'Portugal', vienna: 'Austria', prague: 'Czechia', warsaw: 'Poland', cannes: 'France' };
+
+function countryOf(city) {
+  const main = (city || '').replace(/\(.*?\)/g, '').trim();
+  if (CITY_COUNTRY[main.toLowerCase()]) return CITY_COUNTRY[main.toLowerCase()];
+  const parts = main.split(',').map(p => p.trim()).filter(Boolean);
+  for (const p of [parts[parts.length - 1], parts[0]]) {
+    if (!p) continue;
+    const k = p.toLowerCase();
+    if (COUNTRY_ALIASES[k]) return COUNTRY_ALIASES[k];
+    const hit = COUNTRIES.find(c => c.toLowerCase() === k);
+    if (hit) return hit;
   }
+  return null;
+}
+
+export function regionOf(city, area = 'UK & Ireland') {
+  const c = (city || '').trim();
+  if (!c || /^not stated|^uk$|tbc$|^tba/i.test(c)) return 'Location TBC';
+  const main = c.replace(/\(.*?\)/g, '').trim();
+  if (/online|virtual/i.test(main)) return 'Online';
+  if (area === 'Europe' || /,\s*[A-Z]/.test(main) || CITY_COUNTRY[main.toLowerCase()]) {
+    if (/ireland/i.test(main)) return 'Ireland';
+    return countryOf(c) || (area === 'Europe' ? 'Location TBC' : 'Location TBC');
+  }
+  // "London (venue TBC)" or "London (+ Leeds)": judge the part before the bracket first
+  for (const [name, re] of UK_RULES) if (re.test(main)) return name;
   return 'Location TBC';
 }
 
@@ -136,9 +164,13 @@ function cleanUrl(u) {
   return /^https?:\/\//i.test(s) ? s : `https://${s}`;
 }
 
-// Public-safe display of the status: just the label; the sheet's detail mentions internal sources.
-export function toEvent(row) {
-  const get = k => (row[k] ?? '').toString().trim();
+const getter = row => k => (row[k] ?? '').toString().trim();
+const manualTagsOf = get => get('Tags').split(/[;,]/).map(t => t.trim()).filter(Boolean); // optional extra column
+
+// ---------- UK & Ireland / Rest of Europe tabs ----------
+// Status shows only its label: the sheet's detail mentions internal sources.
+export function toEvent(row, area = 'UK & Ireland') {
+  const get = getter(row);
   const name = get('Event');
   if (!name) return null;
   const type = get('Type');
@@ -146,18 +178,16 @@ export function toEvent(row) {
   const sortKey = get('Sort key');
   const city = get('City');
   const price = get('Price Point');
-  const manualTags = get('Tags').split(/[;,]/).map(t => t.trim()).filter(Boolean); // optional extra column
-
-  const tagText = [name, get('Organiser'), type, get('Notes')].join(' ');
-  const topics = [...new Set([...topicsOf(tagText), ...manualTags])];
-
+  const topics = [...new Set([...topicsOf([name, get('Organiser'), type, get('Notes')].join(' ')), ...manualTagsOf(get)])];
   return {
     id: `${slug(name)}-${slug(sortKey || dateText)}`,
+    kind: 'event',
     name,
     dates: dateText.replace(/\s*\(2027\)\s*$/, ''),
     months: monthsOf(dateText, sortKey),
     sortKey,
     status: statusOf(get('Date Status')),
+    area,
     city: city.replace(/\s*\((per listing|check)\)\s*/i, '') || 'Not stated',
     venue: get('Venue') || null,
     organiser: stripBrackets(get('Organiser')) || null,
@@ -166,25 +196,129 @@ export function toEvent(row) {
     topics,
     price: price || null,
     priceTag: priceOf(price),
-    region: regionOf(city),
+    region: regionOf(city, area),
     frequency: get('Frequency') || null,
     lastEdition: stripBrackets(get('2026 / 2025 Reference')) || null,
     website: cleanUrl(get('Website')),
   };
 }
 
-export function buildDataset(rows, meta) {
-  const events = rows.map(toEvent).filter(Boolean);
+// ---------- Awards tab ----------
+// Skips awards outside the UK, Europe and global scope (US, APAC, MENA) for now.
+// "Sponsors / partners" (contact names and emails) and "Notes" are never published.
+const OUT_OF_SCOPE = /^(us|usa|apac|mena|americas|latam)\b/i;
+function awardArea(scope, city) {
+  if (/,\s*[A-Z]/.test(city) && !/ireland/i.test(city)) return 'Europe';
+  if (/london|manchester|leeds|birmingham|edinburgh|glasgow|dublin|belfast|cardiff|ireland/i.test(city)) return 'UK & Ireland';
+  if (/^uk/i.test(scope)) return 'UK & Ireland';
+  if (/europe|dach|baltic|netherlands|emea/i.test(scope)) return 'Europe';
+  return 'Global & online';
+}
+export function toAward(row) {
+  const get = getter(row);
+  const name = get('Awards');
+  const scope = get('Scope');
+  if (!name || OUT_OF_SCOPE.test(scope) || /australia/i.test(get('City'))) return null;
+  const dateText = get('Ceremony date');
+  const sortKey = get('Sort key');
+  const city = get('City');
+  const area = awardArea(scope, city);
+  const price = get('Entry fee / tickets');
+  const categories = get('Focus / key categories');
+  return {
+    id: `${slug(name)}-${slug(sortKey || dateText)}`,
+    kind: 'award',
+    name,
+    dates: dateText === 'TBC' ? 'Date TBC' : dateText,
+    months: monthsOf(dateText, sortKey),
+    sortKey,
+    status: statusOf(get('Date status')),
+    area,
+    city: city || (area === 'Global & online' ? 'Online' : 'Not stated'),
+    venue: get('Venue') || null,
+    organiser: stripBrackets(get('Organiser')) || null,
+    type: 'Awards',
+    format: 'Awards',
+    topics: [...new Set([...topicsOf([name, get('Organiser'), categories, get('Notes')].join(' ')), ...manualTagsOf(get)])],
+    price: price || null,
+    priceTag: price ? priceOf(price) : 'Price not published',
+    region: regionOf(city || (area === 'Global & online' ? 'Online' : ''), area),
+    frequency: 'Annual',
+    lastEdition: null,
+    website: cleanUrl(get('Website')),
+    scope: scope || null,
+    categories: categories || null,
+    entryDeadline: /^(check site)?$/i.test(get('Entry deadline(s)')) ? null : get('Entry deadline(s)'),
+  };
+}
+
+// ---------- Webinars & Podcasts tab ----------
+// A directory, not dated events. "Contact / socials", "Why plug in", "Priority" and
+// "Last checked" are private working notes and are never published.
+export const MEDIA_TYPES = ['Podcast', 'Webinars & live training', 'Online summit or launch'];
+function mediaType(t) {
+  if (/podcast/i.test(t)) return 'Podcast';
+  if (/webinar|training/i.test(t)) return 'Webinars & live training';
+  return 'Online summit or launch';
+}
+export function toMedia(row) {
+  const get = getter(row);
+  const name = get('Name');
+  if (!name) return null;
+  const type = get('Type');
+  const focus = get('Focus / audience');
+  const where = get('Where to find it');
+  const url = cleanUrl(where);
+  return {
+    id: slug(name),
+    name: name.replace(/\s*\(check current name\)\s*/i, ''),
+    type,
+    mediaType: mediaType(type),
+    hosts: get('Host(s)') || null,
+    organisation: get('Organisation') || null,
+    based: get('Based') || null,
+    focus: focus || null,
+    frequency: get('Frequency') || null,
+    url,
+    whereText: url ? null : where || null,
+    topics: topicsOf([name, focus, get('Organisation')].join(' ')),
+  };
+}
+
+// ---------- Build ----------
+// The same award often appears on the UK tab and the Awards tab: keep the Awards-tab
+// row (it has categories and deadlines) and fold in the other row's topics.
+const dedupeKey = e => `${e.name.toLowerCase().replace(/\b20\d\d\b/g, '').replace(/^the\s+/, '').replace(/[^a-z0-9]+/g, '')}|${e.months[0] || 'tbc'}`;
+
+export function buildDataset({ events: groups = [], awards = [], media = [] }, meta) {
+  const awardRows = awards.map(toAward).filter(Boolean);
+  const byKey = new Map(awardRows.map(a => [dedupeKey(a), a]));
+  let merged = 0;
+  const events = [];
+  for (const { rows, area } of groups) {
+    for (const row of rows) {
+      const e = toEvent(row, area);
+      if (!e) continue;
+      const twin = e.format === 'Awards' && byKey.get(dedupeKey(e));
+      if (twin) { twin.topics = [...new Set([...twin.topics, ...e.topics])]; twin.website ||= e.website; merged++; continue; }
+      events.push(e);
+    }
+  }
+  events.push(...awardRows);
   const seen = new Map();
   for (const e of events) { // keep ids unique
     const n = seen.get(e.id) || 0; seen.set(e.id, n + 1);
     if (n) e.id = `${e.id}-${n + 1}`;
   }
   events.sort((a, b) => (a.sortKey || '9999').localeCompare(b.sortKey || '9999') || a.name.localeCompare(b.name));
+  const mediaItems = media.map(toMedia).filter(Boolean);
+  const usedRegions = new Set(events.map(e => e.region));
   return {
     generatedAt: new Date().toISOString(),
     ...meta,
-    taxonomy: { formats: FORMATS, topics: TOPICS, regions: REGIONS, prices: PRICES, statuses: STATUSES },
+    stats: { awardsMergedFromEventTabs: merged, awardsSkippedOutOfScope: awards.filter(r => r.Awards).length - awardRows.length },
+    taxonomy: { areas: AREAS, formats: FORMATS, topics: TOPICS, regions: REGIONS.filter(r => usedRegions.has(r)), prices: PRICES, statuses: STATUSES, mediaTypes: MEDIA_TYPES },
     events,
+    media: mediaItems,
   };
 }

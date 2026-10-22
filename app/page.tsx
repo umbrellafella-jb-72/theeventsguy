@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Knot, KnotRule } from '@/components/Knot';
 import { EventCard } from '@/components/EventCard';
 import { getAccess } from '@/lib/access';
-import { currentMonthKey, eventsIn, events, monthLabel, monthSummaries, taxonomy, todayKey } from '@/lib/data';
+import { currentMonthKey, eventsIn, events, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +13,8 @@ export default async function Home() {
   const today = todayKey();
   const upcoming = eventsIn(cur).filter(e => !(e.months.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(e.sortKey) && e.sortKey < today)).slice(0, 4);
   const max = Math.max(...summaries.map(s => s.count));
-  const cities = new Set(events.map(e => e.city.replace(/\s*\(.*\)/, ''))).size;
-  const free = events.filter(e => e.priceTag === 'Free').length;
+  const countries = new Set(events.filter(e => e.area === 'Europe' && e.region !== 'Location TBC').map(e => e.region)).size;
+  const awards = events.filter(e => e.format === 'Awards').length;
   const price = process.env.NEXT_PUBLIC_PRICE_LABEL || 'Monthly subscription';
 
   return (
@@ -22,18 +22,18 @@ export default async function Home() {
       <section className="hero">
         <Knot className="hero-art" rings={4} r={90} stroke={4} />
         <div className="wrap">
-          <div className="eyebrow">UK & Ireland · refreshed monthly</div>
+          <div className="eyebrow">UK, Ireland & Europe · refreshed monthly</div>
           <h1>Every ecommerce event worth knowing, month by month.</h1>
-          <p>Conferences, expos, meetups, retailer dinners and awards — from ExCeL to the Northern Quarter — tagged by format, topic, region and price, so you can plan the year in minutes.</p>
+          <p>Conferences, expos, meetups, retailer dinners and awards nights — from ExCeL to Barcelona — tagged by area, format, topic and price, plus the podcasts and webinars worth your time between them.</p>
           <div className="hero-actions">
             <Link className="btn btn-primary" href="/guide">{access.paid ? 'Open the guide' : `See ${monthLabel(cur)} free`}</Link>
             {!access.paid && <a className="btn btn-secondary" href="#pricing">Subscribe</a>}
           </div>
           <div className="stats">
             <div><b>{events.length}</b><span>events listed</span></div>
-            <div><b>{cities}</b><span>towns & cities</span></div>
-            <div><b>{free}</b><span>free to attend</span></div>
-            <div><b>{taxonomy.topics.length}</b><span>topic tags</span></div>
+            <div><b>{countries}</b><span>European countries</span></div>
+            <div><b>{awards}</b><span>awards with deadlines</span></div>
+            <div><b>{media.length}</b><span>podcasts & webinars</span></div>
           </div>
         </div>
       </section>
@@ -74,9 +74,9 @@ export default async function Home() {
             <div>
               <h2 style={{ fontSize: 32, lineHeight: '38px', marginBottom: 16 }}>Plan your events year properly</h2>
               <div className="faq">
-                <details open><summary>What’s in the guide?</summary><p>Every UK & Ireland ecommerce, retail and digital marketing event we can find — big expos, invite-only retailer dinners, regional meetups and online member sessions — with dates, venue, organiser, price and links.</p></details>
+                <details open><summary>What’s in the guide?</summary><p>Every UK, Irish and European ecommerce, retail and digital marketing event we can find — big expos, invite-only retailer dinners, regional meetups, awards with their entry deadlines — plus a directory of podcasts and webinars.</p></details>
                 <details><summary>How fresh is it?</summary><p>The listings are re-checked and refreshed every month. Each event shows whether its date is confirmed by the organiser, tentative (projected from last year) or still to be announced.</p></details>
-                <details><summary>How do the tags work?</summary><p>Each event has one format (conference, expo, meetup, dinner, awards…), any number of topics (AI, Shopify, DTC, payments, agencies…), a region and a price band. Combine them to narrow the year to what matters to you.</p></details>
+                <details><summary>How do the tags work?</summary><p>Each event has an area (UK & Ireland or Europe), one format (conference, expo, meetup, dinner, awards…), any number of topics (AI, Shopify, DTC, payments, agencies…), a region or country and a price band. Combine them to narrow the year to what matters to you.</p></details>
                 <details><summary>Can I cancel?</summary><p>Yes, any time from “My subscription”. You keep access until the end of the period you’ve paid for.</p></details>
               </div>
             </div>
@@ -85,7 +85,9 @@ export default async function Home() {
               <div className="amount">{price}</div>
               <ul className="ticks">
                 <li>Every month, plus events with dates still to be confirmed</li>
-                <li>Filter by format, topic, region, price and date status</li>
+                <li>Filter by area, format, topic, country, price and date status</li>
+                <li>Awards categories and entry deadlines</li>
+                <li>The full podcasts & webinars directory</li>
                 <li>Add events to your calendar in one click</li>
                 <li>Refreshed every month</li>
               </ul>

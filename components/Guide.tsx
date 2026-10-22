@@ -4,18 +4,19 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EventItem, Taxonomy } from '@/lib/data';
 import { EventCard } from './EventCard';
 
-type Summary = { key: string; label: string; count: number; confirmed: number; free: number; formats: [string, number][] };
-type GroupKey = 'format' | 'topics' | 'region' | 'priceTag' | 'status';
+type Summary = { key: string; label: string; count: number; confirmed: number; free: number; europe: number; awards: number; formats: [string, number][] };
+type GroupKey = 'area' | 'format' | 'topics' | 'region' | 'priceTag' | 'status';
 
 const GROUPS: { key: GroupKey; title: string; tax: keyof Taxonomy }[] = [
+  { key: 'area', title: 'Area', tax: 'areas' },
   { key: 'format', title: 'Format', tax: 'formats' },
   { key: 'topics', title: 'Topic', tax: 'topics' },
-  { key: 'region', title: 'Where', tax: 'regions' },
+  { key: 'region', title: 'Region or country', tax: 'regions' },
   { key: 'priceTag', title: 'Price', tax: 'prices' },
   { key: 'status', title: 'Date status', tax: 'statuses' },
 ];
 
-const emptySel = (): Record<GroupKey, Set<string>> => ({ format: new Set(), topics: new Set(), region: new Set(), priceTag: new Set(), status: new Set() });
+const emptySel = (): Record<GroupKey, Set<string>> => ({ area: new Set(), format: new Set(), topics: new Set(), region: new Set(), priceTag: new Set(), status: new Set() });
 
 function inMonth(e: EventItem, key: string) { return key === 'tbc' ? e.months.length === 0 : e.months.includes(key); }
 
@@ -49,7 +50,7 @@ export default function Guide(props: {
     if (month !== 'all' && !inMonth(e, month)) return false;
     if (hidePast && isPast(e)) return false;
     if (q) {
-      const hay = `${e.name} ${e.city} ${e.venue ?? ''} ${e.organiser ?? ''} ${e.type ?? ''} ${e.topics.join(' ')}`.toLowerCase();
+      const hay = `${e.name} ${e.city} ${e.region} ${e.venue ?? ''} ${e.organiser ?? ''} ${e.type ?? ''} ${e.categories ?? ''} ${e.topics.join(' ')}`.toLowerCase();
       if (!q.toLowerCase().split(/\s+/).every(w => hay.includes(w))) return false;
     }
     for (const g of GROUPS) {
@@ -113,7 +114,7 @@ export default function Guide(props: {
         {!locked && <aside className={`filters${showFilters ? '' : ' collapsed'}`} aria-label="Filters">
           <div className="search">
             <label htmlFor="q">Search</label>
-            <input id="q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Event, organiser, city…" />
+            <input id="q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Event, organiser, city, country…" />
           </div>
           <button className="btn btn-secondary btn-sm filter-toggle" aria-expanded={showFilters} onClick={() => setShowFilters(v => !v)}>
             {showFilters ? 'Hide filters' : `Filter by tag${active.length ? ` (${active.length})` : ''}`}
@@ -141,7 +142,7 @@ export default function Guide(props: {
           {locked && summary ? (
             <div className="lock-panel">
               <h2>{summary.label}: {summary.count} events</h2>
-              <p>{summary.confirmed} confirmed by the organiser, {summary.free} free to attend. Subscribe to see every event, filter by tag and add them to your calendar.</p>
+              <p>{summary.confirmed} confirmed by the organiser, {summary.free} free to attend, {summary.europe} in Europe and {summary.awards} awards. Subscribe to see every event, filter by tag and add them to your calendar.</p>
               <div className="lock-formats">{summary.formats.map(([f, n]) => <span key={f} className="badge">{f} · {n}</span>)}</div>
               {props.paymentsReady
                 ? <form action="/api/checkout" method="post"><button className="btn btn-primary" type="submit">Subscribe — {props.priceLabel}</button></form>
