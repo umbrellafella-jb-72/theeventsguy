@@ -163,7 +163,7 @@ export default function Guide(props: {
               {totalShown === 0 && <div className="empty">No events match these filters. <button className="btn btn-ghost btn-sm" onClick={clearAll}>Clear filters</button></div>}
               {grouped.map(g => (
                 <div key={g.key} className="month-block">
-                  {month === 'all' && <h2>{g.label}<span>{g.items.length} events</span></h2>}
+                  {month === 'all' && <h2>{g.label}<span>{g.items.length} event{g.items.length === 1 ? '' : 's'}</span></h2>}
                   <div className="ev-list">
                     {g.items.map(e => <EventCard key={`${g.key}-${e.id}`} e={e} month={g.key} past={isPast(e)} />)}
                   </div>
