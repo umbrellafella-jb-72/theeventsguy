@@ -93,7 +93,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text
 .stats { display: flex; gap: var(--space-8); flex-wrap: wrap; margin-top: var(--space-8); }
 .stats b { display: block; font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 40px; color: var(--torc); }
 .stats span { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
-.hero-scene { display: block; width: 100%; height: clamp(120px, 24vw, 250px); margin-top: var(--space-4); }
+.hero-scene { display: block; width: 100%; height: clamp(140px, 30vw, 300px); margin-top: var(--space-4); }
 
 .section { padding: var(--space-12) 0 0; }
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-4); margin-bottom: var(--space-6); flex-wrap: wrap; }
