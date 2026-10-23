@@ -1,6 +1,6 @@
-# EventGuy — UK & European ecommerce events, month by month
+# The Events Guy — UK & European ecommerce events, month by month
 
-A paid, month-by-month guide to ecommerce events and awards across the UK, Ireland and Europe, plus a directory of podcasts and webinars. Built with Next.js for Vercel and styled with the EventGuy design system.
+A paid, month-by-month guide to ecommerce events and awards across the UK, Ireland and Europe, plus a directory of podcasts and webinars. Built with Next.js for Vercel and styled with The Events Guy design system.
 
 ## What's included
 
@@ -78,7 +78,7 @@ The export URL only works if the sheet is shared as "Anyone with the link can vi
 1. Push this folder to a private GitHub repo and import it in Vercel. The framework (Next.js) is detected automatically.
 2. Add the environment variables from `.env.example`. At minimum set `ACCESS_SECRET` (`openssl rand -hex 32`), `NEXT_PUBLIC_SITE_URL`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` and `NEXT_PUBLIC_PRICE_LABEL`.
 3. In Stripe, create a Product with a recurring Price and copy its `price_…` ID.
-4. Point eventguy.co.uk at the Vercel project.
+4. Point theeventsguy.co.uk at the Vercel project.
 
 ## Local development
 

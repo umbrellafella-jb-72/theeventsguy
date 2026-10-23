@@ -25,8 +25,8 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         from: process.env.EMAIL_FROM,
         to: email,
-        subject: 'Your EventGuy sign-in link',
-        text: `Here's your link to open EventGuy on this device. It works for 30 minutes.\n\n${link}\n\nIf you didn't ask for this, you can ignore this email.`,
+        subject: 'Your sign-in link for The Events Guy',
+        text: `Here's your link to open The Events Guy on this device. It works for 30 minutes.\n\n${link}\n\nIf you didn't ask for this, you can ignore this email.`,
       }),
     });
   } else {

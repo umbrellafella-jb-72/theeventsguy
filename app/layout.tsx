@@ -5,9 +5,9 @@ import { generatedAt } from '@/lib/data';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'EventGuy — UK & European ecommerce events, month by month',
+  title: 'The Events Guy — UK & European ecommerce events, month by month',
   description: 'Every UK, Irish and European ecommerce conference, expo, meetup, dinner and awards night in one guide, tagged by format, topic, region and price. Refreshed monthly.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://eventguy.co.uk'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://theeventsguy.co.uk'),
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,7 +24,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <header className="site-head">
           <div className="wrap">
-            <Link href="/" className="logo">EventGuy<small>Ecommerce events</small></Link>
+            <Link href="/" className="logo">The Events Guy<small>Ecommerce events</small></Link>
             <nav className="nav" aria-label="Main">
               <Link href="/guide">The guide</Link>
               <Link href="/listen">Podcasts</Link>
@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main>{children}</main>
         <footer className="site-foot">
           <div className="wrap">
-            EventGuy · eventguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
+            The Events Guy · theeventsguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
           </div>
         </footer>
       </body>

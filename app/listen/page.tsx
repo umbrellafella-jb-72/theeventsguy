@@ -3,7 +3,7 @@ import { getAccess } from '@/lib/access';
 import { media, taxonomy } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Webinars & podcasts — EventGuy' };
+export const metadata = { title: 'Webinars & podcasts — The Events Guy' };
 
 const FREE_PREVIEW = 3;
 

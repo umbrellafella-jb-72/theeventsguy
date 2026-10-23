@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const metadata = { title: 'Sign in — EventGuy' };
+export const metadata = { title: 'Sign in — The Events Guy' };
 
 export default async function Restore({ searchParams }: { searchParams: Promise<{ sent?: string; expired?: string }> }) {
   const sp = await searchParams;

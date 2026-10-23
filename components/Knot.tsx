@@ -1,4 +1,4 @@
-/** Interlaced rings — the EventGuy Celtic knot motif. Each ring is drawn over a wider
+/** Interlaced rings — The Events Guy Celtic knot motif. Each ring is drawn over a wider
  *  ground-coloured stroke so it weaves over the one before it. */
 export function Knot({ rings = 3, r = 28, stroke = 3, gap = true, className }: { rings?: number; r?: number; stroke?: number; gap?: boolean; className?: string }) {
   const step = r * 1.25, pad = stroke * 3;

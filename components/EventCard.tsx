@@ -26,8 +26,8 @@ function icsHref(e: EventItem): string | null {
   const end = d.toISOString().slice(0, 10).replace(/-/g, '');
   const esc = (s: string) => s.replace(/[,;\\]/g, m => `\\${m}`).replace(/\n/g, ' ');
   const lines = [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//EventGuy//UK ecommerce events//EN', 'BEGIN:VEVENT',
-    `UID:${e.id}@eventguy.co.uk`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//The Events Guy//UK ecommerce events//EN', 'BEGIN:VEVENT',
+    `UID:${e.id}@theeventsguy.co.uk`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
     `DTSTART;VALUE=DATE:${start}`, `DTEND;VALUE=DATE:${end}`, `SUMMARY:${esc(e.name)}`,
     `LOCATION:${esc([e.venue, e.city].filter(Boolean).join(', '))}`,
     `DESCRIPTION:${esc(`${e.dates} (${e.status})${e.website ? ` — ${e.website}` : ''}`)}`,
