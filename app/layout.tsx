@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getAccess } from '@/lib/access';
 import { generatedAt } from '@/lib/data';
+import { Logo, Ogham } from '@/components/Art';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -19,12 +20,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Saira+Stencil+One&display=swap" rel="stylesheet" />
       </head>
       <body>
         <header className="site-head">
           <div className="wrap">
-            <Link href="/" className="logo">The Events Guy<small>Ecommerce events</small></Link>
+            <Link href="/" className="logo"><Logo /><small>Ecommerce events</small></Link>
             <nav className="nav" aria-label="Main">
               <Link href="/guide">The guide</Link>
               <Link href="/listen">Podcasts</Link>
@@ -37,6 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main>{children}</main>
         <footer className="site-foot">
           <div className="wrap">
+            <div className="sig"><Ogham text="THE EVENTS GUY" height={16} /><span>THE EVENTS GUY · THEEVENTSGUY.CO.UK</span></div>
             The Events Guy · theeventsguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
           </div>
         </footer>

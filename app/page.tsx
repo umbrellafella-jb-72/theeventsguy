@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Knot, KnotRule } from '@/components/Knot';
+import { KnotRule, Ogham, PortScene, Triskele } from '@/components/Art';
 import { EventCard } from '@/components/EventCard';
 import { getAccess } from '@/lib/access';
 import { currentMonthKey, eventsIn, events, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
@@ -20,9 +20,8 @@ export default async function Home() {
   return (
     <>
       <section className="hero">
-        <Knot className="hero-art" rings={4} r={90} stroke={4} />
         <div className="wrap">
-          <div className="eyebrow">UK, Ireland & Europe · refreshed monthly</div>
+          <div className="eyebrow"><Triskele size={18} tone="torc" ground="harbour" ring={false} />UK, Ireland & Europe · refreshed monthly</div>
           <h1>Every ecommerce event worth knowing, month by month.</h1>
           <p>Conferences, expos, meetups, retailer dinners and awards nights — from ExCeL to Barcelona — tagged by area, format, topic and price, plus the podcasts and webinars worth your time between them.</p>
           <div className="hero-actions">
@@ -36,6 +35,7 @@ export default async function Home() {
             <div><b>{media.length}</b><span>podcasts & webinars</span></div>
           </div>
         </div>
+        <PortScene className="hero-scene" />
       </section>
 
       <div className="wrap">
@@ -48,9 +48,10 @@ export default async function Home() {
             {summaries.map(s => (
               <Link key={s.key} href={`/guide?month=${s.key}`} className="month-tile">
                 <h3>{s.key === 'tbc' ? 'Dates TBC' : s.label}</h3>
+                <Ogham className="ogham" text={s.key === 'tbc' ? 'TBC' : s.label.slice(0, 3)} height={14} />
                 <div className="count">{s.count}</div>
                 <div className="bar" aria-hidden="true"><i style={{ width: `${(s.count / max) * 100}%` }} /></div>
-                <span className="muted" style={{ fontSize: 13 }}>{s.confirmed} confirmed · {s.free} free</span>
+                <span className="muted tile-sub">{s.confirmed} confirmed · {s.free} free</span>
                 {!access.paid && s.key !== cur && <span className="locked">Subscribers</span>}
               </Link>
             ))}
