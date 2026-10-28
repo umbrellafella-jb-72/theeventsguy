@@ -7,7 +7,7 @@ function logoFile(): string | null {
     const p = CHARITY.logo.replace(/\.\w+$/, ext);
     if (existsSync(join(process.cwd(), 'public', p))) return p;
   }
-  return null;
+  return CHARITY.logoUrl || null;
 }
 
 export function CharityLogo() {
@@ -15,7 +15,7 @@ export function CharityLogo() {
   return (
     <a className="charity-logo" href={CHARITY.url} target="_blank" rel="noopener noreferrer">
       {src
-        ? <img src={src} alt={CHARITY.name} />
+        ? <img src={src} alt={CHARITY.name} width={600} height={140} />
         : <span className="charity-name">{CHARITY.name}</span>}
     </a>
   );

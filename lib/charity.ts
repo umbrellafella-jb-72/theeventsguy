@@ -7,4 +7,6 @@ export const CHARITY = {
   blurb: 'Forget Me Not provides nursing, therapy, end-of-life and bereavement support to children and families across West Yorkshire, from Russell House in Huddersfield.',
   // Put the charity's logo file here (PNG or SVG, supplied by the charity). Until then the name shows in plain type.
   logo: '/partners/forget-me-not-logo.png',
+  // Used until the file above exists. Hosting a copy yourself is better than loading it from their site.
+  logoUrl: 'https://www.forgetmenotchild.co.uk/app/uploads/2024/05/menu-600x140.png',
 };
