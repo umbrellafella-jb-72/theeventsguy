@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { KnotRule, Ogham, PortScene, Triskele } from '@/components/Art';
 import { EventCard } from '@/components/EventCard';
+import { CharityCallout } from '@/components/CharityCallout';
+import { CHARITY } from '@/lib/charity';
 import { getAccess } from '@/lib/access';
 import { currentMonthKey, eventsIn, events, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
 
@@ -37,6 +39,8 @@ export default async function Home() {
         </div>
         <PortScene className="hero-scene" />
       </section>
+
+      <CharityCallout />
 
       <div className="wrap">
         <section className="section">
@@ -91,6 +95,7 @@ export default async function Home() {
                 <li>The full podcasts & webinars directory</li>
                 <li>Add events to your calendar in one click</li>
                 <li>Refreshed every month</li>
+                <li>{CHARITY.share} of your subscription goes to {CHARITY.name}</li>
               </ul>
               {access.paymentsReady
                 ? <form action="/api/checkout" method="post"><button className="btn btn-primary" type="submit" style={{ width: '100%' }}>Subscribe</button></form>

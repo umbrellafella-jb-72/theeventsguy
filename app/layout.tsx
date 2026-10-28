@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getAccess } from '@/lib/access';
 import { generatedAt } from '@/lib/data';
 import { Logo, Ogham } from '@/components/Art';
+import { CHARITY } from '@/lib/charity';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <footer className="site-foot">
           <div className="wrap">
             <div className="sig"><Ogham text="THE EVENTS GUY" height={16} /><span>THE EVENTS GUY · THEEVENTSGUY.CO.UK</span></div>
+            <p className="foot-charity">{CHARITY.share} of every subscription goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a> (registered charity no. {CHARITY.number}).</p>
             The Events Guy · theeventsguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
           </div>
         </footer>

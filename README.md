@@ -102,3 +102,7 @@ Add a **Speakers** tab to the sheet with the columns in `data/speakers-template.
 - **Bio**: about 300 characters. Longer bios are trimmed. Only publish bios the speaker has written or approved.
 
 Each sync reports any event names it couldn't match. Until the tab exists, the page shows a "profiles are on their way" message.
+
+## Charity partner
+
+Half of every subscription goes to Forget Me Not Children's Hospice (registered charity no. 1110457). The wording lives in `lib/charity.ts`. Put the logo the charity supplies at `public/partners/forget-me-not-logo.png` (or `.svg`); it then replaces the plain-text name on the homepage automatically.
