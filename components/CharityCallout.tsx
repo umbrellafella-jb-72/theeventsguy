@@ -13,7 +13,7 @@ function logoFile(): string | null {
 export function CharityLogo() {
   const src = logoFile();
   return (
-    <a className="charity-logo" href={CHARITY.url} target="_blank" rel="noopener noreferrer">
+    <a className={`charity-logo${src ? ' has-img' : ''}`} href={CHARITY.url} target="_blank" rel="noopener noreferrer">
       {src
         ? <img src={src} alt={CHARITY.name} width={600} height={140} />
         : <span className="charity-name">{CHARITY.name}</span>}
