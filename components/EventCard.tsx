@@ -1,4 +1,4 @@
-import type { EventItem } from '@/lib/data';
+import type { EventItem, SpeakerRef } from '@/lib/data';
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -8,6 +8,8 @@ export function dayIn(e: EventItem, month: string | null): { day: string; mon: s
   if (!target) return null;
   const m = Number(target.slice(5, 7));
   const re = new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+${MON[m - 1]}`);
+  const range = e.dates.match(new RegExp(`\\b(\\d{1,2})(?:\\s*[-–]\\s*|\\s+to\\s+(?:[A-Z][a-z]{2}\\s+)?)\\d{1,2}\\s+${MON[m - 1]}`));
+  if (range) return { day: range[1], mon: MON[m - 1] };
   const hit = e.dates.match(re);
   if (hit) return { day: hit[1], mon: MON[m - 1] };
   const sk = e.sortKey.match(/^\d{4}-(\d{2})-(\d{2})/);
@@ -36,12 +38,12 @@ function icsHref(e: EventItem): string | null {
   return `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join('\r\n'))}`;
 }
 
-export function EventCard({ e, month, past }: { e: EventItem; month: string | null; past?: boolean }) {
+export function EventCard({ e, month, past, speakers }: { e: EventItem; month: string | null; past?: boolean; speakers?: SpeakerRef[] }) {
   const d = dayIn(e, month);
   const ics = e.status !== 'TBC' && e.months.length === 1 ? icsHref(e) : null;
   const where = [e.city, e.venue].filter(Boolean).join(' · ');
   return (
-    <article className={`ev${past ? ' is-past' : ''}`}>
+    <article id={`ev-${e.id}`} className={`ev${past ? ' is-past' : ''}`}>
       <div className={`ev-date${d ? '' : ' tbc'}`} aria-hidden="true">
         {d ? <><b>{d.day}</b><span>{d.mon}</span></> : <b>TBC</b>}
       </div>
@@ -57,6 +59,7 @@ export function EventCard({ e, month, past }: { e: EventItem; month: string | nu
           {past && <span className="badge">Past</span>}
         </div>
         {e.topics.length > 0 && <div className="ev-topics">{e.topics.map(t => <span key={t}>{t}</span>)}</div>}
+        {speakers && speakers.length > 0 && <p className="ev-cats ev-speakers"><b>Speakers:</b> {speakers.map((s, i) => <span key={s.id}>{i ? ', ' : ''}<a href={`/speakers#sp-${s.id}`}>{s.name}</a></span>)}</p>}
         {e.categories && <p className="ev-cats"><b>Categories:</b> {e.categories}</p>}
         {e.entryDeadline && <p className="ev-cats"><b>Entries:</b> {e.entryDeadline}</p>}
         <div className="ev-more">

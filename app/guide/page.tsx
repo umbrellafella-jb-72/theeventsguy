@@ -1,6 +1,6 @@
 import Guide from '@/components/Guide';
 import { getAccess } from '@/lib/access';
-import { currentMonthKey, eventsIn, events, monthSummaries, taxonomy, todayKey } from '@/lib/data';
+import { currentMonthKey, eventsIn, events, monthSummaries, speakersByEvent, taxonomy, todayKey } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'The guide — The Events Guy' };
@@ -34,6 +34,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         initialMonth={initialMonth}
         today={todayKey()}
         paymentsReady={access.paymentsReady}
+        speakers={speakersByEvent()}
         priceLabel={process.env.NEXT_PUBLIC_PRICE_LABEL || 'monthly'}
       />
     </>

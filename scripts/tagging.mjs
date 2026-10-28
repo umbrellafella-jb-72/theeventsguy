@@ -285,12 +285,44 @@ export function toMedia(row) {
   };
 }
 
+// ---------- Speakers tab ----------
+// Columns: Name, Role, Company, Bio, LinkedIn, Event(s). Events are matched by name (several
+// separated by ";"), to the next edition on or after today. LinkedIn must be a profile URL.
+const LINKEDIN = /^https:\/\/(www\.|[a-z]{2}\.)?linkedin\.com\/in\/[A-Za-z0-9_%-]+\/?$/;
+export function toSpeaker(row, events, today) {
+  const get = getter(row);
+  const name = get('Name');
+  if (!name) return null;
+  let li = get('LinkedIn'); if (li && !/^https?:/i.test(li)) li = 'https://' + li.replace(/^\/+/, '');
+  li = li.replace(/^http:/i, 'https:').split('?')[0];
+  const wanted = (get('Event(s)') || get('Events') || get('Event')).split(';').map(t => t.trim().toLowerCase()).filter(Boolean);
+  const matched = [], unmatched = [];
+  for (const w of wanted) {
+    const hits = events.filter(e => e.name.toLowerCase() === w || e.id === w).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+    const next = hits.find(e => (e.sortKey || '') >= today) || hits[hits.length - 1];
+    if (next) matched.push(next.id); else unmatched.push(w);
+  }
+  const bio = get('Bio').replace(/\s+/g, ' ');
+  return {
+    speaker: {
+      id: slug(name),
+      name,
+      role: get('Role') || null,
+      company: get('Company') || null,
+      bio: bio.length > 320 ? bio.slice(0, 317).replace(/\s+\S*$/, '') + '…' : bio || null,
+      linkedin: LINKEDIN.test(li) ? li : null,
+      events: [...new Set(matched)],
+    },
+    unmatched, badLinkedIn: !!li && !LINKEDIN.test(li),
+  };
+}
+
 // ---------- Build ----------
 // The same award often appears on the UK tab and the Awards tab: keep the Awards-tab
 // row (it has categories and deadlines) and fold in the other row's topics.
 const dedupeKey = e => `${e.name.toLowerCase().replace(/\b20\d\d\b/g, '').replace(/^the\s+/, '').replace(/[^a-z0-9]+/g, '')}|${e.months[0] || 'tbc'}`;
 
-export function buildDataset({ events: groups = [], awards = [], media = [] }, meta) {
+export function buildDataset({ events: groups = [], awards = [], media = [], speakers = [] }, meta) {
   const awardRows = awards.map(toAward).filter(Boolean);
   const byKey = new Map(awardRows.map(a => [dedupeKey(a), a]));
   let merged = 0;
@@ -312,13 +344,19 @@ export function buildDataset({ events: groups = [], awards = [], media = [] }, m
   }
   events.sort((a, b) => (a.sortKey || '9999').localeCompare(b.sortKey || '9999') || a.name.localeCompare(b.name));
   const mediaItems = media.map(toMedia).filter(Boolean);
+  const today = new Date().toISOString().slice(0, 10);
+  const sp = speakers.map(r => toSpeaker(r, events, today)).filter(Boolean);
+  const seenSp = new Map();
+  for (const x of sp) { const n = seenSp.get(x.speaker.id) || 0; seenSp.set(x.speaker.id, n + 1); if (n) x.speaker.id += '-' + (n + 1); }
   const usedRegions = new Set(events.map(e => e.region));
   return {
     generatedAt: new Date().toISOString(),
     ...meta,
-    stats: { awardsMergedFromEventTabs: merged, awardsSkippedOutOfScope: awards.filter(r => r.Awards).length - awardRows.length },
+    stats: { awardsMergedFromEventTabs: merged, awardsSkippedOutOfScope: awards.filter(r => r.Awards).length - awardRows.length,
+      speakersUnmatched: sp.flatMap(x => x.unmatched.map(u => `${x.speaker.name}: "${u}"`)), speakersBadLinkedIn: sp.filter(x => x.badLinkedIn).map(x => x.speaker.name) },
     taxonomy: { areas: AREAS, formats: FORMATS, topics: TOPICS, regions: REGIONS.filter(r => usedRegions.has(r)), prices: PRICES, statuses: STATUSES, mediaTypes: MEDIA_TYPES },
     events,
     media: mediaItems,
+    speakers: sp.map(x => x.speaker),
   };
 }

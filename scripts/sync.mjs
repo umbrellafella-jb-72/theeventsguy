@@ -16,6 +16,7 @@ const TABS = [
   { tab: 'Rest of Europe', kind: 'events', area: 'Europe', env: 'SHEET_CSV_URL_EUROPE', key: 'Event' },
   { tab: 'Awards', kind: 'awards', env: 'SHEET_CSV_URL_AWARDS', key: 'Awards' },
   { tab: 'Webinars & Podcasts', kind: 'media', env: 'SHEET_CSV_URL_MEDIA', key: 'Name' },
+  { tab: 'Speakers', kind: 'speakers', env: 'SHEET_CSV_URL_SPEAKERS', key: 'Name', optional: true },
 ];
 
 const input = process.argv[2];
@@ -37,14 +38,14 @@ async function loadTabs() {
     const parts = text.split(/^## Sheet name:\s*/m);
     for (const t of TABS) {
       const hit = parts.find(p => p.split('\n')[0].trim() === t.tab);
-      if (!hit) { console.warn(`! Tab "${t.tab}" not found — skipped`); continue; }
+      if (!hit) { if (!t.optional) console.warn(`! Tab "${t.tab}" not found — skipped`); continue; }
       out[t.tab] = csv(hit.split('\n').slice(1).join('\n'));
     }
     return { out, source: 'file' };
   }
   for (const t of TABS) {
     const url = process.env[t.env];
-    if (!url) { console.warn(`! ${t.env} not set — "${t.tab}" skipped`); continue; }
+    if (!url) { if (!t.optional) console.warn(`! ${t.env} not set — "${t.tab}" skipped`); continue; }
     out[t.tab] = csv(await download(url, t.tab));
   }
   if (!Object.keys(out).length) throw new Error('No tabs loaded. Give a file path or set the SHEET_CSV_URL* variables.');
@@ -61,6 +62,7 @@ const data = buildDataset({
   events: TABS.filter(t => t.kind === 'events' && out[t.tab]).map(t => ({ rows: out[t.tab], area: t.area })),
   awards: out['Awards'] || [],
   media: out['Webinars & Podcasts'] || [],
+  speakers: out['Speakers'] || [],
 }, { source, tabs: TABS.filter(t => out[t.tab]).map(t => t.tab) });
 
 await mkdir(new URL('../data/', import.meta.url), { recursive: true });
@@ -80,3 +82,6 @@ console.log(`  ${data.events.filter(e => !e.months.length).length} with no date 
 console.log(`  ${noTopic.length} with no topic tag — add a "Tags" column to the sheet to set them by hand`);
 const tbc = data.events.filter(e => e.region === 'Location TBC' && e.area === 'Europe').map(e => e.city);
 if (tbc.length) console.log('  Europe locations not recognised:', [...new Set(tbc)].join(' | '));
+console.log(`  Speakers: ${data.speakers.length}${out['Speakers'] ? '' : ' (no Speakers tab yet — see data/speakers-template.csv)'}`);
+if (data.stats.speakersUnmatched.length) console.log('  Speaker events not found (check the event name matches the sheet):', data.stats.speakersUnmatched.join(' | '));
+if (data.stats.speakersBadLinkedIn.length) console.log('  LinkedIn links dropped (need https://www.linkedin.com/in/…):', data.stats.speakersBadLinkedIn.join(', '));

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EventItem, Taxonomy } from '@/lib/data';
 import { EventCard } from './EventCard';
+import type { SpeakerRef } from '@/lib/data';
 
 type Summary = { key: string; label: string; count: number; confirmed: number; free: number; europe: number; awards: number; formats: [string, number][] };
 type GroupKey = 'area' | 'format' | 'topics' | 'region' | 'priceTag' | 'status';
@@ -30,6 +31,7 @@ export default function Guide(props: {
   today: string; // YYYY-MM-DD
   paymentsReady: boolean;
   priceLabel: string;
+  speakers?: Record<string, SpeakerRef[]>;
 }) {
   const { events, summaries, taxonomy, paid, previewMonth, today } = props;
   const [month, setMonth] = useState(props.initialMonth);
@@ -166,7 +168,7 @@ export default function Guide(props: {
                 <div key={g.key} className="month-block">
                   {month === 'all' && <h2>{g.label}<span>{g.items.length} event{g.items.length === 1 ? '' : 's'}</span></h2>}
                   <div className="ev-list">
-                    {g.items.map(e => <EventCard key={`${g.key}-${e.id}`} e={e} month={g.key} past={isPast(e)} />)}
+                    {g.items.map(e => <EventCard key={`${g.key}-${e.id}`} e={e} month={g.key} past={isPast(e)} speakers={props.speakers?.[e.id]} />)}
                   </div>
                 </div>
               ))}

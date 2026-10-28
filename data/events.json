@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-10-22T15:08:37.852Z",
+ "generatedAt": "2026-10-28T14:58:20.682Z",
  "source": "file",
  "tabs": [
   "UK & Ireland",
@@ -9,7 +9,9 @@
  ],
  "stats": {
   "awardsMergedFromEventTabs": 6,
-  "awardsSkippedOutOfScope": 3
+  "awardsSkippedOutOfScope": 3,
+  "speakersUnmatched": [],
+  "speakersBadLinkedIn": []
  },
  "taxonomy": {
   "areas": [
@@ -21131,5 +21133,6 @@
     "Tech & startups"
    ]
   }
- ]
+ ],
+ "speakers": []
 }

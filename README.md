@@ -10,6 +10,7 @@ A paid, month-by-month guide to ecommerce events and awards across the UK, Irela
 | Rest of Europe | The guide, area "Europe" | Region is the country |
 | Awards | The guide, format "Awards" | Adds categories and entry deadlines. Awards also listed on the UK tab are merged into one. US, APAC and MENA awards are skipped for now |
 | Webinars & Podcasts | The Podcasts page (`/listen`) | A directory, not dated. Free visitors see 3 |
+| Speakers (optional) | The Speakers page (`/speakers`), plus a "Speakers:" line on each event card | Columns: Name, Role, Company, Bio, LinkedIn, Event(s). See `data/speakers-template.csv` |
 | Americas, Australia & RoW | Not yet | |
 
 - **Free visitors** see the current month in full, event counts for every other month, and the first 3 podcasts.
@@ -91,3 +92,13 @@ npm run dev
 ## Next tabs
 
 Adding *Americas, Australia & RoW* means one more entry in the `TABS` list in `scripts/sync.mjs`, a new area, and the country names in `regionOf()`. At that point, also drop the US/APAC/MENA filter on awards.
+
+## Speaker profiles
+
+Add a **Speakers** tab to the sheet with the columns in `data/speakers-template.csv`, and a `SHEET_CSV_URL_SPEAKERS` secret for its CSV link.
+
+- **Event(s)**: the event name exactly as it appears on the events tabs. Separate several names with `;`. Each speaker is linked to the next edition of each event, so a profile's "Speaking at" link opens that event in the guide, and the event card lists its speakers with links back to their profiles.
+- **LinkedIn**: must be a profile address (`https://www.linkedin.com/in/…`). Any other link is dropped, and the sync names the speakers affected.
+- **Bio**: about 300 characters. Longer bios are trimmed. Only publish bios the speaker has written or approved.
+
+Each sync reports any event names it couldn't match. Until the tab exists, the page shows a "profiles are on their way" message.

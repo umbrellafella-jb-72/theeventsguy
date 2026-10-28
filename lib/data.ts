@@ -26,6 +26,9 @@ export type EventItem = {
   entryDeadline?: string | null;
 };
 
+export type Speaker = { id: string; name: string; role: string | null; company: string | null; bio: string | null; linkedin: string | null; events: string[] };
+export type SpeakerRef = { id: string; name: string };
+
 export type MediaItem = {
   id: string; name: string; type: string; mediaType: string; hosts: string | null; organisation: string | null;
   based: string | null; focus: string | null; frequency: string | null; url: string | null; whereText: string | null; topics: string[];
@@ -34,11 +37,25 @@ export type MediaItem = {
 export type Taxonomy = { areas: string[]; formats: string[]; topics: string[]; regions: string[]; prices: string[]; statuses: string[]; mediaTypes: string[] };
 
 export const TBC = 'tbc';
-const data = dataset as unknown as { generatedAt: string; tabs: string[]; taxonomy: Taxonomy; events: EventItem[]; media: MediaItem[] };
+const data = dataset as unknown as { generatedAt: string; tabs: string[]; taxonomy: Taxonomy; events: EventItem[]; media: MediaItem[]; speakers?: Speaker[] };
 
 export const events = data.events;
 export const taxonomy = data.taxonomy;
 export const media = data.media;
+export const speakers: Speaker[] = data.speakers ?? [];
+export const eventById = new Map(events.map(e => [e.id, e]));
+
+/** eventId → the speakers on it, for the event cards. */
+export function speakersByEvent(): Record<string, SpeakerRef[]> {
+  const out: Record<string, SpeakerRef[]> = {};
+  for (const s of speakers) for (const id of s.events) (out[id] ||= []).push({ id: s.id, name: s.name });
+  return out;
+}
+
+/** Where an event lives in the guide: its first month (or the TBC list) plus its anchor. */
+export function eventHref(e: EventItem): string {
+  return `/guide?month=${e.months[0] ?? TBC}#ev-${e.id}`;
+}
 export const generatedAt = data.generatedAt;
 
 /** "2027-03" in Europe/London, today. */
