@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
@@ -13,7 +13,12 @@ export const metadata: Metadata = {
   title: 'The Events Guy — UK & European ecommerce events, month by month',
   description: 'Every UK, Irish and European ecommerce conference, expo, meetup, dinner and awards night in one guide, tagged by format, topic, region and price. Refreshed monthly.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://theeventsguy.co.uk'),
+  applicationName: 'The Events Guy',
+  appleWebApp: { title: 'Events Guy', capable: true, statusBarStyle: 'black-translucent' },
 };
+
+// Harbour in the browser bar and the phone's status bar, to match the icon.
+export const viewport: Viewport = { themeColor: '#17262b' };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const access = await getAccess();

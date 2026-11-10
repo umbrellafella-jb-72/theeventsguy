@@ -12,7 +12,7 @@ const CHECKED = 'eg_renew_checked';
 // Environment Variables), every page asks for them with the browser's login box. Remove both to
 // open the site. Vercel's scheduled jobs (/api/cron) still get through; browsers remember the
 // login, so Stripe checkout returns and emailed sign-in links work as normal.
-const OPEN_PATHS = [/^\/api\/cron\//, /^\/favicon/, /^\/robots\.txt$/];
+const OPEN_PATHS = [/^\/api\/cron\//, /^\/favicon/, /^\/robots\.txt$/, /^\/icon\.svg$/, /^\/apple-icon/, /^\/icons\//, /^\/manifest\.webmanifest$/];
 function sameText(a: string, b: string) {
   let diff = a.length ^ b.length;
   for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
