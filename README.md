@@ -171,3 +171,7 @@ The rules live in `lib/permissions.ts` (`can(user, permission)`), and every writ
 - **Reports:** anyone can report a profile or opportunity; admins see them under Admin → Reports.
 - **Admin** (`/admin`): approvals queue, all content (approve, edit, hide, remove), users (roles, suspend/restore), reports, reporting.
 - **Settings:** `ADMIN_EMAILS` (comma-separated). Accounts need the member database (Upstash Redis — see above) and Resend for sign-in emails.
+
+## Password-protecting the site before launch
+
+Set `SITE_USERNAME` and `SITE_PASSWORD` in Vercel (Settings → Environment Variables) and redeploy: every page, image and API then asks for them with the browser's login box, and search engines are told not to index it. Vercel's scheduled jobs (`/api/cron`) still run. To launch, delete both variables and redeploy.
