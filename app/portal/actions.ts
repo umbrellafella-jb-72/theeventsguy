@@ -10,7 +10,8 @@ import {
 import { eventById, eventIdFrom } from '@/lib/data';
 import { sendEmail } from '@/lib/email';
 import { siteUrl } from '@/lib/stripe';
-import { newId } from '@/lib/store';
+import { newId, safePath, tooMany } from '@/lib/store';
+import { headers } from 'next/headers';
 
 const str = (f: FormData, k: string, max = 2000) => String(f.get(k) ?? '').trim().slice(0, max);
 async function me(next = '/account'): Promise<User> {
@@ -109,6 +110,7 @@ export async function sendEnquiry(f: FormData) {
   if (type === 'sponsor' && can(u, 'directory.sponsors')) { const p = await getSponsor(id); if (p?.status === 'published') { to = p.userId; label = p.company; } }
   if (type === 'opportunity' && can(u, 'opportunity.seeDetails')) { const o = await getOpp(id); if (o?.status === 'published') { to = o.ownerId; label = o.title; } }
   const body = str(f, 'message', 3000);
+  if (await tooMany(`enquiry:${u.id}`, 20, 86400)) redirect(`/portal/enquire?type=${type}&id=${id}&error=slow`);
   if (!to || to === u.id || !body) redirect(`/portal/enquire?type=${type}&id=${id}&error=1`);
   const enq = await createEnquiry({ from: u.id, to, subject: str(f, 'subject', 140) || `About: ${label}`, about: { type, id, label }, messages: [{ from: u.id, body, at: new Date().toISOString() }] });
   await notify(to, enq.subject, enq.id);
@@ -135,10 +137,14 @@ async function notify(userId: string, subject: string, enqId: string) {
 // ---------- Reports (anyone, signed in or not) ----------
 export async function reportContent(f: FormData) {
   const u = await sessionUser();
+  const h = await headers();
+  // At most 10 reports an hour from one person or IP address, so the admin queue can't be flooded.
+  if (await tooMany(`report:${u?.id ?? (h.get('x-real-ip') || h.get('x-forwarded-for')?.split(',')[0] || 'unknown')}`, 10, 3600)) redirect('/?reported=1');
   const type = str(f, 'type', 20) as 'speaker' | 'sponsor' | 'opportunity' | 'user';
   if (!['speaker', 'sponsor', 'opportunity', 'user'].includes(type)) redirect('/');
   await createReport({ by: u?.id ?? null, target: { type, id: str(f, 'id', 60), label: str(f, 'label', 140) }, reason: str(f, 'reason', 1000) || 'No reason given' });
-  redirect(`${str(f, 'back', 200).startsWith('/') ? str(f, 'back', 200) : '/'}${str(f, 'back', 200).includes('?') ? '&' : '?'}reported=1`);
+  const back = safePath(str(f, 'back', 200), '/');
+  redirect(`${back}${back.includes('?') ? '&' : '?'}reported=1`);
 }
 
 // ---------- Saved searches ----------

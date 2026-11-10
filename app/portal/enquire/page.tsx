@@ -21,7 +21,7 @@ export default async function Enquire({ searchParams }: { searchParams: Promise<
         <div className="lock-panel"><h2>Enquiries to {label} need the {needs} role</h2><p>Switch it on in your account — it’s free.</p><Link className="btn btn-primary" href="/account#roles">Go to my roles</Link></div>
       ) : (
         <form action={sendEnquiry} className="pform">
-          {sp.error && <p className="note">Add a message and try again.</p>}
+          {sp.error && <p className="note">{sp.error === 'slow' ? 'You’ve sent a lot of enquiries today. Please try again tomorrow.' : 'Add a message and try again.'}</p>}
           <p>To: <b>{label}</b>. They’ll get an email to say you’ve been in touch and can reply here. Your email address isn’t shared.</p>
           <input type="hidden" name="type" value={type} /><input type="hidden" name="id" value={id} />
           <label>Subject<input name="subject" maxLength={140} defaultValue={`About: ${label}`} /></label>

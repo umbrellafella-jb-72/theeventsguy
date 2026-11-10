@@ -64,6 +64,7 @@ export function HostOffer({ listed, counts }: { listed?: boolean; counts: { even
           <div className="enquiry" id="host-form"><h2>Thanks — your event is with us</h2><p className="muted">We review every event and reply by email, usually within a couple of working days.</p></div>
         ) : (
           <form className="enquiry" id="host-form" action="/api/enquire" method="post">
+            <div className="hp" aria-hidden="true"><label>Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label></div>
             <h2>List my event</h2>
             <input type="hidden" name="from" value="services" />
             <input type="hidden" name="kind" value="host" />

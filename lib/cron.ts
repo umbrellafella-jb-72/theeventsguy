@@ -1,10 +1,12 @@
+import { timingSafeEqual } from 'node:crypto';
 import { longToken } from './access';
 import { siteUrl } from './stripe';
 
 /** Vercel Cron sends "Authorization: Bearer $CRON_SECRET". Anything else is refused. */
 export function cronAllowed(req: Request) {
   const s = process.env.CRON_SECRET;
-  return Boolean(s) && req.headers.get('authorization') === `Bearer ${s}`;
+  const a = Buffer.from(req.headers.get('authorization') || ''), b = Buffer.from(`Bearer ${s}`);
+  return Boolean(s) && a.length === b.length && timingSafeEqual(a, b);
 }
 
 export function memberLinks(userId: string) {

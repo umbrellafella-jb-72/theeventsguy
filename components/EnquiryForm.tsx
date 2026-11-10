@@ -4,6 +4,7 @@ export function EnquiryForm({ interest, sent, from }: { interest?: string; sent?
   if (sent) return <div className="enquiry"><h2>Thanks — we have your message</h2><p className="muted">We will reply by email, usually within a couple of working days.</p></div>;
   return (
     <form className="enquiry" action="/api/enquire" method="post">
+            <div className="hp" aria-hidden="true"><label>Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label></div>
       <h2>Get in touch</h2>
       <input type="hidden" name="from" value={from} />
       <div className="field-row">

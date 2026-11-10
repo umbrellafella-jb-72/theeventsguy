@@ -169,7 +169,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text
 .month-block > h2 { font-size: 28px; line-height: 32px; font-weight: 800; text-transform: uppercase; margin-bottom: var(--space-3); display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
 .month-block > h2 span { font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .06em; color: var(--ink-muted); }
 .ev-list { display: grid; gap: var(--space-3); }
-.ev { display: grid; grid-template-columns: 64px 1fr; gap: var(--space-4); background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-4); }
+.ev { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: var(--space-4); background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-4); }
 .ev.is-past { opacity: .6; }
 /* the stencilled date plate */
 .ev-date { background: var(--harbour); color: var(--on-harbour); border-radius: var(--radius-md); text-align: center; padding: 8px 4px 6px; align-self: start; }
@@ -209,7 +209,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text
   .nav { flex-wrap: wrap; margin-left: -6px; }
   .nav a, .nav button { padding: 4px 6px; font-size: 15px; }
   .site-head .wrap { height: auto; flex-wrap: wrap; row-gap: 4px; padding-block: var(--space-3) var(--space-2); }
-  .ev { grid-template-columns: 52px 1fr; gap: var(--space-3); }
+  .ev { grid-template-columns: 52px minmax(0, 1fr); gap: var(--space-3); }
 }
 .layout.no-filters { grid-template-columns: 1fr; }
 
@@ -668,3 +668,10 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 .welcome-billing form { display: inline; }
 .linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--glen); text-decoration: underline; cursor: pointer; }
 @media (max-width: 560px) { .welcome-charity { flex-direction: column; align-items: flex-start; } }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.admin-filter { flex-wrap: wrap; }
+.layout { grid-template-columns: minmax(0, 1fr); }
+.filters { min-width: 0; }
+@media (min-width: 960px) { .layout { grid-template-columns: 280px minmax(0, 1fr); } }
+.ev-list { grid-template-columns: minmax(0, 1fr); }
+.ev { min-width: 0; }

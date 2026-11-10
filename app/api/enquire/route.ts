@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { siteUrl } from '@/lib/stripe';
+import { clientIp, tooMany } from '@/lib/store';
 
 // Services and Sponsors enquiries. Emailed through Resend when configured, else logged.
 export async function POST(req: Request) {
@@ -10,6 +11,9 @@ export async function POST(req: Request) {
   const host = get('kind') === 'host';
   const anchor = host ? 'host-form' : 'enquire';
   const back = NextResponse.redirect(`${siteUrl(req)}/${from}?${host ? 'listed' : 'sent'}=1#${anchor}`, 303);
+  // Bots fill the hidden field; they get the normal thank-you but nothing is sent.
+  // People are limited to 5 enquiries an hour per IP address.
+  if (get('company_url') || await tooMany(`enquire:${clientIp(req)}`, 5, 3600)) return back;
   const email = get('email');
   const ok = get('name') && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (host ? /^https?:\/\/\S+\.\S+/.test(get('link')) && get('event') : get('message'));
   if (!ok) return NextResponse.redirect(`${siteUrl(req)}/${from}#${anchor}`, 303);

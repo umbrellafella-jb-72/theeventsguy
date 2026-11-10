@@ -46,7 +46,7 @@ export default async function WelcomePage() {
 
       <div className="wrap section welcome">
         <dl className="welcome-facts">
-          {u && <div><dt>Signed in as</dt><dd>{u.email}</dd></div>}
+          {u ? <div><dt>Signed in as</dt><dd>{u.email}</dd></div> : <div><dt>Your account</dt><dd>Check your email for a link to sign in on any device</dd></div>}
           {renews && <div><dt>Renews on</dt><dd>{renews}</dd></div>}
           <div><dt>Receipt</dt><dd>Stripe has emailed it to you</dd></div>
         </dl>
