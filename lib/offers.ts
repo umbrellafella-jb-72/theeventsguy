@@ -45,4 +45,42 @@ export const SPONSOR_RULES = [
   'One sponsor per slot, so you are never one logo in a crowd.',
 ];
 
-export const INTERESTS = ['Your events plan', 'Sponsorship & exhibiting advice', 'Featured listing', 'Team access', 'Sponsoring The Events Guy', 'Something else'];
+export const INTERESTS = ['Your events plan', 'Sponsorship & exhibiting advice', 'Featured listing', 'Free event listing', 'Partner event listing (paid)', 'Team access', 'Sponsoring The Events Guy', 'Something else'];
+
+// "List your event" — the organiser offer on the Services page. Free for every approved event; Partner is paid.
+// Prices aren't published: Partner is quoted per event. Edit freely.
+export const HOST_STEPS = [
+  { title: 'Listed in the right month', when: 'Once approved', partner: false, body: 'Your event goes into the guide under its month, tagged by format, topic, area and price, so the ecommerce people searching for exactly that find it.' },
+  { title: 'Kept accurate', when: 'Every month', partner: false, body: 'Dates, prices and whether the date is confirmed come straight from you and are re-checked at every monthly refresh. No out-of-date listings.' },
+  { title: 'Speaker and judge profiles', when: 'Before the event', partner: false, body: 'Send us your line-up and each speaker or judge gets a profile with their bio and LinkedIn, linking back to your event.' },
+  { title: 'Featured to subscribers', when: 'While tickets are on sale', partner: true, body: 'Top of its month with a Featured tag, your own description and a booking link, in front of people who pay to plan their events year.' },
+  { title: 'In the monthly update and on the homepage', when: 'The month before', partner: true, body: 'A slot in the email that tells subscribers what’s new, and a place in “Coming up this month” on the homepage.' },
+];
+
+export const HOST_TIERS = [
+  { feature: 'Listing in the guide, tagged and searchable', free: true, partner: true },
+  { feature: 'Dates and prices kept up to date', free: true, partner: true },
+  { feature: 'Speaker and judge profiles', free: true, partner: true },
+  { feature: 'Awards: entry deadlines, categories and how to enter', free: true, partner: true },
+  { feature: 'Featured tag and top-of-month placement', free: false, partner: true },
+  { feature: 'Your own description and booking link', free: false, partner: true },
+  { feature: 'Monthly update email and homepage slot', free: false, partner: true },
+];
+
+export const HOST_FAQ = [
+  { q: 'Which events can be listed?', a: 'Ecommerce, retail and digital events and awards in the UK, Ireland and Europe: conferences, expos, meetups, retailer dinners, roundtables, awards and online summits. We approve every listing to keep the guide useful.' },
+  { q: 'How quickly does it go live?', a: 'Approved events go in at the next monthly refresh. Partner placements are booked against a month, so the earlier you ask, the more choice you have.' },
+  { q: 'What does Partner cost?', a: 'It depends on the month and the size of the event, so we quote each one. Tell us about your event and we’ll come back with a price.' },
+  { q: 'Does paying change what you say about my event?', a: 'No. Partner placements are always labelled, and paid or not, every event is listed with the same facts: dates, venue, price and whether the date is confirmed.' },
+];
+
+export const HOST_INTERESTS = ['Free listing', 'Partner (paid)'];
+
+// Sponsors shown on the Sponsors page, in order. Add one line per sponsor: put the logo in
+// public/partners/ and add `url` once you have their link. `plate` matches the logo's own background. Open slots fill the row up to SPONSOR_SLOTS.
+export const SPONSORS: { name: string; logo: string; url?: string; plate?: string }[] = [
+  { name: 'Volta', logo: '/partners/volta-logo.png', plate: '#eeebe4' },
+  { name: 'Gain Ratio', logo: '/partners/gain-ratio-logo.png', plate: '#efecec' },
+  { name: 'The Digital Facilitators', logo: '/partners/digital-facilitators-logo.png', plate: '#f7f7f7' },
+];
+export const SPONSOR_SLOTS = 4;

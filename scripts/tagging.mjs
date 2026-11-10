@@ -167,6 +167,51 @@ function cleanUrl(u) {
 const getter = row => k => (row[k] ?? '').toString().trim();
 const manualTagsOf = get => get('Tags').split(/[;,]/).map(t => t.trim()).filter(Boolean); // optional extra column
 
+// ---------- Industry / sector ----------
+// The sector an event serves, as distinct from its topic. Read from the optional "Sector" column
+// (several separated by ; or ,), otherwise worked out from the name, organiser and notes.
+export const SECTORS = ['Retail', 'Fashion & beauty', 'Food, drink & hospitality', 'Travel, leisure & gaming', 'B2B & wholesale', 'Financial services', 'Brands & DTC', 'Cross-sector'];
+const SECTOR_RULES = [
+  ['Retail', /retail|grocer|supermarket|high street|store|shop(?!ify)/i],
+  ['Fashion & beauty', /fashion|beauty|apparel|luxury|cosmetic/i],
+  ['Food, drink & hospitality', /beer|food|drink|hotel|restaurant|catering|hospitality|f&b|scothot|wine|spirits/i],
+  ['Travel, leisure & gaming', /travel|\bwtm\b|gaming|leisure|tourism|igaming/i],
+  ['B2B & wholesale', /\bb2b\b|wholesale|manufactur|distribut/i],
+  ['Financial services', /payment|fintech|banking|finance|insur|merchant risk|\bmrc\b/i],
+  ['Brands & DTC', /\bdtc\b|\bd2c\b|direct.to.consumer|\bbrands?\b/i],
+];
+export function sectorsOf(text, explicit = '') {
+  const given = explicit.split(/[;,]/).map(t => t.trim()).filter(Boolean);
+  if (given.length) return given;
+  const hits = SECTOR_RULES.filter(([, re]) => re.test(text)).map(([n]) => n);
+  return hits.length ? hits : ['Cross-sector'];
+}
+
+// ---------- Optional detail columns (any events or awards tab) ----------
+// Description, Start time, End time (24h "09:30"), Booking link, Sponsors (names separated by ;),
+// Social links (URLs separated by spaces or ;), Organiser website, Sector, Featured ("Yes"),
+// Hero image and Hero video (URLs, for the homepage featured-event hero).
+const SOCIAL = [['LinkedIn', /linkedin\.com/i], ['X', /(twitter|x)\.com/i], ['Instagram', /instagram\.com/i], ['Facebook', /facebook\.com/i], ['YouTube', /youtube\.com|youtu\.be/i], ['TikTok', /tiktok\.com/i]];
+const timeOf = t => { const m = t.match(/^(\d{1,2})[:.](\d{2})/); return m && +m[1] < 24 ? `${m[1].padStart(2, '0')}:${m[2]}` : null; };
+function detailsOf(get, text) {
+  const socials = get('Social links').split(/[\s;,]+/).map(cleanUrl).filter(Boolean)
+    .map(url => ({ label: (SOCIAL.find(([, re]) => re.test(url)) || ['Link'])[0], url }));
+  return {
+    description: get('Description').replace(/\s+/g, ' ') || null,
+    startTime: timeOf(get('Start time')),
+    endTime: timeOf(get('End time')),
+    bookingUrl: cleanUrl(get('Booking link')),
+    sponsors: get('Sponsors').split(';').map(t => t.trim()).filter(Boolean),
+    socials,
+    organiserUrl: cleanUrl(get('Organiser website')),
+    sectors: sectorsOf(text, get('Sector')),
+    featured: /^(y|yes|true|1|featured)$/i.test(get('Featured')),
+    // Featured hero media: an image URL and/or an .mp4/.webm video URL (muted, looping)
+    heroImage: cleanUrl(get('Hero image')),
+    heroVideo: cleanUrl(get('Hero video')),
+  };
+}
+
 // ---------- UK & Ireland / Rest of Europe tabs ----------
 // Status shows only its label: the sheet's detail mentions internal sources.
 export function toEvent(row, area = 'UK & Ireland') {
@@ -200,6 +245,7 @@ export function toEvent(row, area = 'UK & Ireland') {
     frequency: get('Frequency') || null,
     lastEdition: stripBrackets(get('2026 / 2025 Reference')) || null,
     website: cleanUrl(get('Website')),
+    ...detailsOf(get, [name, get('Organiser'), type, get('Notes')].join(' ')),
   };
 }
 
@@ -249,6 +295,14 @@ export function toAward(row) {
     scope: scope || null,
     categories: categories || null,
     entryDeadline: /^(check site)?$/i.test(get('Entry deadline(s)')) ? null : get('Entry deadline(s)'),
+    // Optional columns: add them to the Awards tab when you have them.
+    // Judges: names separated by semicolons ("Jane Doe; Sam Lee"). Names that match a speaker
+    // profile link to it, and anyone on the Speakers tab listing this award shows as a judge too.
+    judges: get('Judges').split(';').map(n => n.trim()).filter(Boolean),
+    entryUrl: cleanUrl(get('Entry link')),
+    eligibility: get('Eligibility') || null,
+    howToEnter: get('How to enter') || null,
+    ...detailsOf(get, [name, get('Organiser'), categories, get('Notes')].join(' ')),
   };
 }
 
@@ -354,7 +408,7 @@ export function buildDataset({ events: groups = [], awards = [], media = [], spe
     ...meta,
     stats: { awardsMergedFromEventTabs: merged, awardsSkippedOutOfScope: awards.filter(r => r.Awards).length - awardRows.length,
       speakersUnmatched: sp.flatMap(x => x.unmatched.map(u => `${x.speaker.name}: "${u}"`)), speakersBadLinkedIn: sp.filter(x => x.badLinkedIn).map(x => x.speaker.name) },
-    taxonomy: { areas: AREAS, formats: FORMATS, topics: TOPICS, regions: REGIONS.filter(r => usedRegions.has(r)), prices: PRICES, statuses: STATUSES, mediaTypes: MEDIA_TYPES },
+    taxonomy: { areas: AREAS, formats: FORMATS, topics: TOPICS, sectors: SECTORS, regions: REGIONS.filter(r => usedRegions.has(r)), prices: PRICES, statuses: STATUSES, mediaTypes: MEDIA_TYPES },
     events,
     media: mediaItems,
     speakers: sp.map(x => x.speaker),

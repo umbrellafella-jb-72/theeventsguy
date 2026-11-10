@@ -66,7 +66,16 @@ const data = buildDataset({
 }, { source, tabs: TABS.filter(t => out[t.tab]).map(t => t.tab) });
 
 await mkdir(new URL('../data/', import.meta.url), { recursive: true });
+
+// What's new since the last refresh, for the "new events" email (app/api/cron/digest).
+// The first run has nothing to compare with, so it records no additions.
+let previous = null;
+try { previous = JSON.parse(await readFile(new URL('../data/events.json', import.meta.url), 'utf8')); } catch {}
+const before = new Set((previous?.events ?? []).map(e => e.id));
+const added = previous ? data.events.filter(e => !before.has(e.id)).map(e => e.id) : [];
 await writeFile(new URL('../data/events.json', import.meta.url), JSON.stringify(data, null, 1));
+await writeFile(new URL('../data/changes.json', import.meta.url), JSON.stringify({ generatedAt: data.generatedAt, added }, null, 1));
+console.log(`  New since last refresh: ${added.length}`);
 
 // Report: what to tidy in the sheet next month.
 const count = k => data.events.reduce((m, e) => ((m[e[k]] = (m[e[k]] || 0) + 1), m), {});

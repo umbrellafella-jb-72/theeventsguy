@@ -3,7 +3,10 @@ import { cookies } from 'next/headers';
 
 export const COOKIE = 'eg_access';
 
-type Token = { c: string; e: number; t: 'access' | 'restore' };
+// access: the browser's sign-in. restore: a 30-minute sign-in link. feed: a member's private calendar
+// feed URL. prefs: the one-click email opt-out link.
+// session: a signed-in account (c = user id). login: a 30-minute emailed sign-in link (c = email).
+export type Token = { c: string; e: number; t: 'access' | 'restore' | 'feed' | 'prefs' | 'session' | 'login' };
 
 function secret(): string {
   const s = process.env.ACCESS_SECRET;
@@ -33,14 +36,19 @@ export function verify(token: string | undefined, type: Token['t']): Token | nul
   } catch { return null; }
 }
 
-export type Access = { paid: boolean; open: boolean; customer: string | null; paymentsReady: boolean };
+export type Access = { paid: boolean; open: boolean; customer: string | null; paymentsReady: boolean; paidUntil: number };
 
 export async function getAccess(): Promise<Access> {
   const paymentsReady = Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID && process.env.ACCESS_SECRET);
-  if (process.env.ACCESS_MODE === 'open') return { paid: true, open: true, customer: null, paymentsReady };
+  if (process.env.ACCESS_MODE === 'open') return { paid: true, open: true, customer: null, paymentsReady, paidUntil: 0 };
   const jar = await cookies();
   const tok = verify(jar.get(COOKIE)?.value, 'access');
-  return { paid: Boolean(tok), open: false, customer: tok?.c ?? null, paymentsReady };
+  if (tok) return { paid: true, open: false, customer: tok.c, paymentsReady, paidUntil: tok.e - 3 * 86400 };
+  // Signed in on a device without the access cookie: the account's membership still counts.
+  const { sessionUser } = await import('./users');
+  const u = await sessionUser();
+  const live = Boolean(u && u.customer && u.paidUntil + 3 * 86400 > Date.now() / 1000);
+  return { paid: live, open: false, customer: live ? u!.customer : null, paymentsReady, paidUntil: live ? u!.paidUntil : 0 };
 }
 
 /** Cookie lasts until the paid period ends, plus a few days' grace for renewals. */
@@ -52,3 +60,6 @@ export function accessCookie(customer: string, periodEnd: number) {
     options: { httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/', expires: new Date(e * 1000) },
   };
 }
+
+/** Long-lived signed links (calendar feed, email opt-out). Ten years; revoke by rotating ACCESS_SECRET. */
+export const longToken = (customer: string, t: 'feed' | 'prefs') => sign({ c: customer, e: Math.floor(Date.now() / 1000) + 3650 * 86400, t });

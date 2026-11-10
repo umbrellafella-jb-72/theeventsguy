@@ -20,14 +20,14 @@ export function SpeakerCard({ s, events, example }: { s: Speaker; events: EventI
         {example && <span className="badge badge-torc">Example</span>}
       </div>
       {s.bio && <p className="speaker-bio">{s.bio}</p>}
-      {events.length > 0 && (
-        <div className="speaker-events">
-          <span className="label">Speaking at</span>
-          <ul>{events.map(e => (
-            <li key={e.id}><Link href={eventHref(e)}>{e.name}</Link><span className="muted"> · {shortDate(e)} · {e.city}</span></li>
+      {[['Speaking at', events.filter(e => e.format !== 'Awards')], ['Judging', events.filter(e => e.format === 'Awards')]].map(([label, list]) => (list as EventItem[]).length > 0 && (
+        <div className="speaker-events" key={label as string}>
+          <span className="label">{label as string}</span>
+          <ul>{(list as EventItem[]).map(e => (
+            <li key={e.id}><Link href={e.format === 'Awards' ? `/awards#aw-${e.id}` : eventHref(e)}>{e.name}</Link><span className="muted"> · {shortDate(e)} · {e.city}</span></li>
           ))}</ul>
         </div>
-      )}
+      ))}
       {s.linkedin && (
         <a className="btn btn-secondary btn-sm speaker-li" href={s.linkedin} target="_blank" rel="noopener noreferrer nofollow">
           LinkedIn profile<span className="sr-only"> for {s.name} (opens in a new tab)</span>

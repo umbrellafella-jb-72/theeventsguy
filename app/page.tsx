@@ -1,10 +1,12 @@
 import Link from 'next/link';
-import { KnotRule, Ogham, PortScene, Triskele } from '@/components/Art';
+import { GuyPortrait, KnotRule, Ogham, PortScene, Triskele } from '@/components/Art';
 import { EventCard } from '@/components/EventCard';
+import { FeaturedHero } from '@/components/FeaturedHero';
+import { sessionUser } from '@/lib/users';
 import { CharityCallout } from '@/components/CharityCallout';
 import { CHARITY } from '@/lib/charity';
 import { getAccess } from '@/lib/access';
-import { currentMonthKey, eventsIn, events, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
+import { currentMonthKey, eventsIn, events, featuredFirst, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,16 +15,24 @@ export default async function Home() {
   const summaries = monthSummaries();
   const cur = currentMonthKey();
   const today = todayKey();
-  const upcoming = eventsIn(cur).filter(e => !(e.months.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(e.sortKey) && e.sortKey < today)).slice(0, 4);
+  const notPast = (e: (typeof events)[number]) => !(e.months.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(e.sortKey) && e.sortKey < today);
+  const upcoming = featuredFirst(eventsIn(cur).filter(notPast)).slice(0, 4);
+  // Featured (Partner) events are shown in full to everyone, here and across the site.
+  // The hero shows the soonest upcoming featured event.
+  const heroEvent = events.filter(e => e.featured && notPast(e)).sort((a, b) => (a.sortKey || '9').localeCompare(b.sortKey || '9'))[0] ?? null;
+  const featured = events.filter(e => e.featured && notPast(e) && !upcoming.includes(e) && e !== heroEvent).sort((a, b) => (a.sortKey || '9').localeCompare(b.sortKey || '9')).slice(0, 4);
   const max = Math.max(...summaries.map(s => s.count));
   const countries = new Set(events.filter(e => e.area === 'Europe' && e.region !== 'Location TBC').map(e => e.region)).size;
   const awards = events.filter(e => e.format === 'Awards').length;
   const price = process.env.NEXT_PUBLIC_PRICE_LABEL || 'Monthly subscription';
+  const user = await sessionUser();
 
   return (
     <>
       <section className="hero">
-        <div className="wrap">
+        <div className="wrap hero-grid">
+          <GuyPortrait className="hero-guy" size={300} />
+          <div className="hero-copy">
           <div className="eyebrow"><Triskele size={18} tone="torc" ground="harbour" ring={false} />UK, Ireland & Europe · refreshed monthly</div>
           <h1>Every ecommerce event worth knowing, month by month.</h1>
           <p>Conferences, expos, meetups, retailer dinners and awards nights — from ExCeL to Barcelona — tagged by area, format, topic and price, plus the podcasts and webinars worth your time between them.</p>
@@ -36,17 +46,20 @@ export default async function Home() {
             <div><b>{awards}</b><span>awards with deadlines</span></div>
             <div><b>{media.length}</b><span>podcasts & webinars</span></div>
           </div>
+          </div>
         </div>
         <PortScene className="hero-scene" />
       </section>
 
       <CharityCallout />
 
+      <FeaturedHero e={heroEvent} paid={access.paid} canSave={Boolean(user) || access.paid} today={today} />
+
       <div className="wrap">
         <section className="section">
           <div className="section-head">
             <h2>The year ahead</h2>
-            <span className="muted">{access.paid ? 'Pick a month to dive in' : `${monthLabel(cur)} is free — the rest is for subscribers`}</span>
+            <span className="muted">{access.paid ? 'Pick a month to dive in' : `See what’s on every month — ${monthLabel(cur)} is open in full`}</span>
           </div>
           <div className="months-grid">
             {summaries.map(s => (
@@ -68,7 +81,14 @@ export default async function Home() {
               <h2>Coming up this month</h2>
               <Link href="/guide" className="btn btn-ghost btn-sm">All of {monthLabel(cur)} →</Link>
             </div>
-            <div className="ev-list">{upcoming.map(e => <EventCard key={e.id} e={e} month={cur} />)}</div>
+            <div className="ev-list">{upcoming.map(e => <EventCard key={e.id} e={e} month={cur} paid={access.paid} />)}</div>
+          </section>
+        )}
+
+        {featured.length > 0 && (
+          <section className="section">
+            <div className="section-head"><h2>Featured events</h2><Link href="/services#list-event" className="btn btn-ghost btn-sm">Feature your event →</Link></div>
+            <div className="ev-list">{featured.map(e => <EventCard key={e.id} e={e} month={null} paid={access.paid} />)}</div>
           </section>
         )}
 
@@ -100,7 +120,7 @@ export default async function Home() {
               {access.paymentsReady
                 ? <form action="/api/checkout" method="post"><button className="btn btn-primary" type="submit" style={{ width: '100%' }}>Subscribe</button></form>
                 : <p className="note">Payments aren’t switched on for this deployment yet (Stripe keys not set).</p>}
-              <p className="muted" style={{ fontSize: 14, marginBottom: 0 }}>Already subscribed? <Link href="/restore">Sign in on this device</Link>.</p>
+              <p className="muted" style={{ fontSize: 14, marginBottom: 0 }}>Already a member? <Link href="/login">Sign in</Link>.</p>
             </div>
           </section>
         )}

@@ -48,3 +48,16 @@ export function PortScene({ scene = 'skyline', className, align = 'xMidYMax' }: 
   const art = ON_HARBOUR[scene]();
   return <Svg className={className} svg={ON_HARBOUR.svg(art, ` preserveAspectRatio="${align} meet" width="100%" height="100%" focusable="false"`)} />;
 }
+
+// The Guy on his white disc (design system: Guy ground="light"). Stays white with dark lines in both themes.
+const ON_LIGHT_DISC = EGArt({ ink: v('harbour'), ground: '#fafaf7', glen: v('glen'), torc: v('torc'), poolbeg: v('poolbeg'), quay: v('quay'), block: v('harbour'), white: '#fafaf7' });
+export function Guy({ size = 220, className, expression = 'smile', label = 'The Events Guy', id = 'hero-guy' }: { size?: number; className?: string; expression?: 'smile' | 'wink' | 'grin'; label?: string; id?: string }) {
+  const art = ON_LIGHT_DISC.guy({ ground: '#fafaf7', ink: v('harbour'), id, expression });
+  return <Svg className={className} label={label} svg={ON_LIGHT_DISC.svg(art, ` width="${size}" height="${size}" focusable="false"`)} />;
+}
+
+/** The Events Guy himself: the illustrated portrait (public/the-guy.webp), cut out so his hair breaks the circle. */
+export function GuyPortrait({ size = 220, className, label = 'The Events Guy' }: { size?: number; className?: string; label?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <span className={`art guy-portrait${className ? ` ${className}` : ''}`}><img src="/the-guy.webp" alt={label} width={size} height={size} /></span>;
+}

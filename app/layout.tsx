@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getAccess } from '@/lib/access';
+import { sessionUser } from '@/lib/users';
+import { can } from '@/lib/permissions';
 import { generatedAt } from '@/lib/data';
 import { Logo, Ogham } from '@/components/Art';
 import { CHARITY } from '@/lib/charity';
+import { CookieConsent, CookieSettingsLink } from '@/components/CookieConsent';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,6 +17,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const access = await getAccess();
+  const user = await sessionUser();
   const updated = new Date(generatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   return (
     <html lang="en-GB">
@@ -29,13 +33,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Link href="/" className="logo"><Logo /><small>Ecommerce events</small></Link>
             <nav className="nav" aria-label="Main">
               <Link href="/guide">The guide</Link>
+              <Link href="/awards">Awards</Link>
               <Link href="/listen">Podcasts</Link>
               <Link href="/speakers">Speakers</Link>
               <Link href="/services">Services</Link>
               <Link href="/sponsors">Sponsors</Link>
-              {access.paid && !access.open
-                ? <form action="/api/portal" method="post"><button className="btn btn-ghost btn-sm" type="submit">My subscription</button></form>
-                : !access.open && <><Link href="/#pricing">Pricing</Link><Link href="/restore">Sign in</Link></>}
+              {user || access.paid
+                ? <><Link href="/shortlist">My events</Link><Link href="/account">Account</Link>{can(user, 'reporting.view') && <Link href="/admin">Admin</Link>}</>
+                : <><Link href="/#pricing">Pricing</Link><Link href="/login">Sign in</Link></>}
             </nav>
           </div>
         </header>
@@ -45,8 +50,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="sig"><Ogham text="THE EVENTS GUY" height={16} /><span>THE EVENTS GUY · THEEVENTSGUY.CO.UK</span></div>
             <p className="foot-charity">{CHARITY.share} of every subscription goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a> (registered charity no. {CHARITY.number}).</p>
             The Events Guy · theeventsguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
+            <p className="foot-links"><Link href="/cookies">Cookies</Link> · <CookieSettingsLink /></p>
           </div>
         </footer>
+        <CookieConsent />
       </body>
     </html>
   );

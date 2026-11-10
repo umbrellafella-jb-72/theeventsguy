@@ -18,12 +18,13 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - name: Pull the four tabs and rebuild tags
+      - name: Pull the tabs and rebuild tags
         env:
           SHEET_CSV_URL: ${{ secrets.SHEET_CSV_URL }}
           SHEET_CSV_URL_EUROPE: ${{ secrets.SHEET_CSV_URL_EUROPE }}
           SHEET_CSV_URL_AWARDS: ${{ secrets.SHEET_CSV_URL_AWARDS }}
           SHEET_CSV_URL_MEDIA: ${{ secrets.SHEET_CSV_URL_MEDIA }}
+          SHEET_CSV_URL_SPEAKERS: ${{ secrets.SHEET_CSV_URL_SPEAKERS }}
         run: npm run sync
       - name: Commit if anything changed
         run: |
