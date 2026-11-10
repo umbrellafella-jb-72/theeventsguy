@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   const ok = s.status === 'complete' && s.subscription && ['active', 'trialing'].includes(s.subscription.status);
   if (!ok) return NextResponse.redirect(`${base}/#pricing`, 303);
   const u = await linkMembership(s.customer_details?.email, s.customer, s.subscription!.current_period_end);
-  const res = NextResponse.redirect(`${base}/guide?welcome=1`, 303);
+  const res = NextResponse.redirect(`${base}/welcome`, 303);
   const c = accessCookie(s.customer, s.subscription!.current_period_end);
   res.cookies.set(c.name, c.value, c.options);
   if (u) { const sc = sessionCookie(u.id); res.cookies.set(sc.name, sc.value, sc.options); }

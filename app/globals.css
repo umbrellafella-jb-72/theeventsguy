@@ -643,3 +643,28 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 .price-card .amount { overflow-wrap: anywhere; font-size: clamp(30px, 9vw, 48px); line-height: 1.05; }
 .register-panel .ticks { display: table; text-align: left; margin: var(--space-2) auto var(--space-4); }
 .register-panel .ticks li { text-align: left; }
+
+/* ---------- Subscription thank-you (/welcome) ---------- */
+.welcome-hero h1 { max-width: 14ch; }
+.welcome-ctas { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.welcome { display: grid; gap: var(--space-8); }
+.welcome-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--space-4); margin: 0; }
+.welcome-facts div { background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-4); min-width: 0; }
+.welcome-facts dt { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+.welcome-facts dd { margin: var(--space-1, 4px) 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.welcome-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--space-4); }
+.welcome-grid li { border-top: 3px solid var(--glen); padding-top: var(--space-3); }
+.welcome-grid h3, .welcome-steps h3 { font-size: 18px; line-height: 24px; font-weight: 700; margin-bottom: var(--space-2, 8px); }
+.welcome-grid p, .welcome-steps p { color: var(--ink-muted); margin: 0; }
+.welcome-steps { list-style: none; counter-reset: step; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: var(--space-4); }
+.welcome-steps li { counter-increment: step; background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-5, 20px); display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.welcome-steps li::before { content: counter(step); font-family: var(--font-display); font-weight: 800; font-size: 32px; line-height: 1; color: var(--torc); }
+.welcome-steps li > :last-child { margin-top: auto; align-self: flex-start; white-space: nowrap; }
+.welcome-steps .tool-row { display: flex; flex-wrap: wrap; gap: var(--space-2, 8px); }
+.welcome-charity { display: flex; align-items: center; gap: var(--space-5, 20px); background: var(--surface-raised); border-radius: var(--radius-md); padding: var(--space-5, 20px); }
+.welcome-charity .charity-share { font-size: 56px; flex: none; }
+.welcome-charity p { margin: 0; }
+.welcome-billing { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2, 8px); color: var(--ink-muted); }
+.welcome-billing form { display: inline; }
+.linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--glen); text-decoration: underline; cursor: pointer; }
+@media (max-width: 560px) { .welcome-charity { flex-direction: column; align-items: flex-start; } }
