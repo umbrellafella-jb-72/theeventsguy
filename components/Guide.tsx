@@ -36,6 +36,7 @@ export default function Guide(props: {
   priceLabel: string;
   speakers?: Record<string, SpeakerRef[]>;
   canSave?: boolean;      // signed in (free account) or member
+  visitorLocked?: boolean; // not signed in: only the current month (and featured events) until they register
   signedIn?: boolean;     // can save searches
   initial?: { q?: string; from?: string; to?: string; past?: boolean; sel?: Partial<Record<string, string[]>> };
 }) {
@@ -121,12 +122,14 @@ export default function Guide(props: {
     <>
       <div className="month-strip">
         <div className="wrap" role="toolbar" aria-label="Choose a month" ref={strip}>
-          <button className="mpill" aria-pressed={month === 'all'} onClick={() => setMonth('all')}>All months</button>
+          {!props.visitorLocked && <button className="mpill" aria-pressed={month === 'all'} onClick={() => setMonth('all')}>All months</button>}
           {summaries.map(s => {
+            const lockedPill = props.visitorLocked && s.key !== previewMonth;
             return (
-              <button key={s.key} className="mpill" aria-pressed={month === s.key} onClick={() => setMonth(s.key)}>
+              <button key={s.key} className={`mpill${lockedPill ? ' is-locked' : ''}`} aria-pressed={month === s.key} onClick={() => setMonth(s.key)}>
                 {s.key === 'tbc' ? 'Dates TBC' : s.label.replace(/ 20(\d\d)$/, ' ’$1')}
                 <span className="n">{s.count}</span>
+                {lockedPill && <span className="sr-only"> (register free to see)</span>}
               </button>
             );
           })}
@@ -171,8 +174,10 @@ export default function Guide(props: {
           {(
             <>
               <div className="results-head">
-                <strong>{totalShown} event{totalShown === 1 ? '' : 's'}{month !== 'all' && summary ? ` in ${summary.key === 'tbc' ? 'the dates-TBC list' : summary.label}` : ''}</strong>
-                {props.signedIn ? (
+                {props.visitorLocked && month !== previewMonth
+                  ? <strong>{summary?.key === 'tbc' ? 'Dates TBC' : summary?.label}</strong>
+                  : <strong>{totalShown} event{totalShown === 1 ? '' : 's'}{month !== 'all' && summary ? ` in ${summary.key === 'tbc' ? 'the dates-TBC list' : summary.label}` : ''}</strong>}
+                {props.visitorLocked && month !== previewMonth ? null : props.signedIn ? (
                   naming ? (
                     <form action={saveSearch} className="save-search">
                       <input type="hidden" name="query" value={query} />
@@ -190,7 +195,12 @@ export default function Guide(props: {
                   </div>
                 )}
               </div>
-              {!paid && (
+              {props.visitorLocked ? (
+                <div className="note member-note">
+                  <span>You’re seeing <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</b>. <b>Register free</b> to see what’s on in every month, save events and searches, and set up a speaker, sponsor or organiser profile.</span>
+                  <a className="btn btn-primary btn-sm" href={`/login?next=${encodeURIComponent('/guide')}`}>Register free</a>
+                </div>
+              ) : !paid && (
                 <div className="note member-note">
                   <span>Everyone can see what’s on and where. <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'This month'}</b> and featured events are open in full; members get every event’s venue, price, booking link and speakers, plus a saved shortlist, calendar sync and reminders.</span>
                   {props.paymentsReady
@@ -198,6 +208,19 @@ export default function Guide(props: {
                     : <a className="btn btn-primary btn-sm" href="/#pricing">See membership</a>}
                 </div>
               )}
+              {props.visitorLocked && month !== previewMonth ? (
+                <div className="lock-panel register-panel">
+                  <h2>{month === 'all' ? 'Every month' : summary?.key === 'tbc' ? 'Events with dates to be confirmed' : summary?.label} — free with an account</h2>
+                  <p>{summary ? `${summary.count} event${summary.count === 1 ? '' : 's'} listed. ` : ''}Create a free account to see what’s on in every month: names, dates, cities and organisers. It takes one email — no password, no card.</p>
+                  <ul className="ticks">
+                    <li>Browse the whole year ahead</li>
+                    <li>Save events to your shortlist and save searches</li>
+                    <li>Publish a speaker, sponsor or organiser profile</li>
+                  </ul>
+                  <a className="btn btn-primary" href={`/login?next=${encodeURIComponent(`/guide?month=${month}`)}`}>Register free</a>
+                  <button className="btn btn-ghost" onClick={() => setMonth(previewMonth)}>Back to {summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</button>
+                </div>
+              ) : <>
               {totalShown === 0 && <div className="empty">No events match these filters. <button className="btn btn-ghost btn-sm" onClick={clearAll}>Clear filters</button></div>}
               {grouped.map(g => (
                 <div key={g.key} className="month-block">
@@ -207,6 +230,7 @@ export default function Guide(props: {
                   </div>
                 </div>
               ))}
+              </>}
             </>
           )}
         </section>

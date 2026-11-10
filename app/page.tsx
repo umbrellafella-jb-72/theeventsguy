@@ -59,7 +59,7 @@ export default async function Home() {
         <section className="section">
           <div className="section-head">
             <h2>The year ahead</h2>
-            <span className="muted">{access.paid ? 'Pick a month to dive in' : `See what’s on every month — ${monthLabel(cur)} is open in full`}</span>
+            <span className="muted">{access.paid ? 'Pick a month to dive in' : user ? `See what’s on every month — ${monthLabel(cur)} is open in full` : <>{monthLabel(cur)} is free to browse — <Link href="/login?next=/guide">register free</Link> to see every month</>}</span>
           </div>
           <div className="months-grid">
             {summaries.map(s => (

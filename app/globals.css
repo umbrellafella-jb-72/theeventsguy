@@ -137,7 +137,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text
 .guide-top { padding-top: var(--space-8); padding-bottom: var(--space-4); }
 .guide-top h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1; font-weight: 800; text-transform: uppercase; }
 .month-strip { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
-.month-strip .wrap { display: flex; gap: var(--space-2); overflow-x: auto; padding-block: var(--space-3); scrollbar-width: thin; }
+.month-strip .wrap { position: relative; display: flex; gap: var(--space-2); overflow-x: auto; padding-block: var(--space-3); scrollbar-width: thin; }
 .mpill { flex: 0 0 auto; font-family: var(--font-display); font-size: 16px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: var(--surface-raised); color: var(--ink); padding: 5px 12px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
 .mpill .n { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--ink-muted); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .mpill[aria-pressed="true"] { background: var(--glen); color: var(--on-glen); border-color: var(--glen); }
@@ -641,3 +641,5 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 @media (max-width: 599px) { .fhero-plate { display: none; } .fhero-body { padding-block: var(--space-8); } .fhero-shade { background: linear-gradient(0deg, rgba(10,18,20,.95) 0%, rgba(10,18,20,.7) 70%, rgba(10,18,20,.4) 100%); } }
 @media (prefers-reduced-motion: reduce) { .fhero-scene, .fhero-img { animation: none; } }
 .price-card .amount { overflow-wrap: anywhere; font-size: clamp(30px, 9vw, 48px); line-height: 1.05; }
+.register-panel .ticks { display: table; text-align: left; margin: var(--space-2) auto var(--space-4); }
+.register-panel .ticks li { text-align: left; }

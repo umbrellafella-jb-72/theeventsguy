@@ -17,7 +17,9 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   const preview = currentMonthKey();
   // Members get every event in full. Everyone else gets the public teaser of each event, plus
   // the free month's and featured events in full. Locked details never reach the browser.
-  const visible = eventsFor(access.paid, preview);
+  // Visitors who haven't registered see only this month (plus featured events) — the rest isn't sent at all.
+  const visitorLocked = !access.paid && !user;
+  const visible = visitorLocked ? events.filter(e => e.months.includes(preview) || e.featured) : eventsFor(access.paid, preview);
   const wanted = sp.month && summaries.some(s => s.key === sp.month) ? sp.month : null;
   const initialMonth = wanted ?? (access.paid ? 'all' : preview);
 
@@ -43,6 +45,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         paymentsReady={access.paymentsReady}
         speakers={speakersByEvent()}
         priceLabel={process.env.NEXT_PUBLIC_PRICE_LABEL || 'monthly'}
+        visitorLocked={visitorLocked}
         canSave={Boolean(user) || access.paid}
         signedIn={Boolean(user)}
         initial={{ q: sp.q, from: sp.from, to: sp.to, past: sp.past === '1', sel: initialSel }}
