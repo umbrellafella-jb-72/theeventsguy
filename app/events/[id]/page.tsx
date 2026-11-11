@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAccess } from '@/lib/access';
-import { eventById, monthLabel, openToAll, speakers as allSpeakers, teaser } from '@/lib/data';
+import { RELEASE_DAYS, eventById, fullFor, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
 import { eventDates } from '@/lib/calendar';
 import { EventActions } from '@/components/EventActions';
 import { PrintButton } from '@/components/PrintButton';
@@ -29,7 +29,8 @@ export default async function EventPage({ params, searchParams }: Props) {
   const e = eventById.get(id);
   if (!e) notFound();
   const access = await getAccess();
-  const full = access.paid || openToAll(e);
+  const full = fullFor(e, access.paid);
+  const opens = access.paid && !full ? opensOn(e) : null;
   const d = eventDates(e);
   const plate = dayIn(e, null);
   const evSpeakers = full ? allSpeakers.filter(s => s.events.includes(e.id)) : [];
@@ -107,6 +108,13 @@ export default async function EventPage({ params, searchParams }: Props) {
               </div>
             </>
           ) : (
+            access.paid ? (
+            <div className="lock-panel ev-page-lock">
+              <h2>{opens ? `Full details released ${releaseLabel(opens)}` : 'Full details released once the date is set'}</h2>
+              <p>Members get each event’s venue, prices, booking link, speakers and sponsors {RELEASE_DAYS} days before it starts{opens ? '' : ' — this one doesn’t have a confirmed date yet'}. Save it now and it’ll fill in on your shortlist and calendar feed automatically.</p>
+              <div className="ev-actions" style={{ marginTop: 16 }}><EventActions e={teaser(e, true)} paid full={false} canSave /></div>
+            </div>
+            ) : (
             <div className="lock-panel ev-page-lock">
               <h2>The full listing is for members</h2>
               <ul className="ticks">
@@ -116,12 +124,11 @@ export default async function EventPage({ params, searchParams }: Props) {
                 <li>Save it to your shortlist and add it to Google, Outlook or Apple Calendar</li>
                 <li>Reminders before it starts, and an email when new events are added</li>
               </ul>
-              {access.paymentsReady
-                ? <form action="/api/checkout" method="post"><button className="btn btn-primary" type="submit">Become a member — {process.env.NEXT_PUBLIC_PRICE_LABEL || 'monthly'}</button></form>
-                : <Link className="btn btn-primary" href="/#pricing">See membership</Link>}
+              <Link className="btn btn-primary" href="/#pricing">See membership plans</Link>
               <p className="muted" style={{ marginTop: 12 }}>Already a member? <Link href="/login">Sign in</Link>.</p>
               <div className="ev-actions" style={{ marginTop: 16 }}><EventActions e={teaser(e)} paid={false} full={false} /></div>
             </div>
+            )
           )}
         </div>
         <aside className="ev-side">

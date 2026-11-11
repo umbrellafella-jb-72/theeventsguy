@@ -22,6 +22,8 @@ export default {
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()' },
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+        // Keep search engines out until launch (SITE_PUBLIC=true).
+        ...(process.env.SITE_PUBLIC === 'true' ? [] : [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]),
       ],
     }];
   },

@@ -4,7 +4,7 @@ import { KnotRule } from '@/components/Art';
 import AwardsGuide from '@/components/AwardsGuide';
 import type { AwardView } from '@/components/AwardCard';
 import { getAccess } from '@/lib/access';
-import { awards, judgesFor, monthLabel, taxonomy, todayKey } from '@/lib/data';
+import { RELEASE_DAYS, awards, currentMonthKey, fullFor, judgesFor, monthLabel, taxonomy, todayKey } from '@/lib/data';
 import { entryInfo, ENTRY_STEPS, JUDGE_TIPS } from '@/lib/awards';
 
 export const dynamic = 'force-dynamic';
@@ -16,9 +16,11 @@ export default async function AwardsPage() {
   const isPast = (a: { months: string[]; sortKey: string }) => a.months.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(a.sortKey) && a.sortKey < today;
   const all: AwardView[] = awards.filter(a => !isPast(a)).map(a => ({ ...a, entry: entryInfo(a.entryDeadline, today), judgeList: judgesFor(a) }));
 
-  // Free visitors see one month of ceremonies: the next month that has any.
-  const preview = all.map(a => a.months[0]).filter(Boolean).sort()[0] ?? null;
-  const visible = access.paid ? all : all.filter(a => a.months[0] === preview);
+  // Free visitors see this month's ceremonies (and featured awards). Members see, in full, every
+  // award whose entry deadline or ceremony is in the next RELEASE_DAYS days; the rest are released
+  // as they come into range, so the whole year can't be copied out at once.
+  const preview = currentMonthKey();
+  const visible = all.filter(a => fullFor(a, access.paid));
 
   const open = all.filter(a => a.entry.state === 'open');
   const closing30 = open.filter(a => (a.entry.days ?? 99) <= 30).length;
@@ -46,11 +48,11 @@ export default async function AwardsPage() {
             : <div><b>{soon90}</b><span>ceremonies in the next 3 months</span></div>}
         </section>
 
-        {access.paid && soonest.length > 0 && (
+        {access.paid && soonest.filter(a => fullFor(a, true)).length > 0 && (
           <section className="section aw-soon">
             <div className="section-head"><h2>Deadlines coming up</h2></div>
             <div className="aw-soon-grid">
-              {soonest.map(a => (
+              {soonest.filter(a => fullFor(a, true)).map(a => (
                 <a key={a.id} className="aw-soon-tile" href={`#aw-${a.id}`}>
                   <span className="label">{a.entry.label}</span>
                   <strong>{a.name}</strong>
@@ -63,16 +65,18 @@ export default async function AwardsPage() {
 
         <section className="section">
           <div className="section-head">
-            <h2>{access.paid ? 'All awards' : `Ceremonies in ${preview ? monthLabel(preview) : 'the coming months'}`}</h2>
-            {!access.paid && <span className="muted">Free preview — subscribers see all {all.length}</span>}
+            <h2>{access.paid ? `Awards in the next ${RELEASE_DAYS} days` : `Ceremonies in ${monthLabel(preview)}`}</h2>
+            <span className="muted">{access.paid ? `Deadline or ceremony within ${RELEASE_DAYS} days — more are released every day` : `Free preview — subscribers see each award ${RELEASE_DAYS} days ahead`}</span>
           </div>
           <AwardsGuide awards={visible} areas={areas} topics={topics} />
-          {!access.paid && (
+          {access.paid ? (
+            all.length > visible.length && <p className="note" style={{ marginTop: 24 }}>{all.length - visible.length} more awards are released to you as their entry deadline or ceremony comes within {RELEASE_DAYS} days. Each one’s name and date is in <Link href="/guide">the guide</Link>.</p>
+          ) : (
             <div className="lock-panel" style={{ marginTop: 24 }}>
               <h2>{all.length - visible.length} more awards</h2>
-              <p>{open.length} have an entry deadline ahead and {closing30} close in the next 30 days. Subscribe to see every award with its deadlines, judges, fees and entry links.</p>
+              <p>{open.length} have an entry deadline ahead and {closing30} close in the next 30 days. Members see each award’s deadlines, judges, fees and entry links {RELEASE_DAYS} days ahead.</p>
               {access.paymentsReady
-                ? <form action="/api/checkout" method="post"><button className="btn btn-primary" type="submit">Subscribe</button></form>
+                ? <Link className="btn btn-primary" href="/#pricing">See membership plans</Link>
                 : <p className="note">Payments aren’t switched on yet for this deployment.</p>}
             </div>
           )}

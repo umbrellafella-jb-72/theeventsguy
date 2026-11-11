@@ -1,4 +1,5 @@
 import type { EventItem, SpeakerRef } from '@/lib/data';
+import { RELEASE_DAYS, releaseLabel } from '@/lib/release';
 import { EventActions } from './EventActions';
 
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -50,7 +51,9 @@ export function EventCard({ e, month, past, speakers, paid = false, canSave = pa
           {e.topics.filter(t => !e.sectors.includes(t)).map(t => <span key={t}>{t}</span>)}
         </div>
         {e.locked ? (
-          <p className="ev-lock">Members see the venue, price, booking link, speakers and sponsors, and can save it and add it to their calendar. <a href="/#pricing">Become a member</a></p>
+          paid
+            ? <p className="ev-lock">{e.opensOn ? <>Full details released <b>{releaseLabel(e.opensOn)}</b>, {RELEASE_DAYS} days ahead.</> : <>Full details released {RELEASE_DAYS} days before it, once the date is confirmed.</>} Save it now and it fills in on your shortlist automatically.</p>
+            : <p className="ev-lock">Members see the venue, price, booking link, speakers and sponsors, and can save it and add it to their calendar. <a href="/#pricing">Become a member</a></p>
         ) : (
           <>
             {e.description && <p className="ev-desc">{e.description}</p>}

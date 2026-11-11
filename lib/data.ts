@@ -1,4 +1,7 @@
 import dataset from '@/data/events.json';
+import { entryInfo } from './awards';
+import { RELEASE_DAYS, releaseLabel } from './release';
+export { RELEASE_DAYS, releaseLabel };
 
 export type EventItem = {
   id: string;
@@ -42,6 +45,8 @@ export type EventItem = {
   heroVideo?: string | null;
   /** Set on the copy sent to non-members: only the public fields are filled in. */
   locked?: boolean;
+  /** On a member's locked copy: the day (YYYY-MM-DD) its full details are released, or null if its date isn't set. */
+  opensOn?: string | null;
 };
 
 export type Speaker = { id: string; name: string; role: string | null; company: string | null; bio: string | null; linkedin: string | null; events: string[] };
@@ -152,19 +157,49 @@ export function openToAll(e: EventItem, previewMonth = currentMonthKey()): boole
   return Boolean(e.featured) || e.months.includes(previewMonth);
 }
 
+// ---------- Rolling release ----------
+// Members — quarterly or yearly — get full details only for events starting in the next
+// RELEASE_DAYS days (plus anything already past, featured, or in the free month). Everything
+// further out stays a teaser until it comes into range, so the full year can't be copied out
+// and shared in one go. Undated events stay locked until a date is published.
+
+const addDays = (ymd: string, n: number) => { const d = new Date(`${ymd}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
+/** The last start date whose details are released today. */
+export const releaseCutoff = (now = new Date()) => addDays(todayKey(now), RELEASE_DAYS);
+const startOf = (e: EventItem) => (/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(e.sortKey) ? e.sortKey : null);
+/** An award's next entry deadline, if one is published. */
+const deadlineOf = (e: EventItem, now = new Date()) => (e.format === 'Awards' ? (entryInfo(e.entryDeadline, todayKey(now)).next as string | null) : null);
+/** The day this event's details are released to members (null while no date is known). Awards
+ *  open on whichever comes first: 30 days before the entry deadline or before the ceremony. */
+export const opensOn = (e: EventItem) => {
+  const dates = [startOf(e), deadlineOf(e)].filter((d): d is string => !!d).sort();
+  return dates.length ? addDays(dates[0], -RELEASE_DAYS) : null;
+};
+export function released(e: EventItem, now = new Date()): boolean {
+  const cut = releaseCutoff(now);
+  const s = startOf(e), dl = deadlineOf(e, now);
+  return Boolean((s && s <= cut) || (dl && dl <= cut));
+}
+
+/** May this visitor see the whole event? Everyone: featured and the free month. Members: also
+ *  anything starting within the release window. */
+export function fullFor(e: EventItem, paid: boolean, previewMonth = currentMonthKey()): boolean {
+  return openToAll(e, previewMonth) || (paid && released(e));
+}
+
 /** The public subset of an event, safe to send to any browser. */
-export function teaser(e: EventItem): EventItem {
+export function teaser(e: EventItem, paid = false): EventItem {
   return {
     id: e.id, kind: e.kind, name: e.name, dates: e.dates, months: e.months, sortKey: e.sortKey, status: e.status,
     area: e.area, city: e.city, region: e.region, organiser: e.organiser, format: e.format, sectors: e.sectors,
     venue: null, type: null, topics: [], price: null, priceTag: '', frequency: null, lastEdition: null, website: null,
-    locked: true,
+    locked: true, ...(paid ? { opensOn: opensOn(e) } : {}),
   };
 }
 
 /** Each event as this visitor may see it: whole, or as a teaser. */
 export function eventsFor(paid: boolean, previewMonth = currentMonthKey()): EventItem[] {
-  return paid ? events : events.map(e => (openToAll(e, previewMonth) ? e : teaser(e)));
+  return events.map(e => (fullFor(e, paid, previewMonth) ? e : teaser(e, paid)));
 }
 
 /** Featured events first within a list, keeping the original order otherwise. */

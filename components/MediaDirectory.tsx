@@ -61,7 +61,7 @@ export default function MediaDirectory({ items, total, types, paid, paymentsRead
           <h2>{hidden} more webinars & podcasts</h2>
           <p>Subscribers get the full directory, filtered by type and topic, alongside every month of events.</p>
           {paymentsReady
-            ? <form action="/api/checkout" method="post"><button className="btn btn-primary" type="submit">Subscribe — {priceLabel}</button></form>
+            ? <a className="btn btn-primary" href="/#pricing">See membership plans</a>
             : <p className="note">Payments aren’t switched on yet for this deployment.</p>}
         </div>
       )}

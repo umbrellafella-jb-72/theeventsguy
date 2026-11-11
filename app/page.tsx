@@ -6,7 +6,8 @@ import { sessionUser } from '@/lib/users';
 import { CharityCallout } from '@/components/CharityCallout';
 import { CHARITY } from '@/lib/charity';
 import { getAccess } from '@/lib/access';
-import { currentMonthKey, eventsIn, events, featuredFirst, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
+import { RELEASE_DAYS, currentMonthKey, eventsIn, events, featuredFirst, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
+import { plans } from '@/lib/plans';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +25,6 @@ export default async function Home() {
   const max = Math.max(...summaries.map(s => s.count));
   const countries = new Set(events.filter(e => e.area === 'Europe' && e.region !== 'Location TBC').map(e => e.region)).size;
   const awards = events.filter(e => e.format === 'Awards').length;
-  const price = process.env.NEXT_PUBLIC_PRICE_LABEL || 'Monthly subscription';
   const user = await sessionUser();
 
   return (
@@ -102,25 +102,33 @@ export default async function Home() {
                 <details open><summary>What’s in the guide?</summary><p>Every UK, Irish and European ecommerce, retail and digital marketing event we can find — big expos, invite-only retailer dinners, regional meetups, awards with their entry deadlines — plus a directory of podcasts and webinars.</p></details>
                 <details><summary>How fresh is it?</summary><p>The listings are re-checked and refreshed every month. Each event shows whether its date is confirmed by the organiser, tentative (projected from last year) or still to be announced.</p></details>
                 <details><summary>How do the tags work?</summary><p>Each event has an area (UK & Ireland or Europe), one format (conference, expo, meetup, dinner, awards…), any number of topics (AI, Shopify, DTC, payments, agencies…), a region or country and a price band. Combine them to narrow the year to what matters to you.</p></details>
-                <details><summary>Can I cancel?</summary><p>Yes, any time from “My subscription”. You keep access until the end of the period you’ve paid for.</p></details>
+                <details><summary>Why are details released 30 days ahead?</summary><p>So the guide stays worth paying for. You can see every event’s name, date and city for the year and save it; its venue, prices, booking links and speakers open up {RELEASE_DAYS} days before it starts (for awards, before the entry deadline or ceremony). Saved events fill in on your shortlist and calendar feed automatically.</p></details>
+                <details><summary>Can I cancel?</summary><p>Yes, any time from your account. You keep access until the end of the period you’ve paid for.</p></details>
               </div>
             </div>
-            <div className="price-card">
-              <span className="badge badge-torc">Full access</span>
-              <div className="amount">{price}</div>
-              <ul className="ticks">
-                <li>Every month, plus events with dates still to be confirmed</li>
-                <li>Filter by area, format, topic, country, price and date status</li>
-                <li>Awards categories and entry deadlines</li>
+            <div className="plans">
+              <ul className="ticks plans-ticks">
+                <li>Every event’s venue, price, booking link, speakers and sponsors — released {RELEASE_DAYS} days ahead</li>
+                <li>Names, dates and cities for the whole year, so you can plan and save early</li>
+                <li>Awards deadlines, judges, fees and entry links</li>
                 <li>The full podcasts & webinars directory</li>
-                <li>Add events to your calendar in one click</li>
-                <li>Refreshed every month</li>
+                <li>Calendar sync, reminders and new-event emails</li>
                 <li>{CHARITY.share} of your subscription goes to {CHARITY.name}</li>
               </ul>
-              {access.paymentsReady
-                ? <form action="/api/checkout" method="post"><button className="btn btn-primary" type="submit" style={{ width: '100%' }}>Subscribe</button></form>
-                : <p className="note">Payments aren’t switched on for this deployment yet (Stripe keys not set).</p>}
-              <p className="muted" style={{ fontSize: 14, marginBottom: 0 }}>Already a member? <Link href="/login">Sign in</Link>.</p>
+              <div className="plan-grid">
+                {plans().map(pl => (
+                  <div key={pl.key} className={`price-card plan${pl.best ? ' is-best' : ''}`}>
+                    <span className={`badge ${pl.best ? 'badge-torc' : 'badge-glen'}`}>{pl.best ? 'Best value' : 'Flexible'}</span>
+                    <h3 className="plan-name">{pl.name}</h3>
+                    <div className="amount">{pl.price}<span className="per"> {pl.per}</span></div>
+                    <p className="muted plan-note">{pl.note}</p>
+                    {access.paymentsReady && pl.priceId
+                      ? <form action="/api/checkout" method="post"><input type="hidden" name="plan" value={pl.key} /><button className={`btn ${pl.best ? 'btn-primary' : 'btn-secondary'}`} type="submit" style={{ width: '100%' }}>Choose {pl.name.toLowerCase()}</button></form>
+                      : <p className="note">Not available yet.</p>}
+                  </div>
+                ))}
+              </div>
+              <p className="muted plans-foot">Both plans get the same access. Already a member? <Link href="/login">Sign in</Link>.</p>
             </div>
           </section>
         )}

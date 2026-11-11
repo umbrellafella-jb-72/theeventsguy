@@ -675,3 +675,17 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 @media (min-width: 960px) { .layout { grid-template-columns: 280px minmax(0, 1fr); } }
 .ev-list { grid-template-columns: minmax(0, 1fr); }
 .ev { min-width: 0; }
+
+/* ---------- Plans (quarterly / yearly) ---------- */
+.plans { display: grid; gap: var(--space-4); min-width: 0; }
+.plans-ticks { margin: 0; }
+.plan-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); }
+.price-card.plan { padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-2); box-shadow: var(--shadow-md, var(--shadow-lg)); border-top-color: var(--glen); }
+.price-card.plan.is-best { border-top-color: var(--torc); box-shadow: var(--shadow-lg); }
+.price-card.plan .badge { align-self: flex-start; }
+.plan-name { font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 24px; text-transform: uppercase; letter-spacing: .04em; margin: var(--space-2) 0 0; }
+.price-card.plan .amount { font-size: clamp(30px, 7vw, 40px); margin: 0; }
+.price-card.plan .amount .per { font-family: var(--font-body, inherit); font-size: 15px; font-weight: 500; text-transform: none; color: var(--ink-muted); letter-spacing: 0; }
+.plan-note { font-size: 14px; margin: 0 0 var(--space-2); }
+.price-card.plan form { margin-top: auto; }
+.plans-foot { font-size: 14px; margin: 0; }

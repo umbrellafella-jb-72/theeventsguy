@@ -114,7 +114,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         ) : (
           <>
             <p>Your free account covers your shortlist, saved searches and profiles. Membership opens every event in full — venue, price, booking link and speakers — with calendar sync, reminders and new-event emails.</p>
-            {a.paymentsReady ? <form action="/api/checkout" method="post"><button className="btn btn-primary btn-sm" type="submit">Become a member — {process.env.NEXT_PUBLIC_PRICE_LABEL || 'monthly'}</button></form> : <Link className="btn btn-primary btn-sm" href="/#pricing">See membership</Link>}
+            <Link className="btn btn-primary btn-sm" href="/#pricing">See membership plans</Link>
           </>
         )}
       </section>

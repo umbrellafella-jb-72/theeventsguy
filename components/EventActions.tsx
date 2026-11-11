@@ -1,4 +1,5 @@
 'use client';
+import { RELEASE_DAYS, releaseLabel } from '@/lib/release';
 
 import { useState } from 'react';
 import type { EventItem } from '@/lib/data';
@@ -44,6 +45,8 @@ export function EventActions({ e, paid, full, compact, canSave = paid }: { e: Ev
             <a role="menuitem" href={`/api/ics/${e.id}`} download={`${e.id}.ics`}>Other (.ics file)</a>
           </div>
         </details>
+      ) : paid && e.locked ? (
+        <span className="btn btn-ghost btn-sm is-disabled" aria-disabled="true" title={`Full details and calendar links are released ${RELEASE_DAYS} days ahead`}>{e.opensOn ? `Calendar from ${releaseLabel(e.opensOn)}` : 'Calendar once dated'}</span>
       ) : !full || e.locked ? (
         <a className="btn btn-secondary btn-sm" href="/#pricing" title="Members can add any event to Google, Outlook or Apple Calendar">Add to calendar<span className="sr-only"> — members only</span></a>
       ) : (

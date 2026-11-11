@@ -39,7 +39,7 @@ export function verify(token: string | undefined, type: Token['t']): Token | nul
 export type Access = { paid: boolean; open: boolean; customer: string | null; paymentsReady: boolean; paidUntil: number };
 
 export async function getAccess(): Promise<Access> {
-  const paymentsReady = Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID && process.env.ACCESS_SECRET);
+  const paymentsReady = Boolean(process.env.STRIPE_SECRET_KEY && (process.env.STRIPE_PRICE_QUARTERLY || process.env.STRIPE_PRICE_YEARLY || process.env.STRIPE_PRICE_ID) && process.env.ACCESS_SECRET);
   if (process.env.ACCESS_MODE === 'open') return { paid: true, open: true, customer: null, paymentsReady, paidUntil: 0 };
   const jar = await cookies();
   const tok = verify(jar.get(COOKIE)?.value, 'access');

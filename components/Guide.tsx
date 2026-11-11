@@ -1,4 +1,5 @@
 'use client';
+import { RELEASE_DAYS } from '@/lib/release';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EventItem, Taxonomy } from '@/lib/data';
@@ -203,10 +204,11 @@ export default function Guide(props: {
               ) : !paid && (
                 <div className="note member-note">
                   <span>Everyone can see what’s on and where. <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'This month'}</b> and featured events are open in full; members get every event’s venue, price, booking link and speakers, plus a saved shortlist, calendar sync and reminders.</span>
-                  {props.paymentsReady
-                    ? <form action="/api/checkout" method="post"><button className="btn btn-primary btn-sm" type="submit">Become a member — {props.priceLabel}</button></form>
-                    : <a className="btn btn-primary btn-sm" href="/#pricing">See membership</a>}
+                  <a className="btn btn-primary btn-sm" href="/#pricing">See membership plans</a>
                 </div>
+              )}
+              {paid && (
+                <p className="note member-note"><span>Full details are released {RELEASE_DAYS} days before each event (for awards, before the entry deadline or ceremony). Later events show the day they open — save them now and they fill in on your shortlist and calendar feed.</span></p>
               )}
               {props.visitorLocked && month !== previewMonth ? (
                 <div className="lock-panel register-panel">

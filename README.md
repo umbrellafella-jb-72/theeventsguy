@@ -69,7 +69,8 @@ The export URL only works if the sheet is shared as "Anyone with the link can vi
 
 ## Payments and access
 
-- Checkout: Stripe Checkout in subscription mode, using `STRIPE_PRICE_ID`.
+- Checkout: Stripe Checkout in subscription mode. Two plans, quarterly (`STRIPE_PRICE_QUARTERLY`) and yearly (`STRIPE_PRICE_YEARLY`), with their display prices in `NEXT_PUBLIC_PRICE_QUARTERLY` / `NEXT_PUBLIC_PRICE_YEARLY`. The browser only sends the plan name; price ids never come from the client.
+- Rolling release: members see an event's full details only from 30 days before it starts (awards: 30 days before the entry deadline or the ceremony, whichever is first). Later events are sent as teasers with their release date, on every plan, in the guide, event pages, awards, shortlist, .ics downloads and the calendar feed. Change `RELEASE_DAYS` in `lib/release.ts`.
 - After payment, `/api/checkout/confirm` verifies the session with Stripe. It then sets an HMAC-signed, httpOnly cookie that lasts until the paid period ends, plus 3 days.
 - **Sign in on another device:** `/restore` emails a 30-minute link to active subscribers through Resend. Without `RESEND_API_KEY`, the link is printed to the server log, which is handy for testing.
 - **My subscription** opens the Stripe customer portal for cards, invoices and cancellation. Turn the portal on once in Stripe: Settings → Billing → Customer portal.
@@ -79,7 +80,7 @@ The export URL only works if the sheet is shared as "Anyone with the link can vi
 ## Deploy to Vercel
 
 1. Push this folder to a private GitHub repo and import it in Vercel. The framework (Next.js) is detected automatically.
-2. Add the environment variables from `.env.example`. At minimum set `ACCESS_SECRET` (`openssl rand -hex 32`), `NEXT_PUBLIC_SITE_URL`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` and `NEXT_PUBLIC_PRICE_LABEL`.
+2. Add the environment variables from `.env.example`. At minimum set `ACCESS_SECRET` (`openssl rand -hex 32`), `NEXT_PUBLIC_SITE_URL`, `STRIPE_SECRET_KEY`, `STRIPE_PRICE_QUARTERLY`, `STRIPE_PRICE_YEARLY`, `NEXT_PUBLIC_PRICE_QUARTERLY`, `NEXT_PUBLIC_PRICE_YEARLY`, `SITE_USERNAME` and `SITE_PASSWORD`.
 3. In Stripe, create a Product with a recurring Price and copy its `price_…` ID.
 4. Point theeventsguy.co.uk at the Vercel project.
 
@@ -174,4 +175,4 @@ The rules live in `lib/permissions.ts` (`can(user, permission)`), and every writ
 
 ## Password-protecting the site before launch
 
-Set `SITE_USERNAME` and `SITE_PASSWORD` in Vercel (Settings → Environment Variables) and redeploy: every page, image and API then asks for them with the browser's login box, and search engines are told not to index it. Vercel's scheduled jobs (`/api/cron`) still run. To launch, delete both variables and redeploy.
+Set `SITE_USERNAME` and `SITE_PASSWORD` in Vercel (Settings → Environment Variables) and redeploy: every page, image and API then asks for them with the browser's login box, and search engines are told not to index it. Vercel's scheduled jobs (`/api/cron`) still run. The gate fails closed: on a production build without them the site shows a locked page rather than opening. To launch, set `SITE_PUBLIC=true` and redeploy.

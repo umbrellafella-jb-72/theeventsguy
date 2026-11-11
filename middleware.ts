@@ -8,9 +8,10 @@ import { activeSubscription } from '@/lib/stripe';
 // Cancelled subscriptions simply aren't extended, so access ends when the paid period does.
 const CHECKED = 'eg_renew_checked';
 
-// Pre-launch gate: when SITE_USERNAME and SITE_PASSWORD are set (in Vercel → Settings →
-// Environment Variables), every page asks for them with the browser's login box. Remove both to
-// open the site. Vercel's scheduled jobs (/api/cron) still get through; browsers remember the
+// Pre-launch gate. The whole site asks for SITE_USERNAME / SITE_PASSWORD (Vercel → Settings →
+// Environment Variables) with the browser's login box. It fails closed: if those aren't set the
+// site stays locked rather than opening up. To launch publicly, set SITE_PUBLIC=true.
+// Vercel's scheduled jobs (/api/cron) and the app icons still get through; browsers remember the
 // login, so Stripe checkout returns and emailed sign-in links work as normal.
 const OPEN_PATHS = [/^\/api\/cron\//, /^\/favicon/, /^\/robots\.txt$/, /^\/icon\.svg$/, /^\/apple-icon/, /^\/icons\//, /^\/manifest\.webmanifest$/];
 function sameText(a: string, b: string) {
@@ -19,8 +20,14 @@ function sameText(a: string, b: string) {
   return diff === 0;
 }
 function gate(req: NextRequest): NextResponse | null {
+  if (process.env.SITE_PUBLIC === 'true' || OPEN_PATHS.some(re => re.test(req.nextUrl.pathname))) return null;
   const user = process.env.SITE_USERNAME, pass = process.env.SITE_PASSWORD;
-  if (!user || !pass || OPEN_PATHS.some(re => re.test(req.nextUrl.pathname))) return null;
+  if (!user || !pass) {
+    if (process.env.NODE_ENV !== 'production') return null; // local development
+    return new NextResponse('This site is locked. Set SITE_USERNAME and SITE_PASSWORD (or SITE_PUBLIC=true to launch).', {
+      status: 503, headers: { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' },
+    });
+  }
   const h = req.headers.get('authorization') || '';
   if (h.startsWith('Basic ')) {
     try {
