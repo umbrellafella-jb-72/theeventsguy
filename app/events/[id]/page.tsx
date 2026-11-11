@@ -106,6 +106,7 @@ export default async function EventPage({ params, searchParams }: Props) {
                 <EventActions e={e} paid={access.paid} full />
                 <PrintButton />
               </div>
+              <p className="print-brand">Brought to you by The Events Guy · theeventsguy.co.uk · Printed for a member — please don’t redistribute.</p>
             </>
           ) : (
             access.paid ? (

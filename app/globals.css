@@ -724,3 +724,6 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 .sp-apply-guy { flex: none; }
 @media (max-width: 640px) { .sp-apply { flex-direction: column; text-align: center; } }
 .sp-apply-guy, .sp-apply-guy img { width: 140px; height: 140px; max-width: 140px; }
+.menu-brand { margin: 0; padding: 8px 12px 6px; font-family: var(--font-mono); font-size: 11px; line-height: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--torc-ink); border-bottom: 1px solid var(--line); }
+.print-brand { display: none; }
+@media print { .print-brand { display: block; margin-top: 24px; padding-top: 12px; border-top: 2px solid #c9992e; font-size: 12px; } }
