@@ -734,3 +734,4 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 .month-tile.is-current .bar { background: rgba(255, 255, 255, .25); }
 .month-tile.is-current .bar i { background: var(--on-glen); }
 .month-tile .now-tag { align-self: flex-start; font-family: var(--font-mono); font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; background: var(--on-glen); color: var(--glen); padding: 2px 6px; border-radius: var(--radius-sm); }
+mark.todo { background: var(--torc-soft); color: var(--torc-ink); padding: 0 4px; border-radius: var(--radius-sm); font-weight: 600; }

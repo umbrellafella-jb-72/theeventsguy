@@ -53,9 +53,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <footer className="site-foot">
           <div className="wrap">
             <div className="sig"><span>THE EVENTS GUY · THEEVENTSGUY.CO.UK</span></div>
-            <p className="foot-charity">{CHARITY.share} of every subscription goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a> (registered charity no. {CHARITY.number}).</p>
+            <p className="foot-charity">{CHARITY.share} of every subscription goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a> (registered charity no. {CHARITY.number}). <Link href="/charity-payments">How it’s paid</Link>.</p>
             The Events Guy · theeventsguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
-            <p className="foot-links"><Link href="/cookies">Cookies</Link> · <CookieSettingsLink /></p>
+            <p className="foot-links"><Link href="/privacy">Privacy</Link> · <Link href="/data-processing">Data processing</Link> · <Link href="/charity-payments">Charity payments</Link> · <Link href="/cookies">Cookies</Link> · <CookieSettingsLink /></p>
           </div>
         </footer>
         <CookieConsent />

@@ -17,7 +17,8 @@ export default async function Home() {
   const cur = currentMonthKey();
   const today = todayKey();
   const notPast = (e: (typeof events)[number]) => !(e.months.length === 1 && /^\d{4}-\d{2}-\d{2}$/.test(e.sortKey) && e.sortKey < today);
-  const upcoming = featuredFirst(eventsIn(cur).filter(notPast)).slice(0, 4);
+  const thisMonth = eventsIn(cur).filter(notPast);
+  const upcoming = featuredFirst(thisMonth).slice(0, 3);
   // Featured (Partner) events are shown in full to everyone, here and across the site.
   // The hero shows the soonest upcoming featured event.
   const heroEvent = events.filter(e => e.featured && notPast(e)).sort((a, b) => (a.sortKey || '9').localeCompare(b.sortKey || '9'))[0] ?? null;
@@ -79,7 +80,7 @@ export default async function Home() {
           <section className="section">
             <div className="section-head">
               <h2>Coming up this month</h2>
-              <Link href="/guide" className="btn btn-ghost btn-sm">All of {monthLabel(cur)} →</Link>
+              <Link href={`/guide?month=${cur}`} className="btn btn-ghost btn-sm">All {thisMonth.length} in {monthLabel(cur)} →</Link>
             </div>
             <div className="ev-list">{upcoming.map(e => <EventCard key={e.id} e={e} month={cur} paid={access.paid} />)}</div>
           </section>
