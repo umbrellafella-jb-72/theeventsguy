@@ -77,7 +77,7 @@ export default async function Home() {
 
         {featured.length > 0 && (
           <section className="section">
-            <div className="section-head"><h2>Featured events</h2><Link href="/services#list-event" className="btn btn-ghost btn-sm">Feature your event →</Link></div>
+            <div className="section-head"><h2>Featured events</h2><Link href="/services#enquire" className="btn btn-ghost btn-sm">Feature your event →</Link></div>
             <div className="ev-list">{featured.map(e => <EventCard key={e.id} e={e} month={null} paid={access.paid} />)}</div>
           </section>
         )}

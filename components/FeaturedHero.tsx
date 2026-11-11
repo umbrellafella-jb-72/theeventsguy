@@ -25,7 +25,7 @@ export function FeaturedHero({ e, paid, canSave, today }: { e: EventItem | null;
           <span className="fhero-flag">Featured event</span>
           <h2 id="fhero-title">Your event, here.</h2>
           <p className="fhero-desc">The featured slot puts one event in front of everyone who opens The Events Guy — full width, at the top of the page, with your own photo or video.</p>
-          <div className="fhero-actions"><Link className="btn btn-primary" href="/services#list-event">Feature your event</Link></div>
+          <div className="fhero-actions"><Link className="btn btn-primary" href="/services#enquire">Feature your event</Link></div>
         </div>
       </section>
     );

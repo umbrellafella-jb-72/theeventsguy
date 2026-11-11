@@ -136,7 +136,7 @@ export default async function EventPage({ params, searchParams }: Props) {
           <div className="ev-side-card">
             <h2>Running this event?</h2>
             <p>Every approved event is listed free. Partners are featured in full to everyone, at the top of their month.</p>
-            <Link className="btn btn-secondary btn-sm" href="/services#list-event">List or feature it</Link>
+            <Link className="btn btn-secondary btn-sm" href="/services#enquire">List or feature it</Link>
           </div>
         </aside>
       </div>
