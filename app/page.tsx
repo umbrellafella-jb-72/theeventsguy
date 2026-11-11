@@ -63,7 +63,8 @@ export default async function Home() {
           </div>
           <div className="months-grid">
             {summaries.map(s => (
-              <Link key={s.key} href={`/guide?month=${s.key}`} className="month-tile">
+              <Link key={s.key} href={`/guide?month=${s.key}`} className={`month-tile${s.key === cur ? ' is-current' : ''}`} aria-current={s.key === cur ? 'date' : undefined}>
+                {s.key === cur && <span className="now-tag">This month</span>}
                 <h3>{s.key === 'tbc' ? 'Dates TBC' : s.label}</h3>
                 <div className="count">{s.count}</div>
                 <div className="bar" aria-hidden="true"><i style={{ width: `${(s.count / max) * 100}%` }} /></div>

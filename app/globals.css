@@ -112,7 +112,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text
 .month-tile:hover { border-color: var(--line-strong); }
 .month-tile h3 { font-size: 20px; line-height: 24px; font-weight: 600; }
 .month-tile .count { font-family: var(--font-display); font-weight: 800; font-size: 36px; line-height: 36px; font-variant-numeric: tabular-nums; }
-.month-tile .ogham { opacity: .8; }
 .bar { height: 6px; background: var(--glen-soft); overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--glen); }
 .month-tile .locked { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
@@ -727,3 +726,11 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 .menu-brand { margin: 0; padding: 8px 12px 6px; font-family: var(--font-mono); font-size: 11px; line-height: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--torc-ink); border-bottom: 1px solid var(--line); }
 .print-brand { display: none; }
 @media print { .print-brand { display: block; margin-top: 24px; padding-top: 12px; border-top: 2px solid #c9992e; font-size: 12px; } }
+
+/* Current month on the homepage's "The year ahead" */
+.month-tile.is-current { background: var(--glen); border-color: var(--glen); color: var(--on-glen); }
+.month-tile.is-current:hover { border-color: var(--harbour); }
+.month-tile.is-current .muted { color: var(--on-glen); opacity: .85; }
+.month-tile.is-current .bar { background: rgba(255, 255, 255, .25); }
+.month-tile.is-current .bar i { background: var(--on-glen); }
+.month-tile .now-tag { align-self: flex-start; font-family: var(--font-mono); font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; background: var(--on-glen); color: var(--glen); padding: 2px 6px; border-radius: var(--radius-sm); }
