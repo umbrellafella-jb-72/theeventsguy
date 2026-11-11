@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GuyPortrait, KnotRule, Ogham, PortScene, Triskele } from '@/components/Art';
+import { GuyPortrait, KnotRule, PortScene, Triskele } from '@/components/Art';
 import { EventCard } from '@/components/EventCard';
 import { FeaturedHero } from '@/components/FeaturedHero';
 import { sessionUser } from '@/lib/users';
@@ -65,7 +65,6 @@ export default async function Home() {
             {summaries.map(s => (
               <Link key={s.key} href={`/guide?month=${s.key}`} className="month-tile">
                 <h3>{s.key === 'tbc' ? 'Dates TBC' : s.label}</h3>
-                <Ogham className="ogham" text={s.key === 'tbc' ? 'TBC' : s.label.slice(0, 3)} height={14} />
                 <div className="count">{s.count}</div>
                 <div className="bar" aria-hidden="true"><i style={{ width: `${(s.count / max) * 100}%` }} /></div>
                 <span className="muted tile-sub">{s.confirmed} confirmed · {s.free} free</span>

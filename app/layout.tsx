@@ -4,7 +4,7 @@ import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
 import { can } from '@/lib/permissions';
 import { generatedAt } from '@/lib/data';
-import { Logo, Ogham } from '@/components/Art';
+import { Logo } from '@/components/Art';
 import { CHARITY } from '@/lib/charity';
 import { CookieConsent, CookieSettingsLink } from '@/components/CookieConsent';
 import './globals.css';
@@ -52,7 +52,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <main>{children}</main>
         <footer className="site-foot">
           <div className="wrap">
-            <div className="sig"><Ogham text="THE EVENTS GUY" height={16} /><span>THE EVENTS GUY · THEEVENTSGUY.CO.UK</span></div>
+            <div className="sig"><span>THE EVENTS GUY · THEEVENTSGUY.CO.UK</span></div>
             <p className="foot-charity">{CHARITY.share} of every subscription goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a> (registered charity no. {CHARITY.number}).</p>
             The Events Guy · theeventsguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
             <p className="foot-links"><Link href="/cookies">Cookies</Link> · <CookieSettingsLink /></p>
