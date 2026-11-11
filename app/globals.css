@@ -776,3 +776,4 @@ mark.todo { background: var(--torc-soft); color: var(--torc-ink); padding: 0 4px
 .finder-guy { flex: none; }
 .finder-guy, .finder-guy img { width: 120px; height: 120px; }
 @media (max-width: 640px) { .finder-enquire { flex-direction: column; align-items: center; } .finder-item { grid-template-columns: 36px minmax(0, 1fr); } .finder-rank { width: 36px; height: 36px; font-size: 18px; } }
+.lock-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; margin-top: var(--space-4); }

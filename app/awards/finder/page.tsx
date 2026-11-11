@@ -3,6 +3,7 @@ import { PageHero } from '@/components/PageHero';
 import { GuyPortrait } from '@/components/Art';
 import { AwardsQuiz } from '@/components/AwardsQuiz';
 import { getAccess } from '@/lib/access';
+import { sessionUser } from '@/lib/users';
 import { eventHref, fullFor } from '@/lib/data';
 import { entryInfo } from '@/lib/awards';
 import { matchAwards } from '@/lib/award-match';
@@ -15,6 +16,9 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const a = readAnswers(sp);
   const access = await getAccess();
+  // Visitors who haven't registered get the count, not the names (they only see this month elsewhere).
+  const canSee = access.paid || Boolean(await sessionUser());
+  const here = `/awards/finder?${new URLSearchParams(Object.entries(sp).filter(([k]) => k !== 'sent').map(([k, v]) => [k, String(v)]))}`;
   const matches = a ? matchAwards(a) : [];
   const today = new Date().toISOString().slice(0, 10);
   const sent = sp.sent === '1';
@@ -34,7 +38,13 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
                 <Link className="btn btn-ghost btn-sm" href="/awards/finder">Start again</Link>
               </div>
               <p className="muted finder-answers">{labelFor('who', a.who)} · {a.goals.map(g => labelFor('goals', g)).join(', ')} · {a.where.map(w => labelFor('where', w)).join(', ')} · {labelFor('sector', a.sector)} · ready {labelFor('when', a.when).toLowerCase()}</p>
-              {matches.length > 0 ? (
+              {matches.length > 0 && !canSee ? (
+                <div className="lock-panel">
+                  <h3>We found {matches.length} award{matches.length === 1 ? '' : 's'} that fit you</h3>
+                  <p>Create a free account to see your shortlist: which awards, when the ceremonies are and why each one fits.</p>
+                  <div className="lock-actions"><Link className="btn btn-primary" href={`/login?next=${encodeURIComponent(`${here}#results`)}`}>Register free to see them</Link></div>
+                </div>
+              ) : matches.length > 0 ? (
                 <ol className="finder-list">
                   {matches.map((m, i) => {
                     const full = fullFor(m.e, access.paid);
@@ -71,8 +81,8 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
                   <input type="hidden" name="from" value="awards" />
                   <input type="hidden" name="interest" value="Awards entry advice" />
                   <input type="hidden" name="quiz" value={summary(a)} />
-                  <input type="hidden" name="shortlist" value={matches.map(m => m.e.name).join('; ')} />
-                  <input type="hidden" name="back" value={`/awards/finder?${new URLSearchParams(Object.entries(sp).filter(([k]) => k !== 'sent').map(([k, v]) => [k, String(v)]))}`} />
+                  {canSee && <input type="hidden" name="shortlist" value={matches.map(m => m.e.name).join('; ')} />}
+                  <input type="hidden" name="back" value={here} />
                   <div className="field-row">
                     <label>Name<input name="name" required autoComplete="name" /></label>
                     <label>Work email<input name="email" type="email" required autoComplete="email" /></label>

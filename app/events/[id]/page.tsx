@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAccess } from '@/lib/access';
-import { RELEASE_DAYS, eventById, fullFor, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
+import { sessionUser } from '@/lib/users';
+import { RELEASE_DAYS, eventById, fullFor, openToAll, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
 import { eventDates } from '@/lib/calendar';
 import { EventActions } from '@/components/EventActions';
 import { PrintButton } from '@/components/PrintButton';
@@ -18,6 +19,8 @@ type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ members?
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const e = eventById.get((await params).id);
   if (!e) return { title: 'Event not found — The Events Guy' };
+  // Visitors who haven't registered only see this month's and featured events — not even the name.
+  if (!openToAll(e) && !(await getAccess()).paid && !(await sessionUser())) return { title: 'Register to see this event — The Events Guy', robots: { index: false, follow: false } };
   const when = e.dates || (e.months[0] ? monthLabel(e.months[0]) : 'Date to be confirmed');
   const desc = `${e.name}: ${when}, ${e.city}. ${e.format}${e.organiser ? ` by ${e.organiser}` : ''}. ${e.sectors.filter(s => s !== 'Cross-sector').join(', ') || 'Ecommerce'} — on The Events Guy, the month-by-month guide to ecommerce events.`;
   return { title: `${e.name} — ${when}, ${e.city} | The Events Guy`, description: desc, alternates: { canonical: `/events/${e.id}` }, openGraph: { title: e.name, description: desc, url: `${SITE}/events/${e.id}`, type: 'website' } };
@@ -29,6 +32,20 @@ export default async function EventPage({ params, searchParams }: Props) {
   const e = eventById.get(id);
   if (!e) notFound();
   const access = await getAccess();
+  if (!openToAll(e) && !access.paid && !(await sessionUser())) {
+    return (
+      <div className="wrap section">
+        <div className="lock-panel ev-page-lock">
+          <h1>Register free to see this event</h1>
+          <p>Visitors see this month’s events. A free account shows every month — names, dates and cities — and members get the full details {RELEASE_DAYS} days ahead.</p>
+          <div className="lock-actions">
+            <Link className="btn btn-primary" href={`/login?next=${encodeURIComponent(`/events/${e.id}`)}`}>Register free</Link>
+            <Link className="btn btn-secondary" href="/guide">This month’s events</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const full = fullFor(e, access.paid);
   const opens = access.paid && !full ? opensOn(e) : null;
   const d = eventDates(e);
