@@ -35,7 +35,8 @@ export default async function AwardsPage() {
     <>
       <PageHero eyebrow="Awards" scene="chimneys" title="Ecommerce awards: deadlines, judges and how to enter"
         intro="Every ecommerce, retail and digital award worth entering across the UK, Ireland and Europe: when entries close, who’s judging, what it costs and how to write an entry that gets shortlisted.">
-        <a className="btn btn-primary" href="#how-to-enter">How to enter</a>
+        <Link className="btn btn-primary" href="/awards/finder">What awards should we enter?</Link>
+        <a className="btn btn-secondary" href="#how-to-enter">How to enter</a>
       </PageHero>
 
       <div className="wrap">
@@ -80,6 +81,15 @@ export default async function AwardsPage() {
                 : <p className="note">Payments aren’t switched on yet for this deployment.</p>}
             </div>
           )}
+        </section>
+
+        <section className="finder-cta" aria-labelledby="finder-cta-title">
+          <div>
+            <span className="label">Awards finder</span>
+            <h2 id="finder-cta-title">What awards should we enter?</h2>
+            <p>Five quick questions about what you’ve done, where you want to win and when you could be ready. Get a shortlist that fits — and help with the entries if you want it.</p>
+          </div>
+          <Link className="btn btn-primary" href="/awards/finder">Take the quiz</Link>
         </section>
 
         <KnotRule id="hawser-awards" />
