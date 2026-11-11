@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ENTRY_FILTERS, ENTRY_ORDER } from '@/lib/awards';
 import { AwardCard, type AwardView } from './AwardCard';
 
@@ -15,6 +15,10 @@ export default function AwardsGuide({ awards, areas, topics }: { awards: AwardVi
   const [area, setArea] = useState<Set<string>>(new Set());
   const [topic, setTopic] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<Sort>('deadline');
+  // First landing shows 3 awards; searching, filtering or re-sorting opens the full list.
+  const [expanded, setExpanded] = useState(false);
+  const firstRun = useRef(true);
+  useEffect(() => { if (firstRun.current) { firstRun.current = false; return; } setExpanded(true); }, [q, entry, area, topic, sort]);
 
   const flip = (set: Set<string>, put: (s: Set<string>) => void, v: string) => { const n = new Set(set); n.has(v) ? n.delete(v) : n.add(v); put(n); };
   const match = (a: AwardView, skip?: string) => {
@@ -81,12 +85,24 @@ export default function AwardsGuide({ awards, areas, topics }: { awards: AwardVi
           {anyFilter ? <button className="btn btn-ghost btn-sm" onClick={clear}>Clear filters</button> : null}
         </div>
         {results.length === 0 && <div className="empty">No awards match these filters. <button className="btn btn-ghost btn-sm" onClick={clear}>Clear filters</button></div>}
-        {groups.map(g => (
-          <div key={g.key} className="month-block">
-            {g.label && <h2>{g.label}<span>{g.items.length} award{g.items.length === 1 ? '' : 's'}</span></h2>}
-            <div className="ev-list">{g.items.map(a => <AwardCard key={a.id} a={a} />)}</div>
+        {(() => {
+          let left = expanded ? Infinity : 3;
+          return groups.map(g => {
+            const items = g.items.slice(0, Math.max(0, left)); left -= items.length;
+            return items.length ? (
+              <div key={g.key} className="month-block">
+                {g.label && <h2>{g.label}<span>{g.items.length} award{g.items.length === 1 ? '' : 's'}</span></h2>}
+                <div className="ev-list">{items.map(a => <AwardCard key={a.id} a={a} />)}</div>
+              </div>
+            ) : null;
+          });
+        })()}
+        {!expanded && results.length > 3 && (
+          <div className="snapshot-more">
+            <p className="muted">Showing 3 of {results.length}. Search, filter or sort — or see them all.</p>
+            <button className="btn btn-secondary" onClick={() => setExpanded(true)}>Show all {results.length} awards</button>
           </div>
-        ))}
+        )}
       </section>
     </div>
   );

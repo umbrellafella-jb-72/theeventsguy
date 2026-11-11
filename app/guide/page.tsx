@@ -1,7 +1,7 @@
 import Guide from '@/components/Guide';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
-import { currentMonthKey, events, eventsFor, monthSummaries, speakersByEvent, taxonomy, todayKey } from '@/lib/data';
+import { LISTING_DAYS, RELEASE_DAYS, currentMonthKey, events, eventsFor, monthSummaries, speakersByEvent, taxonomy, todayKey } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'The guide — The Events Guy' };
@@ -19,7 +19,10 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   // the free month's and featured events in full. Locked details never reach the browser.
   // Visitors who haven't registered see only this month (plus featured events) — the rest isn't sent at all.
   const visitorLocked = !access.paid && !user;
-  const visible = visitorLocked ? events.filter(e => e.months.includes(preview) || e.featured) : eventsFor(access.paid, preview);
+  // Free accounts and members see events up to LISTING_DAYS ahead (full for members from RELEASE_DAYS).
+  const visible = eventsFor(access.paid, preview, Boolean(user));
+  // First landing (no month, search or filters in the address) shows a 3-event snapshot.
+  const snapshot = !Object.keys(sp).some(k => k === 'month' || k === 'q' || k === 'from' || k === 'to' || k.startsWith('f_'));
   const wanted = sp.month && (summaries.some(s => s.key === sp.month) || (sp.month === 'all' && !visitorLocked)) ? sp.month : null;
   const initialMonth = wanted ?? (access.paid ? 'all' : preview);
 
@@ -28,7 +31,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
       <div className="wrap guide-top">
         <h1>Ecommerce events, month by month</h1>
         <p className="muted" style={{ margin: '8px 0 0' }}>
-          {events.length} events and awards across the UK, Ireland and Europe — tagged by area, format, topic, country and price so you can find the ones worth your time.
+          {events.length} events and awards across the UK, Ireland and Europe. Each one is listed {LISTING_DAYS} days ahead, with full details for members from {RELEASE_DAYS} days.
         </p>
         {sp.welcome && <p className="note banner">You’re in. Every month is now unlocked — welcome to The Events Guy.</p>}
         {sp.restored && <p className="note banner">Access restored on this device.</p>}
@@ -46,6 +49,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         speakers={speakersByEvent()}
         priceLabel={process.env.NEXT_PUBLIC_PRICE_LABEL || 'monthly'}
         visitorLocked={visitorLocked}
+        snapshot={snapshot}
         canSave={Boolean(user) || access.paid}
         signedIn={Boolean(user)}
         initial={{ q: sp.q, from: sp.from, to: sp.to, past: sp.past === '1', sel: initialSel }}

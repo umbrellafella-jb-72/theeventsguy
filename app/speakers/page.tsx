@@ -4,7 +4,8 @@ import { GuyPortrait } from '@/components/Art';
 import { SpeakerDirectory } from '@/components/SpeakerDirectory';
 import type { SpeakerEvent, SpeakerView } from '@/components/SpeakerCard';
 import { ReportButton } from '@/components/portal/Bits';
-import { eventById, eventHref, speakers, type EventItem } from '@/lib/data';
+import { eventById, eventHref, speakers, visibleTo, type EventItem } from '@/lib/data';
+import { getAccess } from '@/lib/access';
 import { allSpeakers } from '@/lib/portal';
 import { storeReady } from '@/lib/store';
 import { sessionUser } from '@/lib/users';
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Speakers portal — The Events Guy', description: 'A curated list of ecommerce speakers in the UK and Europe: specialities, LinkedIn profiles and where they’re speaking next.' };
 
 const shortDate = (e: EventItem) => e.dates.replace(/\s*20\d\d/g, '');
-const toEvents = (ids: string[]): SpeakerEvent[] => ids.map(id => eventById.get(id)).filter((e): e is EventItem => !!e)
+const toEvents = (ids: string[], see: (e: EventItem) => boolean): SpeakerEvent[] => ids.map(id => eventById.get(id)).filter((e): e is EventItem => !!e && see(e))
   .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
   .map(e => ({ id: e.id, name: e.name, when: shortDate(e), city: e.city, award: e.format === 'Awards', href: e.format === 'Awards' ? `/awards#aw-${e.id}` : eventHref(e) }));
 
@@ -31,15 +32,18 @@ const EXAMPLES: SpeakerView[] = [
 export default async function Speakers({ searchParams }: { searchParams: Promise<{ reported?: string }> }) {
   const sp = await searchParams;
   const viewer = await sessionUser();
+  const paid = (await getAccess()).paid;
+  // Only events this viewer may see (60 days ahead for accounts, this month for visitors).
+  const see = (e: EventItem) => visibleTo(e, paid, Boolean(viewer));
   const canEnquire = can(viewer, 'directory.speakers') && can(viewer, 'enquiry.send');
   const portal = storeReady() ? (await allSpeakers().catch(() => [])).filter(p => p.status === 'published') : [];
   const curated: SpeakerView[] = speakers.map(s => ({
     id: s.id, name: s.name, role: s.role, company: s.company, bio: s.bio, linkedin: s.linkedin, topics: s.topics ?? [], image: s.image ?? null,
-    featured: Boolean(s.featured), openTo: s.openTo ?? [], events: toEvents(s.events), enquire: false, portal: false,
+    featured: Boolean(s.featured), openTo: s.openTo ?? [], events: toEvents(s.events, see), enquire: false, portal: false,
   }));
   const own: SpeakerView[] = portal.map(p => ({
     id: p.userId, name: p.name, role: p.headline, company: p.company, bio: p.bio, linkedin: p.linkedin, topics: p.topics, image: p.image ?? null,
-    featured: false, openTo: p.openTo, events: toEvents(p.events), enquire: canEnquire && viewer?.id !== p.userId, portal: true,
+    featured: false, openTo: p.openTo, events: toEvents(p.events, see), enquire: canEnquire && viewer?.id !== p.userId, portal: true,
   }));
   const seen = new Set<string>();
   const all = [...curated, ...own]

@@ -1,8 +1,8 @@
 import dataset from '@/data/events.json';
 import overrides from '@/data/overrides.json';
 import { entryInfo } from './awards';
-import { RELEASE_DAYS, releaseLabel } from './release';
-export { RELEASE_DAYS, releaseLabel };
+import { LISTING_DAYS, RELEASE_DAYS, releaseLabel } from './release';
+export { LISTING_DAYS, RELEASE_DAYS, releaseLabel };
 
 export type EventItem = {
   id: string;
@@ -158,6 +158,9 @@ export function monthSummaries() {
       europe: list.filter(e => e.area === 'Europe').length,
       awards: list.filter(e => e.format === 'Awards').length,
       formats: Object.entries(formats).sort((a, b) => b[1] - a[1]),
+      // When this month's events start appearing: each event's date in this month (recurring events
+      // count from the month's first day), less the listing window.
+      listsOn: key === TBC ? null : list.map(e => { const s = startOf(e); return addDays(s && s > `${key}-01` ? s : `${key}-01`, -LISTING_DAYS); }).sort()[0] ?? null,
     };
   });
 }
@@ -213,6 +216,25 @@ export function released(e: EventItem, now = new Date()): boolean {
   return Boolean((s && s <= cut) || (dl && dl <= cut));
 }
 
+// ---------- Rolling listing ----------
+// Nothing further out than LISTING_DAYS is sent to anyone (apart from featured events and the free
+// month): an event appears as a teaser 60 days ahead and opens in full for members at 30 days.
+/** The day an event first appears in the guide (null while no date is known). */
+export const listsOn = (e: EventItem) => {
+  const dates = [startOf(e), deadlineOf(e)].filter((d): d is string => !!d).sort();
+  return dates.length ? addDays(dates[0], -LISTING_DAYS) : null;
+};
+export function listed(e: EventItem, now = new Date()): boolean {
+  const cut = addDays(todayKey(now), LISTING_DAYS);
+  const s = startOf(e), dl = deadlineOf(e, now);
+  return Boolean((s && s <= cut) || (dl && dl <= cut));
+}
+/** May this viewer see that the event exists at all? Visitors: free month and featured only.
+ *  Free accounts and members: also anything within the listing window. */
+export function visibleTo(e: EventItem, paid: boolean, signedIn: boolean, previewMonth = currentMonthKey()): boolean {
+  return openToAll(e, previewMonth) || ((paid || signedIn) && listed(e));
+}
+
 /** May this visitor see the whole event? Everyone: featured and the free month. Members: also
  *  anything starting within the release window. */
 export function fullFor(e: EventItem, paid: boolean, previewMonth = currentMonthKey()): boolean {
@@ -229,9 +251,9 @@ export function teaser(e: EventItem, paid = false): EventItem {
   };
 }
 
-/** Each event as this visitor may see it: whole, or as a teaser. */
-export function eventsFor(paid: boolean, previewMonth = currentMonthKey()): EventItem[] {
-  return events.map(e => (fullFor(e, paid, previewMonth) ? e : teaser(e, paid)));
+/** The events this viewer may see, each whole or as a teaser. Events beyond the listing window aren't included. */
+export function eventsFor(paid: boolean, previewMonth = currentMonthKey(), signedIn = true): EventItem[] {
+  return events.filter(e => visibleTo(e, paid, signedIn, previewMonth)).map(e => (fullFor(e, paid, previewMonth) ? e : teaser(e, paid)));
 }
 
 /** Featured events first within a list, keeping the original order otherwise. */

@@ -1,5 +1,5 @@
 import changes from '@/data/changes.json';
-import { eventById, monthLabel } from '@/lib/data';
+import { eventById, listed, monthLabel } from '@/lib/data';
 import { getValue, setValue, storeReady } from '@/lib/store';
 import { allUsers, isMember } from '@/lib/users';
 import { eventsEmail, sendEmail } from '@/lib/email';
@@ -16,7 +16,9 @@ export async function GET(req: Request) {
   await setValue('digest:last', c.generatedAt);
 
   const base = siteUrl(req);
-  const added = c.added.map(id => eventById.get(id)).filter(Boolean).sort((a, b) => (a!.sortKey || '9').localeCompare(b!.sortKey || '9'));
+  // Only events already inside the 60-day listing window; later ones appear in the guide when they're listed.
+  const added = c.added.map(id => eventById.get(id)).filter(e => e && listed(e)).sort((a, b) => (a!.sortKey || '9').localeCompare(b!.sortKey || '9'));
+  if (!added.length) return Response.json({ skipped: 'nothing new inside the listing window' });
   const items = added.slice(0, 40).map(e => ({ name: e!.name, when: e!.dates || (e!.months[0] ? monthLabel(e!.months[0]) : 'Date TBC'), where: e!.city, url: `${base}/events/${e!.id}` }));
   let sent = 0;
   for (const m of await allUsers()) {

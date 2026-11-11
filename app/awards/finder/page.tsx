@@ -4,7 +4,7 @@ import { GuyPortrait } from '@/components/Art';
 import { AwardsQuiz } from '@/components/AwardsQuiz';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
-import { eventHref, fullFor } from '@/lib/data';
+import { LISTING_DAYS, eventHref, fullFor, visibleTo } from '@/lib/data';
 import { entryInfo } from '@/lib/awards';
 import { matchAwards } from '@/lib/award-match';
 import { labelFor, readAnswers, summary } from '@/lib/award-quiz';
@@ -16,10 +16,15 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const a = readAnswers(sp);
   const access = await getAccess();
+  const user = await sessionUser();
   // Visitors who haven't registered get the count, not the names (they only see this month elsewhere).
-  const canSee = access.paid || Boolean(await sessionUser());
+  const canSee = access.paid || Boolean(user);
   const here = `/awards/finder?${new URLSearchParams(Object.entries(sp).filter(([k]) => k !== 'sent').map(([k, v]) => [k, String(v)]))}`;
-  const matches = a ? matchAwards(a) : [];
+  const all = a ? matchAwards(a, 12) : [];
+  // Accounts see matches within the listing window; the rest are counted, not named.
+  const inWindow = all.filter(m => visibleTo(m.e, access.paid, Boolean(user)));
+  const matches = canSee ? inWindow.slice(0, 6) : all.slice(0, 6);
+  const later = canSee ? all.length - inWindow.length : 0;
   const today = new Date().toISOString().slice(0, 10);
   const sent = sp.sent === '1';
 
@@ -64,9 +69,10 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
                     );
                   })}
                 </ol>
-              ) : (
+              ) : later > 0 ? null : (
                 <p>Try widening where you want to win, or what you’d like recognised. Or tell us below and we’ll suggest some by hand.</p>
               )}
+              {canSee && later > 0 && <p className="note">{later} more award{later === 1 ? '' : 's'} that fit you {later === 1 ? 'is' : 'are'} listed nearer the time — awards appear {LISTING_DAYS} days before their entry deadline or ceremony. Come back, or ask us below.</p>}
             </section>
 
             <section id="enquire" className="finder-enquire" aria-labelledby="enq-title">

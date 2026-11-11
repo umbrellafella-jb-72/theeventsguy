@@ -1,5 +1,5 @@
 'use client';
-import { RELEASE_DAYS } from '@/lib/release';
+import { LISTING_DAYS, RELEASE_DAYS, releaseLabel } from '@/lib/release';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EventItem, Taxonomy } from '@/lib/data';
@@ -7,7 +7,7 @@ import { EventCard } from './EventCard';
 import { saveSearch } from '@/app/portal/actions';
 import type { SpeakerRef } from '@/lib/data';
 
-type Summary = { key: string; label: string; count: number; confirmed: number; free: number; europe: number; awards: number; formats: [string, number][] };
+type Summary = { key: string; label: string; count: number; confirmed: number; free: number; europe: number; awards: number; formats: [string, number][]; listsOn: string | null };
 type GroupKey = 'area' | 'format' | 'sectors' | 'topics' | 'region' | 'priceTag' | 'status';
 
 // membersOnly: filters on details that teasers don't carry, so visitors don't see them.
@@ -38,6 +38,7 @@ export default function Guide(props: {
   speakers?: Record<string, SpeakerRef[]>;
   canSave?: boolean;      // signed in (free account) or member
   visitorLocked?: boolean; // not signed in: only the current month (and featured events) until they register
+  snapshot?: boolean;     // first landing: show 3 events until they pick a month, search or filter
   signedIn?: boolean;     // can save searches
   initial?: { q?: string; from?: string; to?: string; past?: boolean; sel?: Partial<Record<string, string[]>> };
 }) {
@@ -52,6 +53,10 @@ export default function Guide(props: {
   const [naming, setNaming] = useState(false);
   const groups = GROUPS.filter(g => paid || !g.membersOnly);
   const [showFilters, setShowFilters] = useState(false);
+  const [expanded, setExpanded] = useState(!props.snapshot);
+  const firstRun = useRef(true);
+  // Any navigation or filtering opens the full view.
+  useEffect(() => { if (firstRun.current) { firstRun.current = false; return; } setExpanded(true); }, [month, q, sel, from, to, hidePast]);
   const strip = useRef<HTMLDivElement>(null);
   useEffect(() => {
     strip.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
@@ -198,24 +203,24 @@ export default function Guide(props: {
               </div>
               {props.visitorLocked ? (
                 <div className="note member-note">
-                  <span>You’re seeing <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</b>. <b>Register free</b> to see what’s on in every month, save events and searches, and set up a speaker, sponsor or organiser profile.</span>
+                  <span>You’re seeing <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</b>. <b>Register free</b> to see what’s on over the next {LISTING_DAYS} days, save events and searches, and set up a speaker, sponsor or organiser profile.</span>
                   <a className="btn btn-primary btn-sm" href={`/login?next=${encodeURIComponent('/guide')}`}>Register free</a>
                 </div>
               ) : !paid && (
                 <div className="note member-note">
-                  <span>Everyone can see what’s on and where. <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'This month'}</b> and featured events are open in full; members get every event’s venue, price, booking link and speakers, plus a saved shortlist, calendar sync and reminders.</span>
+                  <span>You can see what’s on over the next {LISTING_DAYS} days. <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'This month'}</b> and featured events are open in full; members get each event’s venue, price, booking link and speakers {RELEASE_DAYS} days ahead, plus a saved shortlist, calendar sync and reminders.</span>
                   <a className="btn btn-primary btn-sm" href="/#pricing">See membership plans</a>
                 </div>
               )}
               {paid && (
-                <p className="note member-note"><span>Full details are released {RELEASE_DAYS} days before each event (for awards, before the entry deadline or ceremony). Later events show the day they open — save them now and they fill in on your shortlist and calendar feed.</span></p>
+                <p className="note member-note"><span>Events are listed {LISTING_DAYS} days ahead and open in full {RELEASE_DAYS} days before they start (for awards, before the entry deadline or ceremony). Save one now and it fills in on your shortlist and calendar feed when it opens.</span></p>
               )}
               {props.visitorLocked && month !== previewMonth ? (
                 <div className="lock-panel register-panel">
                   <h2>{month === 'all' ? 'Every month' : summary?.key === 'tbc' ? 'Events with dates to be confirmed' : summary?.label} — free with an account</h2>
-                  <p>{summary ? `${summary.count} event${summary.count === 1 ? '' : 's'} listed. ` : ''}Create a free account to see what’s on in every month: names, dates, cities and organisers. It takes one email — no password, no card.</p>
+                  <p>{summary ? `${summary.count} event${summary.count === 1 ? '' : 's'} listed. ` : ''}Create a free account to see what’s on over the next {LISTING_DAYS} days: names, dates, cities and organisers. It takes one email — no password, no card.</p>
                   <ul className="ticks">
-                    <li>Browse the whole year ahead</li>
+                    <li>See every event {LISTING_DAYS} days ahead</li>
                     <li>Save events to your shortlist and save searches</li>
                     <li>Publish a speaker, sponsor or organiser profile</li>
                   </ul>
@@ -223,15 +228,36 @@ export default function Guide(props: {
                   <button className="btn btn-ghost" onClick={() => setMonth(previewMonth)}>Back to {summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</button>
                 </div>
               ) : <>
-              {totalShown === 0 && <div className="empty">No events match these filters. <button className="btn btn-ghost btn-sm" onClick={clearAll}>Clear filters</button></div>}
-              {grouped.map(g => (
-                <div key={g.key} className="month-block">
-                  {month === 'all' && <h2>{g.label}<span>{g.items.length} event{g.items.length === 1 ? '' : 's'}</span></h2>}
-                  <div className="ev-list">
-                    {g.items.map(e => <EventCard key={`${g.key}-${e.id}`} e={e} month={g.key} past={isPast(e)} speakers={props.speakers?.[e.id]} paid={paid} canSave={props.canSave ?? paid} />)}
-                  </div>
+              {totalShown === 0 && month !== 'all' && summary && summary.count > 0 && !active.length && !q && !from && !to ? (
+                <div className="lock-panel">
+                  <h2>{summary.key === 'tbc' ? 'Dates to be confirmed' : summary.label}: {summary.count} event{summary.count === 1 ? '' : 's'}</h2>
+                  <p>{summary.key === 'tbc' || !summary.listsOn
+                    ? 'Events without a confirmed date are listed once the date is set.'
+                    : <>Events are listed {LISTING_DAYS} days ahead, so this month’s start appearing on <b>{releaseLabel(summary.listsOn)}</b>{paid ? `, with full details from ${RELEASE_DAYS} days before each one` : ''}.</>}</p>
                 </div>
-              ))}
+              ) : totalShown === 0 && <div className="empty">No events match these filters. <button className="btn btn-ghost btn-sm" onClick={clearAll}>Clear filters</button></div>}
+              {(() => {
+                // The snapshot: the first three events, until they pick a month, search or filter.
+                let left = expanded ? Infinity : 3;
+                return grouped.map(g => {
+                  const items = g.items.slice(0, Math.max(0, left)); left -= items.length;
+                  return items.length ? (
+                    <div key={g.key} className="month-block">
+                      {month === 'all' && <h2>{g.label}<span>{g.items.length} event{g.items.length === 1 ? '' : 's'}</span></h2>}
+                      <div className="ev-list">
+                        {items.map(e => <EventCard key={`${g.key}-${e.id}`} e={e} month={g.key} past={isPast(e)} speakers={props.speakers?.[e.id]} paid={paid} canSave={props.canSave ?? paid} />)}
+                      </div>
+                    </div>
+                  ) : null;
+                });
+              })()}
+              {!expanded && totalShown > 3 && (
+                <div className="snapshot-more">
+                  <p className="muted">Showing 3 of {totalShown}. Pick a month above, search or filter — or see them all.</p>
+                  <button className="btn btn-secondary" onClick={() => setExpanded(true)}>Show all {totalShown} events</button>
+                </div>
+              )}
+              {expanded && month === 'all' && !props.visitorLocked && <p className="muted snapshot-note">Later months appear here {LISTING_DAYS} days ahead.</p>}
               </>}
             </>
           )}

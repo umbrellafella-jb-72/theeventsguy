@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
-import { RELEASE_DAYS, eventById, fullFor, openToAll, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
+import { LISTING_DAYS, RELEASE_DAYS, eventById, fullFor, listsOn, openToAll, visibleTo, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
 import { eventDates } from '@/lib/calendar';
 import { EventActions } from '@/components/EventActions';
 import { PrintButton } from '@/components/PrintButton';
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const e = eventById.get((await params).id);
   if (!e) return { title: 'Event not found — The Events Guy' };
   // Visitors who haven't registered only see this month's and featured events — not even the name.
-  if (!openToAll(e) && !(await getAccess()).paid && !(await sessionUser())) return { title: 'Register to see this event — The Events Guy', robots: { index: false, follow: false } };
+  if (!visibleTo(e, (await getAccess()).paid, Boolean(await sessionUser()))) return { title: 'Not listed yet — The Events Guy', robots: { index: false, follow: false } };
   const when = e.dates || (e.months[0] ? monthLabel(e.months[0]) : 'Date to be confirmed');
   const desc = `${e.name}: ${when}, ${e.city}. ${e.format}${e.organiser ? ` by ${e.organiser}` : ''}. ${e.sectors.filter(s => s !== 'Cross-sector').join(', ') || 'Ecommerce'} — on The Events Guy, the month-by-month guide to ecommerce events.`;
   return { title: `${e.name} — ${when}, ${e.city} | The Events Guy`, description: desc, alternates: { canonical: `/events/${e.id}` }, openGraph: { title: e.name, description: desc, url: `${SITE}/events/${e.id}`, type: 'website' } };
@@ -32,15 +32,23 @@ export default async function EventPage({ params, searchParams }: Props) {
   const e = eventById.get(id);
   if (!e) notFound();
   const access = await getAccess();
-  if (!openToAll(e) && !access.paid && !(await sessionUser())) {
+  const signedIn = Boolean(await sessionUser());
+  if (!visibleTo(e, access.paid, signedIn)) {
+    // Nothing about the event itself: not its name, date or city.
+    const from = listsOn(e);
     return (
       <div className="wrap section">
         <div className="lock-panel ev-page-lock">
-          <h1>Register free to see this event</h1>
-          <p>Visitors see this month’s events. A free account shows every month — names, dates and cities — and members get the full details {RELEASE_DAYS} days ahead.</p>
+          {signedIn || access.paid ? <>
+            <h1>This event isn’t listed yet</h1>
+            <p>Events appear in the guide {LISTING_DAYS} days ahead{from ? <>; this one from <b>{releaseLabel(from)}</b></> : ' of a confirmed date'}. Members get the full details {RELEASE_DAYS} days ahead.</p>
+          </> : <>
+            <h1>Register free to see this event</h1>
+            <p>Visitors see this month’s events. A free account shows what’s on over the next {LISTING_DAYS} days, and members get the full details {RELEASE_DAYS} days ahead.</p>
+          </>}
           <div className="lock-actions">
-            <Link className="btn btn-primary" href={`/login?next=${encodeURIComponent(`/events/${e.id}`)}`}>Register free</Link>
-            <Link className="btn btn-secondary" href="/guide">This month’s events</Link>
+            {!signedIn && !access.paid && <Link className="btn btn-primary" href={`/login?next=${encodeURIComponent(`/events/${e.id}`)}`}>Register free</Link>}
+            <Link className="btn btn-secondary" href="/guide">See what’s on</Link>
           </div>
         </div>
       </div>
