@@ -1,4 +1,5 @@
 import dataset from '@/data/events.json';
+import overrides from '@/data/overrides.json';
 import { entryInfo } from './awards';
 import { RELEASE_DAYS, releaseLabel } from './release';
 export { RELEASE_DAYS, releaseLabel };
@@ -68,7 +69,10 @@ export type Taxonomy = { areas: string[]; formats: string[]; topics: string[]; s
 export const TBC = 'tbc';
 const data = dataset as unknown as { generatedAt: string; tabs: string[]; taxonomy: Taxonomy; events: EventItem[]; media: MediaItem[]; speakers?: Speaker[] };
 
-export const events = data.events;
+// Hand edits in data/overrides.json (e.g. a featured event's video) sit on top of the sheet and
+// survive the monthly refresh.
+const OVERRIDES = overrides as unknown as Record<string, Partial<EventItem>>;
+export const events: EventItem[] = data.events.map(e => (OVERRIDES[e.id] ? { ...e, ...OVERRIDES[e.id], id: e.id } : e));
 export const taxonomy = data.taxonomy;
 export const media = data.media;
 export const speakers: Speaker[] = data.speakers ?? [];

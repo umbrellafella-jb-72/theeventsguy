@@ -1,0 +1,14 @@
+{
+  "_readme": "Hand edits on top of the sheet, kept through the monthly refresh. Keyed by event id; any field here replaces the sheet's value. Remove an entry to go back to the sheet.",
+  "digital-clubhouse-2026-11-26": {
+    "featured": true,
+    "description": "The go-to ecommerce event in the North for education, networking and inspiration. A morning of 1:1 talks and a panel on what ecommerce looks like in 2027, in the cinema at Department, Leeds Dock — with breakfast, lunch and networking. Just 60 tickets per event. Speakers include Karl Lloyd (Praevo Partners), Mark Taylor (Retail Solutions) and Hannah Johnson.",
+    "venue": "Cinema @ Department, Leeds Dock, 4 The Boulevard, LS10 1PZ",
+    "startTime": "09:00",
+    "bookingUrl": "https://www.eventbrite.co.uk/e/digital-clubhouse-tickets-1981844421013",
+    "website": "https://www.digitalclubhouse.co.uk/",
+    "sponsors": ["Contona", "TrackBee", "Opteo", "Octane AI", "Mollie", "GoKwik", "Brightpearl", "The Place to Be", "Salesfire", "Diginius", "Actuate Digital", "Brave Agency"],
+    "heroVideo": "https://www.digitalclubhouse.co.uk/wp-content/uploads/2025/10/digital-clubhouse-leeds-hero-video.mp4",
+    "heroImage": "https://www.digitalclubhouse.co.uk/wp-content/uploads/2025/10/digital-clubhouse-group.jpg"
+  }
+}
