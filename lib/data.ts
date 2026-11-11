@@ -49,7 +49,13 @@ export type EventItem = {
   opensOn?: string | null;
 };
 
-export type Speaker = { id: string; name: string; role: string | null; company: string | null; bio: string | null; linkedin: string | null; events: string[] };
+export type Speaker = {
+  id: string; name: string; role: string | null; company: string | null; bio: string | null; linkedin: string | null; events: string[];
+  topics?: string[];      // specialities
+  image?: string | null;  // https link to their cartoon portrait
+  featured?: boolean;     // spotlight: shown first
+  openTo?: string[];
+};
 export type SpeakerRef = { id: string; name: string };
 
 export type MediaItem = {

@@ -49,6 +49,7 @@ export async function saveSpeakerProfile(f: FormData) {
     bio: str(f, 'bio', 1200), linkedin: isLinkedIn(li) ? li : null, website: cleanUrl(str(f, 'website', 300)),
     topics: list(str(f, 'topics', 400)).slice(0, 12), events: [...new Set(f.getAll('events').map(v => eventIdFrom(String(v))).filter((x): x is string => !!x))].slice(0, 20),
     openTo: f.getAll('openTo').map(String).slice(0, 6),
+    image: (u => (u && /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : null))(cleanUrl(str(f, 'image', 500))),
     status: prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
   };
   // Admin edits keep the current status; an owner's edit goes back for approval.

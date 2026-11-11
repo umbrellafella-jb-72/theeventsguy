@@ -10,6 +10,7 @@ export type SpeakerProfile = {
   userId: string; name: string; headline: string | null; company: string | null; bio: string;
   linkedin: string | null; website: string | null; topics: string[]; events: string[]; // event ids from the guide
   openTo: string[];                // e.g. keynotes, panels, judging, podcasts
+  image?: string | null;           // https link to a cartoon portrait (shown once approved)
   status: Status; createdAt: string; updatedAt: string;
 };
 export type SponsorProfile = {

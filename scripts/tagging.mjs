@@ -340,7 +340,8 @@ export function toMedia(row) {
 }
 
 // ---------- Speakers tab ----------
-// Columns: Name, Role, Company, Bio, LinkedIn, Event(s). Events are matched by name (several
+// Columns: Name, Role, Company, Bio, LinkedIn, Event(s), and optionally Topics (specialities,
+// separated by ";"), Image (an https link to their cartoon portrait) and Featured (yes = spotlight). Events are matched by name (several
 // separated by ";"), to the next edition on or after today. LinkedIn must be a profile URL.
 const LINKEDIN = /^https:\/\/(www\.|[a-z]{2}\.)?linkedin\.com\/in\/[A-Za-z0-9_%-]+\/?$/;
 export function toSpeaker(row, events, today) {
@@ -366,6 +367,9 @@ export function toSpeaker(row, events, today) {
       bio: bio.length > 320 ? bio.slice(0, 317).replace(/\s+\S*$/, '') + '…' : bio || null,
       linkedin: LINKEDIN.test(li) ? li : null,
       events: [...new Set(matched)],
+      topics: (get('Topics') || get('Specialities') || get('Specialties')).split(/[;,]/).map(t => t.trim()).filter(Boolean).slice(0, 8),
+      image: /^https:\/\/\S+$/i.test(get('Image') || get('Cartoon')) ? (get('Image') || get('Cartoon')) : null,
+      featured: /^(y|yes|true|1|featured|spotlight)$/i.test(get('Featured')),
     },
     unmatched, badLinkedIn: !!li && !LINKEDIN.test(li),
   };

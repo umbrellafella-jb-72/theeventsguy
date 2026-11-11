@@ -176,3 +176,7 @@ The rules live in `lib/permissions.ts` (`can(user, permission)`), and every writ
 ## Password-protecting the site before launch
 
 Set `SITE_USERNAME` and `SITE_PASSWORD` in Vercel (Settings → Environment Variables) and redeploy: every page, image and API then asks for them with the browser's login box, and search engines are told not to index it. Vercel's scheduled jobs (`/api/cron`) still run. The gate fails closed: on a production build without them the site shows a locked page rather than opening. To launch, set `SITE_PUBLIC=true` and redeploy.
+
+## Speakers portal
+
+`/speakers` is a curated, searchable list of speaker cards: cartoon portrait, name and role, topic specialities (filter chips), bio, events they're speaking at or judging, and their LinkedIn profile. Speakers come from the Speakers tab of the sheet (columns in `data/speakers-template.csv`: add `Topics`, `Image` — an https link to their cartoon portrait — and `Featured` = yes for Spotlight) plus profiles speakers publish themselves, which appear only after an admin approves them. Without an Image, a placeholder illustration in the same round gold frame is shown; it's a silhouette, never a guessed likeness.

@@ -38,9 +38,10 @@ export default async function SpeakerEditor({ searchParams }: { searchParams: Pr
         </div>
         <label>Short bio<textarea name="bio" rows={5} maxLength={1200} required defaultValue={p?.bio ?? ''} /></label>
         <div className="field-row">
-          <label>Topics you speak on<input name="topics" placeholder="Retention; marketplaces; AI search" defaultValue={(p?.topics ?? []).join('; ')} /></label>
+          <label>Topic specialities<input name="topics" placeholder="Retention; marketplaces; AI search" defaultValue={(p?.topics ?? []).join('; ')} /><span className="hint">Up to 8, separated by semicolons. These are the filters people use to find you.</span></label>
           <label>Website<input name="website" type="url" defaultValue={p?.website ?? ''} /></label>
         </div>
+        <label>Cartoon portrait (optional)<input name="image" type="url" placeholder="https://…/your-portrait.png" defaultValue={p?.image ?? ''} /><span className="hint">A link to a square cartoon-style portrait of you, in the style of The Events Guy. We’ll show a placeholder illustration until you add one. Portraits are checked before they go live.</span></label>
         <fieldset><legend>Open to</legend><div className="check-grid">{OPEN_TO.map(o => <label key={o} className="check"><input type="checkbox" name="openTo" value={o} defaultChecked={p?.openTo.includes(o)} /> {o}</label>)}</div></fieldset>
         <fieldset><legend>Events you’re speaking at (from the guide)</legend>
           <EventOptions id="ev-list" />
