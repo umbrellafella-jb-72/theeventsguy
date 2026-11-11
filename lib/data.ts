@@ -121,6 +121,28 @@ export function eventsIn(key: string): EventItem[] {
   return events.filter(e => (key === TBC ? !e.months.length : e.months.includes(key)));
 }
 
+/** Per-quarter summary (calendar quarters), counts only. An event spanning two months counts once. */
+export function quarterSummaries() {
+  const keys = monthKeys().filter(k => k !== TBC);
+  const quarters = new Map<string, string[]>();
+  for (const k of keys) { const q = `${k.slice(0, 4)}-Q${Math.floor((+k.slice(5, 7) - 1) / 3) + 1}`; quarters.set(q, [...(quarters.get(q) ?? []), k]); }
+  return [...quarters.entries()].map(([key, months]) => {
+    const list = events.filter(e => e.months.some(m => months.includes(m)));
+    const y = key.slice(0, 4), n = +key.slice(6);
+    // The current quarter starts at this month: earlier months have passed.
+    const first = months[0], last = `${y}-${String(n * 3).padStart(2, '0')}`;
+    const lastDay = new Date(Date.UTC(+y, n * 3, 0)).getUTCDate();
+    const short = (m: string) => new Date(`${m}-01T00:00:00Z`).toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' });
+    return {
+      key, label: `Q${n} ${y}`, span: `${short(first)} – ${short(last)}`, months,
+      from: `${first}-01`, to: `${last}-${String(lastDay).padStart(2, '0')}`,
+      count: list.length,
+      confirmed: list.filter(e => e.status === 'Confirmed').length,
+      free: list.filter(e => e.priceTag === 'Free').length,
+    };
+  });
+}
+
 /** Per-month summary, safe to show to anyone: counts only, no event details. */
 export function monthSummaries() {
   return monthKeys().map(key => {

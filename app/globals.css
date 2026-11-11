@@ -735,3 +735,8 @@ a.slot-sponsor:hover { border-color: var(--glen); }
 .month-tile.is-current .bar i { background: var(--on-glen); }
 .month-tile .now-tag { align-self: flex-start; font-family: var(--font-mono); font-size: 11px; line-height: 14px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; background: var(--on-glen); color: var(--glen); padding: 2px 6px; border-radius: var(--radius-sm); }
 mark.todo { background: var(--torc-soft); color: var(--torc-ink); padding: 0 4px; border-radius: var(--radius-sm); font-weight: 600; }
+.year-toggle { margin-bottom: var(--space-4); }
+.months-grid.is-quarters { grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
+.months-grid.is-quarters .count { font-size: 48px; line-height: 48px; }
+.month-tile .tile-span { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; margin-top: -4px; }
+.month-tile.is-current .locked { color: var(--on-glen); opacity: .85; }

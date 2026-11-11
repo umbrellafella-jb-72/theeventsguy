@@ -20,7 +20,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   // Visitors who haven't registered see only this month (plus featured events) — the rest isn't sent at all.
   const visitorLocked = !access.paid && !user;
   const visible = visitorLocked ? events.filter(e => e.months.includes(preview) || e.featured) : eventsFor(access.paid, preview);
-  const wanted = sp.month && summaries.some(s => s.key === sp.month) ? sp.month : null;
+  const wanted = sp.month && (summaries.some(s => s.key === sp.month) || (sp.month === 'all' && !visitorLocked)) ? sp.month : null;
   const initialMonth = wanted ?? (access.paid ? 'all' : preview);
 
   return (

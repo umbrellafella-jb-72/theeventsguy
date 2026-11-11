@@ -6,8 +6,9 @@ import { sessionUser } from '@/lib/users';
 import { CharityCallout } from '@/components/CharityCallout';
 import { CHARITY } from '@/lib/charity';
 import { getAccess } from '@/lib/access';
-import { RELEASE_DAYS, currentMonthKey, eventsIn, events, featuredFirst, media, monthLabel, monthSummaries, todayKey } from '@/lib/data';
+import { RELEASE_DAYS, currentMonthKey, eventsIn, events, featuredFirst, media, monthLabel, monthSummaries, quarterSummaries, todayKey } from '@/lib/data';
 import { plans } from '@/lib/plans';
+import { YearAhead } from '@/components/YearAhead';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,6 @@ export default async function Home() {
   // The hero shows the soonest upcoming featured event.
   const heroEvent = events.filter(e => e.featured && notPast(e)).sort((a, b) => (a.sortKey || '9').localeCompare(b.sortKey || '9'))[0] ?? null;
   const featured = events.filter(e => e.featured && notPast(e) && !upcoming.includes(e) && e !== heroEvent).sort((a, b) => (a.sortKey || '9').localeCompare(b.sortKey || '9')).slice(0, 4);
-  const max = Math.max(...summaries.map(s => s.count));
   const countries = new Set(events.filter(e => e.area === 'Europe' && e.region !== 'Location TBC').map(e => e.region)).size;
   const awards = events.filter(e => e.format === 'Awards').length;
   const user = await sessionUser();
@@ -60,20 +60,9 @@ export default async function Home() {
         <section className="section">
           <div className="section-head">
             <h2>The year ahead</h2>
-            <span className="muted">{access.paid ? 'Pick a month to dive in' : user ? `See what’s on every month — ${monthLabel(cur)} is open in full` : <>{monthLabel(cur)} is free to browse — <Link href="/login?next=/guide">register free</Link> to see every month</>}</span>
+            <span className="muted">{access.paid ? 'Pick a month or quarter to dive in' : user ? `See what’s on every month — ${monthLabel(cur)} is open in full` : <>{monthLabel(cur)} is free to browse — <Link href="/login?next=/guide">register free</Link> to see every month</>}</span>
           </div>
-          <div className="months-grid">
-            {summaries.map(s => (
-              <Link key={s.key} href={`/guide?month=${s.key}`} className={`month-tile${s.key === cur ? ' is-current' : ''}`} aria-current={s.key === cur ? 'date' : undefined}>
-                {s.key === cur && <span className="now-tag">This month</span>}
-                <h3>{s.key === 'tbc' ? 'Dates TBC' : s.label}</h3>
-                <div className="count">{s.count}</div>
-                <div className="bar" aria-hidden="true"><i style={{ width: `${(s.count / max) * 100}%` }} /></div>
-                <span className="muted tile-sub">{s.confirmed} confirmed · {s.free} free</span>
-                {!access.paid && s.key !== cur && <span className="locked">Subscribers</span>}
-              </Link>
-            ))}
-          </div>
+          <YearAhead cur={cur} paid={access.paid} months={summaries.map(({ key, label, count, confirmed, free }) => ({ key, label, count, confirmed, free }))} quarters={quarterSummaries()} />
         </section>
 
         {upcoming.length > 0 && (
