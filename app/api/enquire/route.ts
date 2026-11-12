@@ -4,6 +4,7 @@ import { clientIp, storeReady, tooMany } from '@/lib/store';
 import { createLead, FORM_LABELS, updateLead, type LeadForm } from '@/lib/leads';
 import { setMarketing } from '@/lib/marketing';
 import { noticeEmail, sendEmail } from '@/lib/email';
+import { enquiriesTo, publicEmail } from '@/lib/alerts';
 
 // Services, Sponsors and Awards-finder enquiries.
 // 1. Save it as a lead (so nothing is lost), 2. email you, 3. send the person an acknowledgement,
@@ -43,14 +44,17 @@ export async function POST(req: Request) {
   const lines = [`Name: ${get('name')}`, `Email: ${email}`, get('company') && `Company: ${get('company')}`, get('interest') && `Interested in: ${get('interest')}`,
     details.quiz && `\nQuiz answers:\n${details.quiz}`, details.shortlist && `\nTheir shortlist: ${details.shortlist}`, get('message') && `\nMessage:\n${get('message')}`,
     `\nMonthly roundup: ${marketing ? 'yes, opted in' : 'no'}`, `Sent from: ${base}${page}`, lead ? `\nWork this lead: ${base}/admin?tab=leads&lead=${lead.id}` : ''].filter(Boolean).join('\n');
-  const to = process.env.ENQUIRIES_TO || 'hello@theeventsguy.co.uk';
-  const alerted = await sendEmail({ to, replyTo: email, subject: `New ${FORM_LABELS[form]} enquiry${get('interest') ? `: ${get('interest')}` : ''} — ${get('name')}`, text: lines });
+  const to = enquiriesTo();
+  let alerted = false;
+  for (const addr of to.split(',').map(x => x.trim()).filter(Boolean))
+    alerted = (await sendEmail({ to: addr, replyTo: email, subject: `New ${FORM_LABELS[form]} enquiry${get('interest') ? `: ${get('interest')}` : ''} — ${get('name')}`, text: lines })) || alerted;
   if (lead && alerted) await updateLead(lead.id, { emailed: true });
 
   // Acknowledgement to them
   const r = REPLIES[form];
   const mail = noticeEmail({ heading: r.subject, paras: r.paras(get('name').split(' ')[0]),
     button: form === 'awards' ? { label: 'See my shortlist', url: `${base}${awardsBack}` } : { label: 'Browse the guide', url: `${base}/guide` } });
-  await sendEmail({ to: email, replyTo: to, subject: r.subject, ...mail });
+  // Replies go to the public address, so the private alert inbox (ENQUIRIES_TO) is never shown to the sender.
+  await sendEmail({ to: email, replyTo: publicEmail(), subject: r.subject, ...mail });
   return back;
 }

@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { siteUrl } from '@/lib/stripe';
 import { claimOnce, storeReady } from '@/lib/store';
-import { MAILS, emailForCustomer, endMembership, mail, money, startMembership, userForCustomer } from '@/lib/lifecycle';
+import { MAILS, day, emailForCustomer, endMembership, mail, money, startMembership, userForCustomer } from '@/lib/lifecycle';
+import { alertsTo, teamAlert } from '@/lib/alerts';
 
 // Stripe → The Events Guy. Set up in Stripe: Developers → Webhooks → Add endpoint
 //   URL:    https://<your-site>/api/stripe/webhook
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
         await startMembership(o.customer, await userForCustomer(o.customer, email), until);
         // One welcome email per checkout, whether this or the checkout return page gets there first.
         if (email && (!storeReady() || await claimOnce(`welcome:${o.id}`, 90 * 86400))) await mail(email, 'Welcome to The Events Guy', MAILS.welcome(base, email, planOf(o), until));
+        await teamAlert(alertsTo(), `New member: ${email ?? o.customer}${planOf(o) ? ` (${planOf(o)})` : ''}`, [`${email ?? 'No email'} subscribed${planOf(o) ? ` on the ${planOf(o)} plan` : ''}.`, o.amount_total != null && `Paid: ${money(o.amount_total, o.currency ?? 'gbp')}`, o.livemode === false && 'Stripe TEST mode', `Stripe customer: https://dashboard.stripe.com/${o.livemode === false ? 'test/' : ''}customers/${o.customer}`]);
         break;
       }
       case 'invoice.paid': {
@@ -57,7 +59,9 @@ export async function POST(req: Request) {
         break;
       }
       case 'invoice.payment_failed':
-        await mail(await emailForCustomer(o.customer, o.customer_email), 'Your payment didn’t go through', MAILS.paymentFailed(base, money(o.amount_due, o.currency)));
+        { const em = await emailForCustomer(o.customer, o.customer_email);
+          await mail(em, 'Your payment didn’t go through', MAILS.paymentFailed(base, money(o.amount_due, o.currency)));
+          await teamAlert(alertsTo(), `Payment failed: ${em ?? o.customer}`, [`A membership payment of ${money(o.amount_due, o.currency)} failed for ${em ?? o.customer}. Stripe will retry.`, o.livemode === false && 'Stripe TEST mode']); }
         break;
       case 'invoice.upcoming':
         // Stripe sends this before each renewal (set how many days before in Billing → Subscriptions → Upcoming renewal events).
@@ -66,13 +70,16 @@ export async function POST(req: Request) {
       case 'customer.subscription.updated': {
         const before = (evt.data as Obj).previous_attributes ?? {};
         if (o.cancel_at_period_end && before.cancel_at_period_end === false)
-          await mail(await emailForCustomer(o.customer), 'Your membership is set to end', MAILS.cancelling(base, o.current_period_end));
+          { const em = await emailForCustomer(o.customer);
+            await mail(em, 'Your membership is set to end', MAILS.cancelling(base, o.current_period_end));
+            await teamAlert(alertsTo(), `Cancellation: ${em ?? o.customer}`, [`${em ?? o.customer} cancelled. Access continues until ${day(o.current_period_end)}.`, o.livemode === false && 'Stripe TEST mode']); }
         break;
       }
       case 'customer.subscription.deleted': {
         const email = await emailForCustomer(o.customer);
         await endMembership(o.customer, await userForCustomer(o.customer, email));
         await mail(email, 'Your membership has ended', MAILS.ended(base));
+        await teamAlert(alertsTo(), `Membership ended: ${email ?? o.customer}`, [`${email ?? o.customer}'s membership has ended and access is off.`, o.livemode === false && 'Stripe TEST mode']);
         break;
       }
       case 'charge.refunded': {
@@ -80,6 +87,7 @@ export async function POST(req: Request) {
         // A full refund ends access straight away; a partial one is a goodwill credit and doesn't.
         if (o.refunded && o.customer) await endMembership(o.customer, await userForCustomer(o.customer, email));
         await mail(email, 'Your refund is on its way', MAILS.refunded(base, money(o.amount_refunded, o.currency)));
+        await teamAlert(alertsTo(), `Refund: ${email ?? o.customer}`, [`${money(o.amount_refunded, o.currency)} refunded to ${email ?? o.customer}${o.refunded ? ' (full refund, access ended)' : ' (partial, access kept)'}.`, o.livemode === false && 'Stripe TEST mode']);
         break;
       }
     }

@@ -183,7 +183,9 @@ Set `SITE_USERNAME` and `SITE_PASSWORD` in Vercel (Settings → Environment Vari
 
 ## Forms, leads and emails
 
-Every Services, Sponsors and Awards-finder enquiry is **saved as a lead first** (Upstash), then emailed to `ENQUIRIES_TO` and acknowledged to the sender. Admins work leads in **Admin → Leads**: filter by form and status (New, Contacted, Won, Lost), add notes, reply by email, and export CSV.
+Every Services, Sponsors and Awards-finder enquiry is **saved as a lead first** (Upstash), then emailed to `ENQUIRIES_TO` and acknowledged to the sender. The acknowledgement's reply-to is `PUBLIC_EMAIL` (default hello@theeventsguy.co.uk), so the private `ENQUIRIES_TO` inbox is never shown to anyone outside the team.
+
+**Team alerts.** New members, failed payments, cancellations, ended memberships and refunds are emailed to `ALERTS_TO` (or `ENQUIRIES_TO` if that isn't set), marked "Stripe TEST mode" while testing. Both take a comma-separated list. Admins work leads in **Admin → Leads**: filter by form and status (New, Contacted, Won, Lost), add notes, reply by email, and export CSV.
 
 **Marketing consent.** Forms and the sign-in page carry an unticked "monthly roundup" box. Consent is stored per address with its time and source (`sub:<email>`); sign-in opt-ins only count once the emailed link is clicked. People switch it off in Account settings or with a one-click link (`/api/unsubscribe?token=…`, signed, also usable as a `List-Unsubscribe` header). Admin → Leads exports the opted-in list for your newsletter tool.
 
