@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
+import { Analytics } from '@vercel/analytics/next';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
 import { can } from '@/lib/permissions';
@@ -59,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </footer>
         <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );

@@ -10,6 +10,7 @@
     "sync": "node scripts/sync.mjs"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "csv-parse": "^7.0.3",
     "next": "^15.5.28",
     "react": "^19.3.1",
