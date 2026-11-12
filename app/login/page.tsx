@@ -28,6 +28,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
               <label htmlFor="email" className="sr-only">Email</label>
               <input id="email" name="email" type="email" autoComplete="email" required placeholder="you@company.co.uk" />
               <button className="btn btn-primary" type="submit">Email me a link</button>
+              <label className="optin login-optin"><input type="checkbox" name="marketing" value="yes" /> <span>Also send me the monthly roundup of new events and awards. Unsubscribe any time.</span></label>
             </form>
           </>
         )}

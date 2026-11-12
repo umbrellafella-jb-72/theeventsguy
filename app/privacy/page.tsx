@@ -22,7 +22,8 @@ export default function Privacy() {
           <li><b>Membership:</b> your Stripe customer reference and when your membership is paid up to. Stripe holds your card details; we never see or store them.</li>
           <li><b>What you save:</b> your shortlist, saved searches and email settings.</li>
           <li><b>Profiles you publish:</b> if you’re a speaker, sponsor or organiser, what you put in your profile or opportunity, including any LinkedIn link or portrait. These are public once approved (sponsor budgets and contact details are only shown to organisers and sponsors).</li>
-          <li><b>Messages:</b> enquiries you send or receive through the site, and anything you send through the contact forms.</li>
+          <li><b>Messages:</b> enquiries you send or receive through the site, and anything you send through the contact forms (Services, Sponsors and the awards finder, including your quiz answers). We keep these as a record so we can reply and follow up.</li>
+          <li><b>Roundup consent:</b> if you tick the box for our monthly roundup, when and where you agreed — and when you unsubscribe.</li>
           <li><b>Reports:</b> if you report content, what you report and why.</li>
           <li><b>Technical data:</b> your IP address, used briefly to stop spam and abuse (for example, limiting sign-in requests), and the cookies listed on our <Link href="/cookies">cookies page</Link>.</li>
         </ul>
@@ -33,6 +34,8 @@ export default function Privacy() {
           <li><b>To provide your account and membership</b> (contract): signing you in, unlocking the guide, calendar feeds, reminders and billing.</li>
           <li><b>To send the emails you’ve asked for</b> (contract): reminders and new-event digests. You can switch them off in your account at any time.</li>
           <li><b>To run the portal</b> (contract, and our legitimate interest in a safe, well-moderated directory): publishing approved profiles, passing on enquiries without sharing your email address, and handling reports.</li>
+          <li><b>To send the monthly roundup</b> (consent): only if you ticked the box. Every roundup has a one-click unsubscribe, and you can switch it off in your account.</li>
+          <li><b>To reply to enquiries</b> (legitimate interests): we send you an acknowledgement and follow up on what you asked about.</li>
           <li><b>To keep the site secure</b> (legitimate interests): rate limits, fraud prevention and spam protection.</li>
           <li><b>To meet our legal obligations</b> (legal obligation): keeping payment and tax records.</li>
         </ul>
@@ -45,6 +48,7 @@ export default function Privacy() {
           <li>Your account and saved items: until you ask us to delete your account, or after two years without a sign-in.</li>
           <li>Payment records: six years, as UK tax law requires (held by Stripe and in our accounts).</li>
           <li>Enquiries and reports: for as long as the accounts involved exist, so conversations stay readable.</li>
+          <li>Contact-form enquiries: two years from your last contact with us, unless you become a customer.</li>
           <li>Rate-limit counters: minutes to hours.</li>
         </ul>
 

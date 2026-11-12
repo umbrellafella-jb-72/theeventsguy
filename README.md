@@ -180,3 +180,23 @@ Set `SITE_USERNAME` and `SITE_PASSWORD` in Vercel (Settings → Environment Vari
 ## Speakers portal
 
 `/speakers` is a curated, searchable list of speaker cards: cartoon portrait, name and role, topic specialities (filter chips), bio, events they're speaking at or judging, and their LinkedIn profile. Speakers come from the Speakers tab of the sheet (columns in `data/speakers-template.csv`: add `Topics`, `Image` — an https link to their cartoon portrait — and `Featured` = yes for Spotlight) plus profiles speakers publish themselves, which appear only after an admin approves them. Without an Image, a placeholder illustration in the same round gold frame is shown; it's a silhouette, never a guessed likeness.
+
+## Forms, leads and emails
+
+Every Services, Sponsors and Awards-finder enquiry is **saved as a lead first** (Upstash), then emailed to `ENQUIRIES_TO` and acknowledged to the sender. Admins work leads in **Admin → Leads**: filter by form and status (New, Contacted, Won, Lost), add notes, reply by email, and export CSV.
+
+**Marketing consent.** Forms and the sign-in page carry an unticked "monthly roundup" box. Consent is stored per address with its time and source (`sub:<email>`); sign-in opt-ins only count once the emailed link is clicked. People switch it off in Account settings or with a one-click link (`/api/unsubscribe?token=…`, signed, also usable as a `List-Unsubscribe` header). Admin → Leads exports the opted-in list for your newsletter tool.
+
+**Stripe webhook** (`/api/stripe/webhook`, exempt from the preview password, signature-checked, each event handled once):
+
+| Stripe event | What happens |
+|---|---|
+| `checkout.session.completed` | Membership put on an existing account with that email; welcome email with a sign-in link (one per checkout, shared with the checkout return page) |
+| `invoice.paid` | Membership dates extended; clears any early-end marker (rejoining) |
+| `invoice.payment_failed` | "Your payment didn't go through" with a link to update the card |
+| `invoice.upcoming` | "Your membership renews soon" (set the days before in Stripe → Billing → Subscriptions) |
+| `customer.subscription.updated` | "Your membership is set to end" when someone cancels |
+| `customer.subscription.deleted` | Access ends at once (even on devices with a valid cookie); "Your membership has ended" |
+| `charge.refunded` | Full refund ends access; "Your refund is on its way" |
+
+Setup: Stripe → Developers → Webhooks → Add endpoint `https://<site>/api/stripe/webhook` with the events above, then set `STRIPE_WEBHOOK_SECRET` (starts `whsec_`) in Vercel.

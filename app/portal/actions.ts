@@ -11,6 +11,7 @@ import { eventById, eventIdFrom } from '@/lib/data';
 import { sendEmail } from '@/lib/email';
 import { siteUrl } from '@/lib/stripe';
 import { newId, safePath, tooMany } from '@/lib/store';
+import { LEAD_STATUSES, updateLead, type LeadStatus } from '@/lib/leads';
 import { headers } from 'next/headers';
 
 const str = (f: FormData, k: string, max = 2000) => String(f.get(k) ?? '').trim().slice(0, max);
@@ -164,7 +165,7 @@ export async function deleteSearch(f: FormData) {
 }
 
 // ---------- Admin ----------
-async function admin(p: 'content.moderate' | 'users.manage' | 'reports.manage') {
+async function admin(p: 'content.moderate' | 'users.manage' | 'reports.manage' | 'leads.manage') {
   const u = await me('/admin');
   if (!can(u, p)) redirect('/account');
   return u;
@@ -191,6 +192,13 @@ export async function manageUser(f: FormData) {
   } else if (action === 'suspend' && t.id !== a.id) await saveUser({ ...t, status: 'suspended' });
   else if (action === 'restore') await saveUser({ ...t, status: 'active' });
   redirect(`/admin?tab=users&q=${encodeURIComponent(str(f, 'q', 100))}&done=${action}`);
+}
+export async function saveLead(f: FormData) {
+  await admin('leads.manage');
+  const id = str(f, 'id', 60);
+  const status = str(f, 'status', 20) as LeadStatus;
+  await updateLead(id, { ...(LEAD_STATUSES.some(s => s.key === status) ? { status } : {}), notes: str(f, 'notes', 4000) });
+  redirect(`/admin?tab=leads&lead=${id}&${str(f, 'filters', 200)}&done=saved#${id}`);
 }
 export async function closeReport(f: FormData) {
   await admin('reports.manage');

@@ -780,3 +780,24 @@ mark.todo { background: var(--torc-soft); color: var(--torc-ink); padding: 0 4px
 .snapshot-more { text-align: center; padding: var(--space-6) 0; display: grid; gap: var(--space-3); justify-items: center; }
 .snapshot-more p { margin: 0; }
 .snapshot-note { text-align: center; font-size: 14px; margin-top: var(--space-4); }
+.optin { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 21px; font-weight: 400; cursor: pointer; }
+.optin input { margin-top: 3px; width: 18px; height: 18px; flex: none; accent-color: var(--glen); }
+.form-privacy { font-size: 13px; color: var(--ink-muted); margin: 0; }
+
+/* ---------- Admin: leads ---------- */
+.leads-bar { display: grid; gap: var(--space-2); margin-bottom: var(--space-4); }
+.leads-export { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.lead { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-raised); margin-bottom: var(--space-2); }
+.lead.lead-new { border-left: 4px solid var(--heather); }
+.lead summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: var(--space-3) var(--space-4); cursor: pointer; list-style: none; }
+.lead summary::-webkit-details-marker { display: none; }
+.lead-when { margin-left: auto; font-size: 13px; }
+.lead-body { padding: 0 var(--space-4) var(--space-4); display: grid; gap: var(--space-2); }
+.lead-body p { margin: 0; overflow-wrap: anywhere; }
+.lead-msg { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: var(--space-3); }
+.lead-form { display: grid; gap: var(--space-2); max-width: 560px; margin-top: var(--space-2); }
+.lead-form select { max-width: 220px; }
+.login-optin { margin-top: var(--space-3); font-size: 14px; text-align: left; }
+.lead-form label { display: grid; gap: 4px; font-weight: 600; font-size: 14px; }
+.lead-form select, .lead-form textarea { font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: var(--surface); color: var(--ink); width: 100%; }
+.lead-form .btn { justify-self: start; }

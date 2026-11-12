@@ -19,14 +19,14 @@ export type Permission =
   | 'directory.sponsors' | 'directory.speakers'
   | 'speakerProfile.publish' | 'sponsorProfile.publish'
   | 'enquiry.send' | 'enquiry.receive'
-  | 'content.moderate' | 'users.manage' | 'reports.manage' | 'reporting.view';
+  | 'content.moderate' | 'users.manage' | 'reports.manage' | 'reporting.view' | 'leads.manage';
 
 const GRANTS: Record<Role, Permission[]> = {
   registered: ['profile.own', 'shortlist.save', 'search.save'],
   organiser: ['opportunity.post', 'directory.sponsors', 'directory.speakers', 'enquiry.send', 'enquiry.receive', 'opportunity.seeDetails'],
   sponsor: ['sponsorProfile.publish', 'opportunity.search', 'opportunity.seeDetails', 'enquiry.send', 'enquiry.receive'],
   speaker: ['speakerProfile.publish', 'enquiry.receive'],
-  admin: ['content.moderate', 'users.manage', 'reports.manage', 'reporting.view', 'opportunity.seeDetails', 'directory.sponsors', 'directory.speakers', 'opportunity.search'],
+  admin: ['content.moderate', 'users.manage', 'reports.manage', 'reporting.view', 'leads.manage', 'opportunity.seeDetails', 'directory.sponsors', 'directory.speakers', 'opportunity.search'],
 };
 
 export type Who = { roles: Role[]; status?: 'active' | 'suspended' } | null | undefined;

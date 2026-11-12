@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getSubscriber } from '@/lib/marketing';
 import { getAccess, longToken } from '@/lib/access';
 import { sessionUser, isMember } from '@/lib/users';
 import { storeReady } from '@/lib/store';
@@ -33,7 +34,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <div className="lock-panel"><h2>Sign in or create a free account</h2><p>One login for your shortlist, saved searches, your speaker, sponsor or organiser profile, and your membership.</p><Link className="btn btn-primary" href="/login">Sign in</Link></div>
       </div>
     );
-  }
+  }  const roundup = storeReady() ? await getSubscriber(u.email).catch(() => null) : null;
+
 
   const member = isMember(u) || a.paid;
   const [spk, spn, msgs] = await Promise.all([getSpeaker(u.id), getSponsor(u.id), inbox(u.id)]);
@@ -125,6 +127,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <label>Your name<input name="name" defaultValue={u.name ?? ''} maxLength={80} /></label>
           <label className="toggle"><input type="checkbox" name="newEvents" defaultChecked={u.prefs.newEvents} /> New events: one email when the monthly refresh adds events {member ? '' : '(members)'}</label>
           <label className="toggle"><input type="checkbox" name="reminders" defaultChecked={u.prefs.reminders} /> Reminders a week before and the day before each saved event {member ? '' : '(members)'}</label>
+          <label className="toggle"><input type="checkbox" name="roundup" defaultChecked={Boolean(roundup?.subscribed)} /> The monthly roundup: new events, awards deadlines and news (marketing, optional)</label>
           <p className="muted">Messages from organisers, sponsors and speakers are always emailed to you.{!emailReady() && ' (Email sending isn’t switched on for this site yet.)'}</p>
           <button className="btn btn-primary btn-sm" type="submit">Save</button>
         </form>

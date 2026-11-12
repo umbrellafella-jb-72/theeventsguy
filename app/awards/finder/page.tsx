@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { PageHero } from '@/components/PageHero';
 import { GuyPortrait } from '@/components/Art';
 import { AwardsQuiz } from '@/components/AwardsQuiz';
+import { MarketingOptIn } from '@/components/MarketingOptIn';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
 import { LISTING_DAYS, eventHref, fullFor, visibleTo } from '@/lib/data';
@@ -95,6 +96,7 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
                   </div>
                   <label>Company<input name="company" autoComplete="organization" /></label>
                   <label>Anything we should know?<textarea name="message" rows={3} placeholder="The campaign or result you’re proudest of, budget for entry fees, deadlines you’re working to…" /></label>
+                  <MarketingOptIn />
                   <button className="btn btn-primary" type="submit">Send my answers</button>
                 </form>
               )}

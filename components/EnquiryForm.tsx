@@ -1,4 +1,5 @@
 import { INTERESTS } from '@/lib/offers';
+import { MarketingOptIn } from './MarketingOptIn';
 
 export function EnquiryForm({ interest, sent, from }: { interest?: string; sent?: boolean; from: string }) {
   if (sent) return <div className="enquiry"><h2>Thanks — we have your message</h2><p className="muted">We will reply by email, usually within a couple of working days.</p></div>;
@@ -18,6 +19,7 @@ export function EnquiryForm({ interest, sent, from }: { interest?: string; sent?
         </label>
       </div>
       <label htmlFor="enq-msg">What do you need?<textarea id="enq-msg" name="message" rows={4} required /></label>
+      <MarketingOptIn />
       <button className="btn btn-primary" type="submit">Send enquiry</button>
     </form>
   );

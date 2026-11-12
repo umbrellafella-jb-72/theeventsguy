@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { accessCookie } from '@/lib/access';
 import { siteUrl, stripe, type Sub } from '@/lib/stripe';
 import { linkMembership } from '@/lib/membership';
-import { loginToken, normEmail, sessionUser, userByEmail } from '@/lib/users';
-import { claimOnce, storeReady } from '@/lib/store';
-import { sendEmail } from '@/lib/email';
+import { normEmail, sessionUser } from '@/lib/users';
+import { claimOnce, del, storeReady } from '@/lib/store';
+import { MAILS, endedKey, mail, startMembership } from '@/lib/lifecycle';
 
 type Session = { status: string; customer: string; subscription: Sub | null; customer_details?: { email?: string | null } };
 
@@ -29,17 +29,13 @@ export async function GET(req: Request) {
 
   const email = s.customer_details?.email ? normEmail(s.customer_details.email) : null;
   const me = await sessionUser();
-  if (email && me && me.email === email) await linkMembership(email, s.customer, s.subscription!.current_period_end);
-  else if (email && storeReady()) {
-    // New buyers get their account straight away (it's created by the link, not by paying).
-    const existing = await userByEmail(email);
-    const link = `${base}/api/login/verify?token=${encodeURIComponent(loginToken(email))}&next=/welcome`;
-    await sendEmail({
-      to: email,
-      subject: existing ? 'Your membership is ready — sign in to The Events Guy' : 'Welcome to The Events Guy — finish setting up your account',
-      text: `Thanks for subscribing to The Events Guy.\n\nUse this link to sign in on any device. It works once, for 30 minutes:\n\n${link}\n\nAfter it expires, request a fresh link at ${base}/login with this email address.`,
-    });
-  }
+  const until = s.subscription!.current_period_end;
+  // Signed in as the buyer: the membership goes on their account now. Otherwise the welcome email's
+  // sign-in link proves they own the address, and sign-in picks the membership up from Stripe.
+  if (email && me && me.email === email) await startMembership(s.customer, await linkMembership(email, s.customer, until), until);
+  else if (storeReady()) await del(endedKey(s.customer));
+  // One welcome email per checkout, shared with the Stripe webhook (whichever runs first sends it).
+  if (email && storeReady() && await claimOnce(`welcome:${id}`, 90 * 86400)) await mail(email, 'Welcome to The Events Guy', MAILS.welcome(base, email, null, until));
   const res = NextResponse.redirect(`${base}/welcome`, 303);
   const c = accessCookie(s.customer, s.subscription!.current_period_end);
   res.cookies.set(c.name, c.value, c.options);

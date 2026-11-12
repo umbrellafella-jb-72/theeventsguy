@@ -17,7 +17,9 @@ export async function POST(req: Request) {
   if (!validEmail(email)) return NextResponse.redirect(`${base}/login?bad=1`, 303);
   if (await tooMany(`login:ip:${clientIp(req)}`, 20, 900) || await tooMany(`login:email:${email}`, 5, 900))
     return NextResponse.redirect(`${base}/login?slow=1`, 303);
-  const link = `${base}/api/login/verify?token=${encodeURIComponent(loginToken(email))}&next=${encodeURIComponent(next)}`;
+  // Ticking the roundup box only counts once they click the emailed link (confirmed opt-in).
+  const news = f.get('marketing') === 'yes' ? '&news=1' : '';
+  const link = `${base}/api/login/verify?token=${encodeURIComponent(loginToken(email))}&next=${encodeURIComponent(next)}${news}`;
   const sent = await sendEmail({ to: email, subject: 'Your sign-in link for The Events Guy', text: `Here's your link to sign in to The Events Guy. It works once, for 30 minutes.\n\n${link}\n\nIf you didn't ask for this, you can ignore this email.` });
   // Only print the link when email isn't set up at all (local development), never in production.
   if (!sent && process.env.NODE_ENV !== 'production') console.log(`[login] sign-in link for ${email}: ${link}`);

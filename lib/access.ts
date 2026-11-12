@@ -6,7 +6,7 @@ export const COOKIE = 'eg_access';
 // access: the browser's sign-in. restore: a 30-minute sign-in link. feed: a member's private calendar
 // feed URL. prefs: the one-click email opt-out link.
 // session: a signed-in account (c = user id). login: a 30-minute emailed sign-in link (c = email).
-export type Token = { c: string; e: number; t: 'access' | 'restore' | 'feed' | 'prefs' | 'session' | 'login' };
+export type Token = { c: string; e: number; t: 'access' | 'restore' | 'feed' | 'prefs' | 'session' | 'login' | 'news' };
 
 function secret(): string {
   const s = process.env.ACCESS_SECRET;
@@ -43,11 +43,16 @@ export async function getAccess(): Promise<Access> {
   if (process.env.ACCESS_MODE === 'open') return { paid: true, open: true, customer: null, paymentsReady, paidUntil: 0 };
   const jar = await cookies();
   const tok = verify(jar.get(COOKIE)?.value, 'access');
-  if (tok) return { paid: true, open: false, customer: tok.c, paymentsReady, paidUntil: tok.e - 3 * 86400 };
+  if (tok) {
+    // Cancelled or fully refunded early (Stripe webhook): the cookie stops counting at once.
+    const { membershipEnded } = await import('./lifecycle');
+    if (!(await membershipEnded(tok.c))) return { paid: true, open: false, customer: tok.c, paymentsReady, paidUntil: tok.e - 3 * 86400 };
+  }
   // Signed in on a device without the access cookie: the account's membership still counts.
   const { sessionUser } = await import('./users');
   const u = await sessionUser();
-  const live = Boolean(u && u.customer && u.paidUntil + 3 * 86400 > Date.now() / 1000);
+  const { membershipEnded: ended } = await import('./lifecycle');
+  const live = Boolean(u && u.customer && u.paidUntil + 3 * 86400 > Date.now() / 1000 && !(await ended(u.customer)));
   return { paid: live, open: false, customer: live ? u!.customer : null, paymentsReady, paidUntil: live ? u!.paidUntil : 0 };
 }
 

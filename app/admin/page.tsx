@@ -5,13 +5,15 @@ import { can, roleLabel, type Role } from '@/lib/permissions';
 import { allUsers, isMember } from '@/lib/users';
 import { allEnquiries, allOpps, allReports, allSpeakers, allSponsors, type Status } from '@/lib/portal';
 import { events } from '@/lib/data';
-import { closeReport, manageUser, moderate } from '../portal/actions';
+import { closeReport, manageUser, moderate, saveLead } from '../portal/actions';
+import { allLeads, FORM_LABELS, LEAD_STATUSES, type LeadForm } from '@/lib/leads';
+import { members } from '@/lib/store';
 import { StatusBadge } from '@/components/portal/Bits';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Admin — The Events Guy', robots: { index: false } };
 
-const TABS = [['queue', 'Approvals'], ['content', 'All content'], ['users', 'Users'], ['reports', 'Reports'], ['reporting', 'Reporting']] as const;
+const TABS = [['leads', 'Leads'], ['queue', 'Approvals'], ['content', 'All content'], ['users', 'Users'], ['reports', 'Reports'], ['reporting', 'Reporting']] as const;
 type Item = { type: 'speaker' | 'sponsor' | 'opportunity'; id: string; title: string; sub: string; status: Status; updatedAt: string; edit: string; view: string | null };
 
 function Actions({ it, tab }: { it: Item; tab: string }) {
@@ -29,12 +31,17 @@ function Actions({ it, tab }: { it: Item; tab: string }) {
   );
 }
 
-export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; done?: string; status?: string }> }) {
+export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; done?: string; status?: string; form?: string; lead?: string }> }) {
   const sp = await searchParams;
   const { me } = await pageUser('/admin');
   if (!can(me, 'reporting.view')) redirect('/account');
-  const tab = TABS.some(t => t[0] === sp.tab) ? sp.tab! : 'queue';
-  const [speakers, sponsors, opps, users, reports, enquiries] = await Promise.all([allSpeakers(), allSponsors(), allOpps(), allUsers(), allReports(), allEnquiries()]);
+  const tab = TABS.some(t => t[0] === sp.tab) ? sp.tab! : 'leads';
+  const [speakers, sponsors, opps, users, reports, enquiries, leads, subscriberIds] = await Promise.all([allSpeakers(), allSponsors(), allOpps(), allUsers(), allReports(), allEnquiries(), allLeads(), members('subscribers')]);
+  const newLeads = leads.filter(l => l.status === 'new');
+  const leadForm = (Object.keys(FORM_LABELS) as LeadForm[]).includes(sp.form as LeadForm) ? sp.form as LeadForm : null;
+  const leadStatus = LEAD_STATUSES.some(s => s.key === sp.status) ? sp.status! : null;
+  const shownLeads = leads.filter(l => (!leadForm || l.form === leadForm) && (!leadStatus || l.status === leadStatus));
+  const leadFilters = new URLSearchParams({ ...(leadForm ? { form: leadForm } : {}), ...(leadStatus ? { status: leadStatus } : {}) }).toString();
   const emailOf = new Map(users.map(u => [u.id, u.email]));
   const items: Item[] = [
     ...speakers.map(p => ({ type: 'speaker' as const, id: p.userId, title: p.name, sub: `Speaker · ${emailOf.get(p.userId) ?? ''}`, status: p.status, updatedAt: p.updatedAt, edit: `/portal/speaker?as=${p.userId}`, view: p.status === 'published' ? `/speakers#sp-${p.userId}` : null })),
@@ -49,7 +56,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
     <div className="wrap section portal admin">
       <h1 className="page-title">Admin</h1>
       <nav className="admin-tabs" aria-label="Admin">{TABS.map(([k, l]) => (
-        <Link key={k} href={`/admin?tab=${k}`} aria-current={tab === k ? 'page' : undefined}>{l}{k === 'queue' && pending.length ? <span className="n">{pending.length}</span> : null}{k === 'reports' && openReports.length ? <span className="n">{openReports.length}</span> : null}</Link>
+        <Link key={k} href={`/admin?tab=${k}`} aria-current={tab === k ? 'page' : undefined}>{l}{k === 'leads' && newLeads.length ? <span className="n">{newLeads.length}</span> : null}{k === 'queue' && pending.length ? <span className="n">{pending.length}</span> : null}{k === 'reports' && openReports.length ? <span className="n">{openReports.length}</span> : null}</Link>
       ))}</nav>
       {sp.done && <p className="note banner">Done: {sp.done}.</p>}
 
@@ -99,6 +106,41 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         })}</div>
       ))}
 
+      {tab === 'leads' && (
+        <div className="leads">
+          <div className="leads-bar">
+            <p className="admin-filter">{[['', 'All forms'], ...Object.entries(FORM_LABELS)].map(([k, l]) => <Link key={k} href={`/admin?tab=leads&${new URLSearchParams({ ...(k ? { form: k } : {}), ...(leadStatus ? { status: leadStatus } : {}) })}`} aria-current={(leadForm ?? '') === k ? 'page' : undefined}>{l}</Link>)}</p>
+            <p className="admin-filter">{[{ key: '', label: 'Any status' }, ...LEAD_STATUSES].map(s => <Link key={s.key} href={`/admin?tab=leads&${new URLSearchParams({ ...(leadForm ? { form: leadForm } : {}), ...(s.key ? { status: s.key } : {}) })}`} aria-current={(leadStatus ?? '') === s.key ? 'page' : undefined}>{s.label} <span className="muted">{leads.filter(l => (!leadForm || l.form === leadForm) && (!s.key || l.status === s.key)).length}</span></Link>)}</p>
+            <div className="leads-export">
+              <a className="btn btn-secondary btn-sm" href={`/api/admin/export?what=leads&${leadFilters}`}>Export these leads (CSV)</a>
+              <a className="btn btn-ghost btn-sm" href="/api/admin/export?what=subscribers">Export roundup subscribers (CSV)</a>
+            </div>
+          </div>
+          {shownLeads.length === 0 ? <p className="muted">No leads here yet. Every Services, Sponsors and Awards finder enquiry lands in this list.</p> : shownLeads.map(l => (
+            <details key={l.id} id={l.id} className={`lead lead-${l.status}`} open={sp.lead === l.id}>
+              <summary>
+                <span className={`badge ${l.status === 'new' ? 'badge-heather' : l.status === 'won' ? 'badge-glen' : l.status === 'lost' ? 'badge-rowan' : 'badge-torc'}`}>{LEAD_STATUSES.find(s => s.key === l.status)?.label}</span>
+                <b>{l.name}</b><span className="muted">{l.company ? ` · ${l.company}` : ''} · {FORM_LABELS[l.form]}{l.interest ? ` · ${l.interest}` : ''}</span>
+                <span className="muted lead-when">{new Date(l.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+              </summary>
+              <div className="lead-body">
+                <p><a href={`mailto:${l.email}?subject=${encodeURIComponent(`Re: your ${FORM_LABELS[l.form]} enquiry`)}`}>{l.email}</a>{l.marketing ? <span className="badge badge-glen" style={{ marginLeft: 8 }}>Roundup opt-in</span> : null}{!l.emailed ? <span className="muted"> · alert email didn’t send</span> : null}</p>
+                {l.message && <p className="lead-msg">{l.message}</p>}
+                {Object.entries(l.details).map(([k, v]) => <p key={k} className="lead-msg"><b>{k === 'quiz' ? 'Quiz answers' : k === 'shortlist' ? 'Their shortlist' : k}:</b>{'\n'}{v}</p>)}
+                {l.page && <p className="muted">Sent from <a href={l.page}>{l.page}</a></p>}
+                <form action={saveLead} className="lead-form">
+                  <input type="hidden" name="id" value={l.id} /><input type="hidden" name="filters" value={leadFilters} />
+                  <label>Status<select name="status" defaultValue={l.status}>{LEAD_STATUSES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}</select></label>
+                  <label>Notes<textarea name="notes" rows={3} defaultValue={l.notes} placeholder="Calls, quotes, next steps…" /></label>
+                  <button className="btn btn-primary btn-sm" type="submit">Save</button>
+                </form>
+              </div>
+            </details>
+          ))}
+          <p className="muted" style={{ marginTop: 16 }}>{subscriberIds.length} {subscriberIds.length === 1 ? 'person has' : 'people have'} a roundup record; the export lists those currently opted in.</p>
+        </div>
+      )}
+
       {tab === 'reporting' && (
         <div className="stats-grid">
           {[
@@ -106,6 +148,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             ['Organisers', users.filter(u => u.roles.includes('organiser')).length], ['Sponsors', users.filter(u => u.roles.includes('sponsor')).length], ['Speakers', users.filter(u => u.roles.includes('speaker')).length],
             ['Speaker profiles live', speakers.filter(p => p.status === 'published').length], ['Sponsor profiles live', sponsors.filter(p => p.status === 'published').length], ['Opportunities live', opps.filter(o => o.status === 'published').length],
             ['Waiting for approval', pending.length], ['Enquiries (30 days)', enquiries.filter(e => e.createdAt > since).length], ['Replies (30 days)', enquiries.reduce((n, e) => n + e.messages.filter(m => m.at > since).length, 0) - enquiries.filter(e => e.createdAt > since).length],
+            ['New leads', newLeads.length], ['Leads (30 days)', leads.filter(l => l.createdAt > since).length], ['Leads won', leads.filter(l => l.status === 'won').length],
             ['Open reports', openReports.length], ['Saved events', users.reduce((n, u) => n + u.saved.length, 0)], ['Events in the guide', events.length],
           ].map(([l, n]) => <div key={l as string}><b>{n}</b><span>{l}</span></div>)}
         </div>
