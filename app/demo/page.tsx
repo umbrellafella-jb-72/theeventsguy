@@ -59,7 +59,7 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
         ))}
       </div>
       <h2>Demo data</h2>
-      <p className="muted">Sample content: a published and a pending sponsorship opportunity, a sponsor profile, a speaker profile, an enquiry thread between the sponsor and organiser, one open report, and a starter shortlist. All of it is marked “demo”.</p>
+      <p className="muted">Sample content: a published and a pending sponsorship opportunity, a sponsor profile, a speaker profile, an enquiry thread between the sponsor and organiser, one open report, 8 sample leads across the Services, Sponsors and Awards finder forms (with a few roundup sign-ups), and a starter shortlist. All of it is marked “demo”.</p>
       <div className="demo-tools">
         <form action="/api/demo" method="post"><input type="hidden" name="as" value="reset" /><button className="btn btn-secondary btn-sm" type="submit">{seeded ? 'Reset demo data' : 'Create demo data'}</button></form>
         {seeded && <details className="confirm"><summary className="btn btn-ghost btn-sm">Remove all demo data…</summary>

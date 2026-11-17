@@ -55,7 +55,7 @@ export const PERSONAS: Persona[] = [
     tryThis: ['Edit the profile (goes back to pending)', 'Receives and answers enquiries', 'Cannot send enquiries or see budgets'] },
   { key: 'admin', label: 'Admin', name: 'Ada Admin', roles: ['admin'], plan: 'none', start: '/admin?tab=queue',
     blurb: 'Moderates everything.',
-    tryThis: ['Approve the pending opportunity', 'Resolve the open report', 'Suspend and restore a user', 'Leads and reporting tabs'] },
+    tryThis: ['Work the 8 sample leads: status, notes, CSV export', 'Approve the pending opportunity', 'Resolve the open report', 'Add a speaker from LinkedIn', 'Suspend and restore a user'] },
 ];
 
 export const personaEmail = (k: PersonaKey) => `${k}@${DEMO_DOMAIN}`;
@@ -80,6 +80,21 @@ function makeUser(p: Persona, saved: string[]): User {
     saved: ['free', 'member', 'yearly', 'lapsed'].includes(p.key) ? saved : [], searches: [], prefs: { newEvents: true, reminders: true },
   };
 }
+
+// Sample leads for the Admin → Leads tab: every form, every status, a few with roundup opt-in.
+type DemoLead = [form: 'services' | 'sponsors' | 'awards', status: 'new' | 'contacted' | 'won' | 'lost', daysAgo: number, name: string, company: string, interest: string, message: string, marketing: boolean, notes?: string, details?: Record<string, string>];
+const LEADS: DemoLead[] = [
+  ['services', 'new', 0, 'Priya Shah', 'Northbank Outdoor (demo)', 'Your events plan', 'We have budget for 6 events next year and want help choosing which ones to exhibit at.', true],
+  ['sponsors', 'new', 1, 'Tom Riley', 'Parcelwise (demo)', 'Sponsoring The Events Guy', 'Interested in the month sponsorship for March and a featured listing for our own event.', false],
+  ['awards', 'new', 2, 'Hannah Okafor', 'Bloom & Bark (demo)', 'Awards entry advice', 'Can you help us write two entries before the deadline?', true, '', { quiz: 'What: Growth, Customer experience\nWhere: UK national awards\nReady: In the next 3 months\nBudget: Up to £1,000 in entry fees', shortlist: 'UK Ecommerce Awards; Retail Systems Awards; DTC Awards' }],
+  ['services', 'contacted', 5, 'Marcus Chen', 'Lumen Home (demo)', 'Sponsorship & exhibiting advice', 'Thinking about a stand at a Birmingham expo. Is it worth it for a £10m brand?', false, 'Call booked Thursday 2pm.'],
+  ['sponsors', 'contacted', 8, 'Ella Morgan', 'Checkout Labs (demo)', 'Featured listing', 'Please send rates for a featured listing across Q1.', true, 'Sent the rate card. Following up next week.'],
+  ['services', 'won', 14, 'Dan Fletcher', 'Fletcher & Co (demo)', 'Team access', 'Five people on our ecommerce team need access. Can we pay on invoice?', false, 'Agreed 5 seats, invoice sent.'],
+  ['awards', 'lost', 21, 'Sofia Rossi', 'Verde Beauty (demo)', 'Awards entry advice', 'Looking for European awards we could enter for sustainability.', false, 'Went with another agency.', { quiz: 'What: Sustainability\nWhere: Europe\nReady: Now\nBudget: Not sure yet' }],
+  ['services', 'new', 3, 'Aisha Rahman', 'Kite Commerce (demo)', 'List my event', 'We run a quarterly Shopify meetup in Leeds. How do we get it listed?', true],
+];
+const leadId = (i: number) => `lead_demo_${i + 1}`;
+const leadEmail = (name: string) => `${name.toLowerCase().replace(/[^a-z]+/g, '.')}@${DEMO_DOMAIN}`;
 
 const OPP_LIVE = 'opp_demo_live', OPP_PENDING = 'opp_demo_pending', ENQ = 'enq_demo_1', REP = 'rep_demo_1';
 
@@ -131,6 +146,12 @@ export async function seedDemo(): Promise<void> {
   }
   cmds.push(['SET', `enq:${ENQ}`, J(enq)], ['SADD', 'enquiries', ENQ], ['SADD', `inbox:${enq.from}`, ENQ], ['SADD', `inbox:${enq.to}`, ENQ]);
   cmds.push(['SET', `report:${REP}`, J(rep)], ['SADD', 'reports', REP]);
+  LEADS.forEach(([form, status, days, name, company, interest, message, marketing, notes, details], i) => {
+    const at = iso(days), id = leadId(i), email = leadEmail(name);
+    const page = form === 'awards' ? '/awards/finder' : form === 'sponsors' ? '/sponsors' : '/services';
+    cmds.push(['SET', `lead:${id}`, J({ id, form, status, name, email, company, interest, message, details: details ?? {}, page, marketing, notes: notes ?? '', createdAt: at, updatedAt: at, emailed: true })], ['SADD', 'leads', id]);
+    if (marketing) cmds.push(['SET', `sub:${email}`, J({ email, subscribed: true, source: `${form} form (demo)`, consentAt: at, unsubscribedAt: null, updatedAt: at })], ['SADD', 'subscribers', email]);
+  });
   await pipeline(cmds);
 }
 
@@ -149,6 +170,8 @@ export async function removeDemo(): Promise<number> {
   for (const o of opps) if (ids.has(o.ownerId)) cmds.push(['DEL', `opp:${o.id}`], ['SREM', 'opps', o.id]);
   for (const e of enqs) if (ids.has(e.from) || ids.has(e.to)) cmds.push(['DEL', `enq:${e.id}`], ['SREM', 'enquiries', e.id], ['SREM', `inbox:${e.from}`, e.id], ['SREM', `inbox:${e.to}`, e.id]);
   for (const r of reps) if ((r.by && ids.has(r.by)) || ids.has(r.target.id)) cmds.push(['DEL', `report:${r.id}`], ['SREM', 'reports', r.id]);
+  for (const id of await members('leads')) if (id.startsWith('lead_demo_')) cmds.push(['DEL', `lead:${id}`], ['SREM', 'leads', id]);
+  for (const e of await members('subscribers')) if (e.endsWith('@' + DEMO_DOMAIN)) cmds.push(['DEL', `sub:${e}`], ['SREM', 'subscribers', e]);
   await pipeline(cmds);
   return present.filter(id => ids.has(id)).length;
 }
