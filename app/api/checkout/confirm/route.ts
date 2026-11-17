@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { accessCookie } from '@/lib/access';
-import { siteUrl, stripe, type Sub } from '@/lib/stripe';
+import { siteUrl, stripe, subPlan, subQuarter, type Sub } from '@/lib/stripe';
+import { quarterOf } from '@/lib/release';
 import { linkMembership } from '@/lib/membership';
 import { normEmail, sessionUser } from '@/lib/users';
 import { claimOnce, del, storeReady } from '@/lib/store';
@@ -32,12 +33,13 @@ export async function GET(req: Request) {
   const until = s.subscription!.current_period_end;
   // Signed in as the buyer: the membership goes on their account now. Otherwise the welcome email's
   // sign-in link proves they own the address, and sign-in picks the membership up from Stripe.
-  if (email && me && me.email === email) await startMembership(s.customer, await linkMembership(email, s.customer, until), until);
+  const plan = subPlan(s.subscription), start = s.subscription!.current_period_start;
+  if (email && me && me.email === email) await startMembership(s.customer, await linkMembership(email, s.customer, until, plan, start), until, plan, start);
   else if (storeReady()) await del(endedKey(s.customer));
   // One welcome email per checkout, shared with the Stripe webhook (whichever runs first sends it).
-  if (email && storeReady() && await claimOnce(`welcome:${id}`, 90 * 86400)) await mail(email, 'Welcome to The Events Guy', MAILS.welcome(base, email, null, until));
+  if (email && storeReady() && await claimOnce(`welcome:${id}`, 90 * 86400)) await mail(email, 'Welcome to The Events Guy', MAILS.welcome(base, email, plan, until));
   const res = NextResponse.redirect(`${base}/welcome`, 303);
-  const c = accessCookie(s.customer, s.subscription!.current_period_end);
+  const c = accessCookie(s.customer, s.subscription!.current_period_end, subQuarter(s.subscription, quarterOf));
   res.cookies.set(c.name, c.value, c.options);
   return res;
 }

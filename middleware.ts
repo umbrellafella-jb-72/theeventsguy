@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { COOKIE, accessCookie, verify } from '@/lib/access';
-import { activeSubscription } from '@/lib/stripe';
+import { activeSubscription, subQuarter } from '@/lib/stripe';
+import { quarterOf } from '@/lib/release';
 
 // Keeps subscribers signed in across renewals. The access cookie runs to the end of the paid
 // period plus 3 days' grace. From a day before renewal, we ask Stripe (at most once an hour per
@@ -54,7 +55,7 @@ export async function middleware(req: NextRequest) {
   try {
     const sub = await activeSubscription(tok.c);
     if (sub && sub.current_period_end > periodEnd) {
-      const c = accessCookie(tok.c, sub.current_period_end);
+      const c = accessCookie(tok.c, sub.current_period_end, subQuarter(sub, quarterOf));
       res.cookies.set(c.name, c.value, c.options);
     }
   } catch {

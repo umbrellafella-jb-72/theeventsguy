@@ -32,7 +32,7 @@ const EXAMPLES: SpeakerView[] = [
 export default async function Speakers({ searchParams }: { searchParams: Promise<{ reported?: string }> }) {
   const sp = await searchParams;
   const viewer = await sessionUser();
-  const paid = (await getAccess()).paid;
+  const paid = (await getAccess()).view;
   // Only events this viewer may see (60 days ahead for accounts, this month for visitors).
   const see = (e: EventItem) => visibleTo(e, paid, Boolean(viewer));
   const canEnquire = can(viewer, 'directory.speakers') && can(viewer, 'enquiry.send');

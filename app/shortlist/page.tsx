@@ -18,7 +18,7 @@ export default async function ShortlistPage() {
       <h1 className="page-title">My events</h1>
       <p className="muted" style={{ maxWidth: '60ch' }}>Your shortlist for the year. Add it all to your calendar in one go, or subscribe so new saves appear automatically.</p>
       {canSave
-        ? <ShortlistView events={eventsFor(a.paid)} feedUrl={feed} paid={a.paid} />
+        ? <ShortlistView events={eventsFor(a.view)} feedUrl={feed} paid={a.paid} />
         : <div className="lock-panel"><h2>Save events to your own shortlist</h2><p>A free account lets you save events and searches. Members can also sync the list to Google, Outlook or Apple Calendar and get reminders.</p><Link className="btn btn-primary" href="/login?next=/shortlist">Sign in or create a free account</Link></div>}
     </div>
   );

@@ -30,6 +30,7 @@ export default function Guide(props: {
   summaries: Summary[];
   taxonomy: Taxonomy;
   paid: boolean;
+  quarter?: string | null; // a quarterly member's quarter, e.g. "Oct – Dec 2026"
   previewMonth: string;
   initialMonth: string;
   today: string; // YYYY-MM-DD
@@ -212,7 +213,10 @@ export default function Guide(props: {
                   <a className="btn btn-primary btn-sm" href="/#pricing">See membership plans</a>
                 </div>
               )}
-              {paid && (
+              {paid && props.quarter && (
+                <p className="note member-note"><span>Your quarterly membership covers <b>{props.quarter}</b>: every event and award in it is open in full. Events outside it show as listings only, like a free account.</span></p>
+              )}
+              {paid && !props.quarter && (
                 <p className="note member-note"><span>Events are listed {LISTING_DAYS} days ahead and open in full {RELEASE_DAYS} days before they start (for awards, before the entry deadline or ceremony). Save one now and it fills in on your shortlist and calendar feed when it opens.</span></p>
               )}
               {props.visitorLocked && month !== previewMonth ? (
@@ -233,7 +237,7 @@ export default function Guide(props: {
                   <h2>{summary.key === 'tbc' ? 'Dates to be confirmed' : summary.label}: {summary.count} event{summary.count === 1 ? '' : 's'}</h2>
                   <p>{summary.key === 'tbc' || !summary.listsOn
                     ? 'Events without a confirmed date are listed once the date is set.'
-                    : <>Events are listed {LISTING_DAYS} days ahead, so this month’s start appearing on <b>{releaseLabel(summary.listsOn)}</b>{paid ? `, with full details from ${RELEASE_DAYS} days before each one` : ''}.</>}</p>
+                    : <>Events are listed {LISTING_DAYS} days ahead, so this month’s start appearing on <b>{releaseLabel(summary.listsOn)}</b>{paid && !props.quarter ? `, with full details from ${RELEASE_DAYS} days before each one` : ''}.</>}</p>
                 </div>
               ) : totalShown === 0 && <div className="empty">No events match these filters. <button className="btn btn-ghost btn-sm" onClick={clearAll}>Clear filters</button></div>}
               {(() => {

@@ -10,7 +10,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const e = eventById.get(id.replace(/\.ics$/, ''));
   if (!e) return new Response('Not found', { status: 404 });
   const a = await getAccess();
-  if (!fullFor(e, a.paid)) return Response.redirect(`${siteUrl(req)}/events/${e.id}?members=calendar`, 303);
+  if (!fullFor(e, a.view)) return Response.redirect(`${siteUrl(req)}/events/${e.id}?members=calendar`, 303);
   const body = icsCalendar([e], siteUrl(req), e.name);
   if (!body.includes('BEGIN:VEVENT')) return new Response('This event’s date isn’t fixed yet.', { status: 409 });
   return new Response(body, {

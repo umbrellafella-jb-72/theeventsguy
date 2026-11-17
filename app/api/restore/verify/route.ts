@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { accessCookie, verify } from '@/lib/access';
-import { activeSubscription, siteUrl } from '@/lib/stripe';
+import { activeSubscription, siteUrl, subQuarter } from '@/lib/stripe';
+import { quarterOf } from '@/lib/release';
 
 export async function GET(req: Request) {
   const base = siteUrl(req);
@@ -9,7 +10,7 @@ export async function GET(req: Request) {
   const sub = await activeSubscription(tok.c);
   if (!sub) return NextResponse.redirect(`${base}/#pricing`, 303);
   const res = NextResponse.redirect(`${base}/guide?restored=1`, 303);
-  const c = accessCookie(tok.c, sub.current_period_end);
+  const c = accessCookie(tok.c, sub.current_period_end, subQuarter(sub, quarterOf));
   res.cookies.set(c.name, c.value, c.options);
   return res;
 }

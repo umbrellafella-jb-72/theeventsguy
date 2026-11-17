@@ -28,10 +28,15 @@ export async function userForCustomer(customer: string, email: string | null): P
 export async function rememberCustomer(customer: string, userId: string) { if (storeReady()) await setValue(`cust:${customer}`, userId); }
 
 /** Membership is live again (new or renewed): clear any early-end marker. */
-export async function startMembership(customer: string, u: User | null, paidUntil: number) {
+export async function startMembership(customer: string, u: User | null, paidUntil: number, plan?: 'quarterly' | 'yearly' | null, periodStart?: number | null) {
   if (!storeReady()) return;
   await del(endedKey(customer));
-  if (u) { await saveUser({ ...u, customer, paidUntil: Math.max(u.paidUntil, paidUntil) }); await rememberCustomer(customer, u.id); }
+  if (u) {
+    // A newer billing period moves a quarterly member on to the quarter that period starts in.
+    const newer = periodStart && periodStart >= (u.periodStart ?? 0);
+    await saveUser({ ...u, customer, paidUntil: Math.max(u.paidUntil, paidUntil), ...(plan ? { plan } : {}), ...(newer ? { periodStart } : {}) });
+    await rememberCustomer(customer, u.id);
+  }
 }
 /** End access now: the cookie check sees the marker, and the account's paid-until date is cleared. */
 export async function endMembership(customer: string, u: User | null) {

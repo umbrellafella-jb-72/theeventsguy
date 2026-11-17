@@ -48,6 +48,7 @@ export type EventItem = {
   locked?: boolean;
   /** On a member's locked copy: the day (YYYY-MM-DD) its full details are released, or null if its date isn't set. */
   opensOn?: string | null;
+  outside?: boolean;                 // teaser for a quarterly member: outside their quarter
 };
 
 export type Speaker = {
@@ -229,30 +230,40 @@ export function listed(e: EventItem, now = new Date()): boolean {
   const s = startOf(e), dl = deadlineOf(e, now);
   return Boolean((s && s <= cut) || (dl && dl <= cut));
 }
+// ---------- Quarterly members ----------
+// pass: false = not a member; true = yearly (rolling release); { from, to } = a quarterly member's
+// calendar quarter, which they see in full. Outside it they see what a free account sees.
+export type Pass = boolean | { from: string; to: string };
+const isWindow = (p: Pass): p is { from: string; to: string } => typeof p === 'object' && p !== null;
+/** Does this event (its start, or an award's entry deadline) fall in the quarter? */
+export function inQuarter(e: EventItem, w: { from: string; to: string }): boolean {
+  return [startOf(e), deadlineOf(e)].some(d => !!d && d >= w.from && d <= w.to);
+}
+
 /** May this viewer see that the event exists at all? Visitors: free month and featured only.
- *  Free accounts and members: also anything within the listing window. */
-export function visibleTo(e: EventItem, paid: boolean, signedIn: boolean, previewMonth = currentMonthKey()): boolean {
-  return openToAll(e, previewMonth) || ((paid || signedIn) && listed(e));
+ *  Free accounts and members: also anything within the listing window; quarterly members: their quarter. */
+export function visibleTo(e: EventItem, paid: Pass, signedIn: boolean, previewMonth = currentMonthKey()): boolean {
+  return openToAll(e, previewMonth) || ((Boolean(paid) || signedIn) && listed(e)) || (isWindow(paid) && inQuarter(e, paid));
 }
 
 /** May this visitor see the whole event? Everyone: featured and the free month. Members: also
  *  anything starting within the release window. */
-export function fullFor(e: EventItem, paid: boolean, previewMonth = currentMonthKey()): boolean {
-  return openToAll(e, previewMonth) || (paid && released(e));
+export function fullFor(e: EventItem, paid: Pass, previewMonth = currentMonthKey()): boolean {
+  return openToAll(e, previewMonth) || (paid === true && released(e)) || (isWindow(paid) && inQuarter(e, paid));
 }
 
 /** The public subset of an event, safe to send to any browser. */
-export function teaser(e: EventItem, paid = false): EventItem {
+export function teaser(e: EventItem, paid: Pass = false): EventItem {
   return {
     id: e.id, kind: e.kind, name: e.name, dates: e.dates, months: e.months, sortKey: e.sortKey, status: e.status,
     area: e.area, city: e.city, region: e.region, organiser: e.organiser, format: e.format, sectors: e.sectors,
     venue: null, type: null, topics: [], price: null, priceTag: '', frequency: null, lastEdition: null, website: null,
-    locked: true, ...(paid ? { opensOn: opensOn(e) } : {}),
+    locked: true, ...(paid === true ? { opensOn: opensOn(e) } : isWindow(paid) ? { outside: true } : {}),
   };
 }
 
 /** The events this viewer may see, each whole or as a teaser. Events beyond the listing window aren't included. */
-export function eventsFor(paid: boolean, previewMonth = currentMonthKey(), signedIn = true): EventItem[] {
+export function eventsFor(paid: Pass, previewMonth = currentMonthKey(), signedIn = true): EventItem[] {
   return events.filter(e => visibleTo(e, paid, signedIn, previewMonth)).map(e => (fullFor(e, paid, previewMonth) ? e : teaser(e, paid)));
 }
 

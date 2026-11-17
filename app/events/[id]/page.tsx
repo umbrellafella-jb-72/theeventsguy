@@ -1,3 +1,4 @@
+import { quarterLabel } from '@/lib/release';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const e = eventById.get((await params).id);
   if (!e) return { title: 'Event not found — The Events Guy' };
   // Visitors who haven't registered only see this month's and featured events — not even the name.
-  if (!visibleTo(e, (await getAccess()).paid, Boolean(await sessionUser()))) return { title: 'Not listed yet — The Events Guy', robots: { index: false, follow: false } };
+  if (!visibleTo(e, (await getAccess()).view, Boolean(await sessionUser()))) return { title: 'Not listed yet — The Events Guy', robots: { index: false, follow: false } };
   const when = e.dates || (e.months[0] ? monthLabel(e.months[0]) : 'Date to be confirmed');
   const desc = `${e.name}: ${when}, ${e.city}. ${e.format}${e.organiser ? ` by ${e.organiser}` : ''}. ${e.sectors.filter(s => s !== 'Cross-sector').join(', ') || 'Ecommerce'} — on The Events Guy, the month-by-month guide to ecommerce events.`;
   return { title: `${e.name} — ${when}, ${e.city} | The Events Guy`, description: desc, alternates: { canonical: `/events/${e.id}` }, openGraph: { title: e.name, description: desc, url: `${SITE}/events/${e.id}`, type: 'website' } };
@@ -33,7 +34,7 @@ export default async function EventPage({ params, searchParams }: Props) {
   if (!e) notFound();
   const access = await getAccess();
   const signedIn = Boolean(await sessionUser());
-  if (!visibleTo(e, access.paid, signedIn)) {
+  if (!visibleTo(e, access.view, signedIn)) {
     // Nothing about the event itself: not its name, date or city.
     const from = listsOn(e);
     return (
@@ -54,8 +55,8 @@ export default async function EventPage({ params, searchParams }: Props) {
       </div>
     );
   }
-  const full = fullFor(e, access.paid);
-  const opens = access.paid && !full ? opensOn(e) : null;
+  const full = fullFor(e, access.view);
+  const opens = access.view === true && !full ? opensOn(e) : null;
   const d = eventDates(e);
   const plate = dayIn(e, null);
   const evSpeakers = full ? allSpeakers.filter(s => s.events.includes(e.id)) : [];
@@ -134,7 +135,13 @@ export default async function EventPage({ params, searchParams }: Props) {
               <p className="print-brand">Brought to you by The Events Guy · theeventsguy.co.uk · Printed for a member — please don’t redistribute.</p>
             </>
           ) : (
-            access.paid ? (
+            access.paid && access.quarter ? (
+            <div className="lock-panel ev-page-lock">
+              <h2>Outside your membership quarter</h2>
+              <p>Your quarterly membership opens every event in <b>{quarterLabel(access.quarter)}</b> in full. This one falls outside it, so you see the listing only. Switch to the yearly plan for the rolling {RELEASE_DAYS}-day release across the whole year.</p>
+              <div className="ev-actions" style={{ marginTop: 16 }}><EventActions e={teaser(e, access.view)} paid full={false} canSave /></div>
+            </div>
+            ) : access.paid ? (
             <div className="lock-panel ev-page-lock">
               <h2>{opens ? `Full details released ${releaseLabel(opens)}` : 'Full details released once the date is set'}</h2>
               <p>Members get each event’s venue, prices, booking link, speakers and sponsors {RELEASE_DAYS} days before it starts{opens ? '' : ' — this one doesn’t have a confirmed date yet'}. Save it now and it’ll fill in on your shortlist and calendar feed automatically.</p>

@@ -36,7 +36,9 @@ export function EventActions({ e, paid, full, compact, canSave = paid }: { e: Ev
           </div>
         </details>
       ) : paid && e.locked ? (
-        <span className="btn btn-ghost btn-sm is-disabled" aria-disabled="true" title={`Full details and calendar links are released ${RELEASE_DAYS} days ahead`}>{e.opensOn ? `Calendar from ${releaseLabel(e.opensOn)}` : 'Calendar once dated'}</span>
+        e.outside
+          ? <span className="btn btn-ghost btn-sm is-disabled" aria-disabled="true" title="Calendar links are for events in your membership quarter">Not in your quarter</span>
+          : <span className="btn btn-ghost btn-sm is-disabled" aria-disabled="true" title={`Full details and calendar links are released ${RELEASE_DAYS} days ahead`}>{e.opensOn ? `Calendar from ${releaseLabel(e.opensOn)}` : 'Calendar once dated'}</span>
       ) : !full || e.locked ? (
         <a className="btn btn-secondary btn-sm" href="/#pricing" title="Members can add any event to Google, Outlook or Apple Calendar">Add to calendar<span className="sr-only"> — members only</span></a>
       ) : (

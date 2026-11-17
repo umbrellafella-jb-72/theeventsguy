@@ -23,7 +23,7 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
   const here = `/awards/finder?${new URLSearchParams(Object.entries(sp).filter(([k]) => k !== 'sent').map(([k, v]) => [k, String(v)]))}`;
   const all = a ? matchAwards(a, 12) : [];
   // Accounts see matches within the listing window; the rest are counted, not named.
-  const inWindow = all.filter(m => visibleTo(m.e, access.paid, Boolean(user)));
+  const inWindow = all.filter(m => visibleTo(m.e, access.view, Boolean(user)));
   const matches = canSee ? inWindow.slice(0, 6) : all.slice(0, 6);
   const later = canSee ? all.length - inWindow.length : 0;
   const today = new Date().toISOString().slice(0, 10);
@@ -53,7 +53,7 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
               ) : matches.length > 0 ? (
                 <ol className="finder-list">
                   {matches.map((m, i) => {
-                    const full = fullFor(m.e, access.paid);
+                    const full = fullFor(m.e, access.view);
                     const entry = entryInfo(m.e.entryDeadline, today) as { label: string };
                     return (
                       <li key={m.e.id} className="finder-item">

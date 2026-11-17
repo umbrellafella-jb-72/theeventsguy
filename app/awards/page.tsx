@@ -1,3 +1,4 @@
+import { quarterLabel } from '@/lib/release';
 import Link from 'next/link';
 import { PageHero } from '@/components/PageHero';
 import { KnotRule } from '@/components/Art';
@@ -20,7 +21,7 @@ export default async function AwardsPage() {
   // award whose entry deadline or ceremony is in the next RELEASE_DAYS days; the rest are released
   // as they come into range, so the whole year can't be copied out at once.
   const preview = currentMonthKey();
-  const visible = all.filter(a => fullFor(a, access.paid));
+  const visible = all.filter(a => fullFor(a, access.view));
 
   const open = all.filter(a => a.entry.state === 'open');
   const closing30 = open.filter(a => (a.entry.days ?? 99) <= 30).length;
@@ -49,11 +50,11 @@ export default async function AwardsPage() {
             : <div><b>{soon90}</b><span>ceremonies in the next 3 months</span></div>}
         </section>
 
-        {access.paid && soonest.filter(a => fullFor(a, true)).length > 0 && (
+        {access.paid && soonest.filter(a => fullFor(a, access.view)).length > 0 && (
           <section className="section aw-soon">
             <div className="section-head"><h2>Deadlines coming up</h2></div>
             <div className="aw-soon-grid">
-              {soonest.filter(a => fullFor(a, true)).map(a => (
+              {soonest.filter(a => fullFor(a, access.view)).map(a => (
                 <a key={a.id} className="aw-soon-tile" href={`#aw-${a.id}`}>
                   <span className="label">{a.entry.label}</span>
                   <strong>{a.name}</strong>
@@ -66,12 +67,12 @@ export default async function AwardsPage() {
 
         <section className="section">
           <div className="section-head">
-            <h2>{access.paid ? `Awards in the next ${RELEASE_DAYS} days` : `Ceremonies in ${monthLabel(preview)}`}</h2>
-            <span className="muted">{access.paid ? `Deadline or ceremony within ${RELEASE_DAYS} days — more are released every day` : `Free preview — subscribers see each award ${RELEASE_DAYS} days ahead`}</span>
+            <h2>{access.quarter ? `Awards in ${quarterLabel(access.quarter)}` : access.paid ? `Awards in the next ${RELEASE_DAYS} days` : `Ceremonies in ${monthLabel(preview)}`}</h2>
+            <span className="muted">{access.quarter ? 'Deadline or ceremony in your membership quarter' : access.paid ? `Deadline or ceremony within ${RELEASE_DAYS} days — more are released every day` : `Free preview — subscribers see each award ${RELEASE_DAYS} days ahead`}</span>
           </div>
           <AwardsGuide awards={visible} areas={areas} topics={topics} />
           {access.paid ? (
-            all.length > visible.length && <p className="note" style={{ marginTop: 24 }}>{all.length - visible.length} more awards are released to you as their entry deadline or ceremony comes within {RELEASE_DAYS} days. Each one’s name and date is in <Link href="/guide">the guide</Link>.</p>
+            all.length > visible.length && <p className="note" style={{ marginTop: 24 }}>{all.length - visible.length} more awards {access.quarter ? 'fall outside your membership quarter.' : `are released to you as their entry deadline or ceremony comes within ${RELEASE_DAYS} days.`} Each one’s name and date is in <Link href="/guide">the guide</Link>.</p>
           ) : (
             <div className="lock-panel" style={{ marginTop: 24 }}>
               <h2>{all.length - visible.length} more awards</h2>

@@ -52,7 +52,9 @@ export function EventCard({ e, month, past, speakers, paid = false, canSave = pa
         </div>
         {e.locked ? (
           paid
-            ? <p className="ev-lock">{e.opensOn ? <>Full details released <b>{releaseLabel(e.opensOn)}</b>, {RELEASE_DAYS} days ahead.</> : <>Full details released {RELEASE_DAYS} days before it, once the date is confirmed.</>} Save it now and it fills in on your shortlist automatically.</p>
+            ? e.outside
+              ? <p className="ev-lock">Outside your membership quarter. Your quarterly membership opens every event in its calendar quarter in full; this one shows as a listing only.</p>
+              : <p className="ev-lock">{e.opensOn ? <>Full details released <b>{releaseLabel(e.opensOn)}</b>, {RELEASE_DAYS} days ahead.</> : <>Full details released {RELEASE_DAYS} days before it, once the date is confirmed.</>} Save it now and it fills in on your shortlist automatically.</p>
             : <p className="ev-lock">Members see the venue, price, booking link, speakers and sponsors, and can save it and add it to their calendar. <a href="/#pricing">Become a member</a></p>
         ) : (
           <>

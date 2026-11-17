@@ -27,7 +27,20 @@ export async function stripe<T = any>(path: string, init?: { method?: 'GET' | 'P
   return json as T;
 }
 
-export type Sub = { id: string; status: string; current_period_end: number };
+export type Sub = {
+  id: string; status: string; current_period_start: number; current_period_end: number;
+  metadata?: { plan?: string } | null;
+  items?: { data?: { price?: { recurring?: { interval?: string; interval_count?: number } | null } | null }[] } | null;
+};
+/** Which plan a subscription is on: its metadata, or else its billing interval. */
+export function subPlan(s: Sub | null | undefined): 'quarterly' | 'yearly' | null {
+  if (!s) return null;
+  if (s.metadata?.plan === 'quarterly' || s.metadata?.plan === 'yearly') return s.metadata.plan;
+  const r = s.items?.data?.[0]?.price?.recurring;
+  return r?.interval === 'year' ? 'yearly' : r?.interval === 'month' && r.interval_count === 3 ? 'quarterly' : null;
+}
+/** The quarter a quarterly subscription's current period opens (null for yearly or unknown). */
+export const subQuarter = (s: Sub | null | undefined, quarterOf: (u: number) => string) => (s && subPlan(s) === 'quarterly' ? quarterOf(s.current_period_start) : null);
 
 /** The customer's live subscription, if any. */
 export async function activeSubscription(customer: string): Promise<Sub | null> {

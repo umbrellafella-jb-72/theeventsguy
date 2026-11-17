@@ -1,3 +1,4 @@
+import { quarterLabel } from '@/lib/release';
 import Guide from '@/components/Guide';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
@@ -20,7 +21,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   // Visitors who haven't registered see only this month (plus featured events) — the rest isn't sent at all.
   const visitorLocked = !access.paid && !user;
   // Free accounts and members see events up to LISTING_DAYS ahead (full for members from RELEASE_DAYS).
-  const visible = eventsFor(access.paid, preview, Boolean(user));
+  const visible = eventsFor(access.view, preview, Boolean(user));
   // First landing (no month, search or filters in the address) shows a 3-event snapshot.
   const snapshot = !Object.keys(sp).some(k => k === 'month' || k === 'q' || k === 'from' || k === 'to' || k.startsWith('f_'));
   const wanted = sp.month && (summaries.some(s => s.key === sp.month) || (sp.month === 'all' && !visitorLocked)) ? sp.month : null;
@@ -31,7 +32,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
       <div className="wrap guide-top">
         <h1>Ecommerce events, month by month</h1>
         <p className="muted" style={{ margin: '8px 0 0' }}>
-          {events.length} events and awards across the UK, Ireland and Europe. Each one is listed {LISTING_DAYS} days ahead, with full details for members from {RELEASE_DAYS} days.
+          {events.length} events and awards across the UK, Ireland and Europe. Each one is listed {LISTING_DAYS} days ahead. Yearly members get full details from {RELEASE_DAYS} days; quarterly members get their whole quarter in full.
         </p>
         {sp.welcome && <p className="note banner">You’re in. Every month is now unlocked — welcome to The Events Guy.</p>}
         {sp.restored && <p className="note banner">Access restored on this device.</p>}
@@ -42,6 +43,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         summaries={summaries}
         taxonomy={taxonomy}
         paid={access.paid}
+        quarter={access.quarter ? quarterLabel(access.quarter) : null}
         previewMonth={preview}
         initialMonth={initialMonth}
         today={todayKey()}

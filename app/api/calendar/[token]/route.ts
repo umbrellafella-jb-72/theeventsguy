@@ -2,7 +2,7 @@ import { verify } from '@/lib/access';
 import { eventById, fullFor, type EventItem } from '@/lib/data';
 import { icsCalendar } from '@/lib/calendar';
 import { storeReady } from '@/lib/store';
-import { getUser, isMember } from '@/lib/users';
+import { getUser, isMember, userPass } from '@/lib/users';
 import { refreshMembership } from '@/lib/membership';
 import { siteUrl } from '@/lib/stripe';
 
@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
   let u = await getUser(tok.c);
   if (!u) return new Response('Not found', { status: 404 });
   if (!isMember(u) && u.customer) u = await refreshMembership(u);
-  const list = isMember(u) && u.status === 'active' ? u.saved.map(id => eventById.get(id)).filter((e): e is EventItem => !!e && fullFor(e, true)) : [];
+  const list = isMember(u) && u.status === 'active' ? u.saved.map(id => eventById.get(id)).filter((e): e is EventItem => !!e && fullFor(e, userPass(u))) : [];
   // Events further out than the release window join the feed on the day they're released.
   return new Response(icsCalendar(list, siteUrl(req), 'My events — The Events Guy'), {
     headers: { 'Content-Type': 'text/calendar; charset=utf-8', 'Cache-Control': 'private, max-age=900' },

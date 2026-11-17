@@ -25,9 +25,9 @@ export function demoProblems(): string[] {
 export const isDemoEmail = (e: string | null | undefined) => Boolean(e && e.toLowerCase().endsWith('@' + DEMO_DOMAIN));
 export const isDemoCustomer = (c: string | null | undefined) => Boolean(c && c.startsWith('demo_'));
 
-export type PersonaKey = 'free' | 'member' | 'lapsed' | 'organiser' | 'sponsor' | 'speaker' | 'admin';
+export type PersonaKey = 'free' | 'member' | 'yearly' | 'lapsed' | 'organiser' | 'sponsor' | 'speaker' | 'admin';
 export type Persona = {
-  key: PersonaKey; label: string; name: string; roles: Role[]; plan: 'none' | 'member' | 'lapsed';
+  key: PersonaKey; label: string; name: string; roles: Role[]; plan: 'none' | 'quarterly' | 'yearly' | 'lapsed';
   start: string; blurb: string; tryThis: string[];
 };
 
@@ -35,9 +35,12 @@ export const PERSONAS: Persona[] = [
   { key: 'free', label: 'Free account', name: 'Fran Free', roles: [], plan: 'none', start: '/guide',
     blurb: 'Signed up, never paid.',
     tryThis: ['Guide shows teasers up to 60 days out, full details locked', 'Save an event to My events', 'Save a search', 'Pricing and checkout prompts'] },
-  { key: 'member', label: 'Member (quarterly)', name: 'Morgan Member', roles: [], plan: 'member', start: '/guide',
-    blurb: 'Paid member, renews in about 80 days.',
-    tryThis: ['Full details from 30 days out', 'Calendar sync and reminders', 'Account shows Member', '“Manage billing” is disabled for demo members'] },
+  { key: 'member', label: 'Member (quarterly)', name: 'Morgan Member', roles: [], plan: 'quarterly', start: '/guide',
+    blurb: 'Quarterly member who joined this calendar quarter.',
+    tryThis: ['Every event in this quarter open in full', 'Events after the quarter: listings only', 'Calendar sync and reminders', '“Manage billing” is disabled for demo members'] },
+  { key: 'yearly', label: 'Member (yearly)', name: 'Yan Yearly', roles: [], plan: 'yearly', start: '/guide',
+    blurb: 'Yearly member on the rolling release.',
+    tryThis: ['Full details from 30 days out', 'Listings 60 days out', 'Not limited to a quarter'] },
   { key: 'lapsed', label: 'Lapsed member', name: 'Lee Lapsed', roles: [], plan: 'lapsed', start: '/account',
     blurb: 'Membership ended 10 days ago.',
     tryThis: ['Back to free-account views', 'Renewal prompts', 'Shortlist kept'] },
@@ -65,12 +68,13 @@ const iso = (daysAgo = 0) => new Date(Date.now() - daysAgo * DAY * 1000).toISOSt
 async function makeUser(p: Persona): Promise<User> {
   const email = personaEmail(p.key);
   const existing = await userByEmail(email);
-  const paid = p.plan === 'member' ? nowS() + 80 * DAY : p.plan === 'lapsed' ? nowS() - 10 * DAY : 0;
+  const paid = p.plan === 'quarterly' ? nowS() + 80 * DAY : p.plan === 'yearly' ? nowS() + 300 * DAY : p.plan === 'lapsed' ? nowS() - 10 * DAY : 0;
   return saveUser({
     id: existing?.id ?? `u_demo_${p.key}`, email, name: p.name,
     roles: ['registered', ...p.roles], status: 'active',
     createdAt: existing?.createdAt ?? iso(30), updatedAt: iso(), lastLogin: existing?.lastLogin ?? null,
     customer: p.plan === 'none' ? null : `demo_cus_${p.key}`, paidUntil: paid,
+    plan: p.plan === 'yearly' ? 'yearly' : p.plan === 'none' ? null : 'quarterly', periodStart: p.plan === 'none' ? null : nowS() - 10 * DAY,
     saved: existing?.saved ?? [], searches: existing?.searches ?? [], prefs: { newEvents: true, reminders: true },
   });
 }
@@ -121,7 +125,7 @@ export async function seedDemo(): Promise<void> {
   await setJSON(`enq:${ENQ}`, enq); await addTo('enquiries', ENQ); await addTo(`inbox:${enq.from}`, ENQ); await addTo(`inbox:${enq.to}`, ENQ);
   await setJSON(`report:${REP}`, rep); await addTo('reports', REP);
   // A starting shortlist so My events isn't empty.
-  for (const k of ['free', 'member', 'lapsed'] as const) {
+  for (const k of ['free', 'member', 'yearly', 'lapsed'] as const) {
     const x = await getUser(u[k].id); if (x && !x.saved.length) await saveUser({ ...x, saved: upcoming.slice(0, 3).map(e => e.id) });
   }
 }

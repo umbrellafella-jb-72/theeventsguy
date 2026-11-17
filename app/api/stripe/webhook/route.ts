@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         const email = (o.customer_details?.email ?? o.customer_email ?? null)?.toLowerCase() ?? null;
         const until = Math.floor(Date.now() / 1000) + (planOf(o) === 'yearly' ? 365 : 92) * 86400;
         // Membership goes on an existing account with this email; it never signs anyone in.
-        await startMembership(o.customer, await userForCustomer(o.customer, email), until);
+        await startMembership(o.customer, await userForCustomer(o.customer, email), until, planOf(o) as 'quarterly' | 'yearly' | null, Math.floor(Date.now() / 1000));
         // One welcome email per checkout, whether this or the checkout return page gets there first.
         if (email && (!storeReady() || await claimOnce(`welcome:${o.id}`, 90 * 86400))) await mail(email, 'Welcome to The Events Guy', MAILS.welcome(base, email, planOf(o), until));
         await teamAlert(alertsTo(), `New member: ${email ?? o.customer}${planOf(o) ? ` (${planOf(o)})` : ''}`, [`${email ?? 'No email'} subscribed${planOf(o) ? ` on the ${planOf(o)} plan` : ''}.`, o.amount_total != null && `Paid: ${money(o.amount_total, o.currency ?? 'gbp')}`, o.livemode === false && 'Stripe TEST mode', `Stripe customer: https://dashboard.stripe.com/${o.livemode === false ? 'test/' : ''}customers/${o.customer}`]);
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       }
       case 'invoice.paid': {
         const until = o.lines?.data?.[0]?.period?.end;
-        if (o.customer && until) await startMembership(o.customer, await userForCustomer(o.customer, o.customer_email ?? null), until);
+        if (o.customer && until) await startMembership(o.customer, await userForCustomer(o.customer, o.customer_email ?? null), until, planOf(o) as 'quarterly' | 'yearly' | null, o.lines?.data?.[0]?.period?.start ?? null);
         break;
       }
       case 'invoice.payment_failed':

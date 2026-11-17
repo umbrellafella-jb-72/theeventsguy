@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { accessCookie, verify } from '@/lib/access';
-import { ensureUser, isMember, sessionCookie } from '@/lib/users';
+import { ensureUser, isMember, sessionCookie, userQuarter } from '@/lib/users';
 import { refreshMembership } from '@/lib/membership';
 import { siteUrl } from '@/lib/stripe';
 import { claimOnce, safePath } from '@/lib/store';
@@ -20,6 +20,6 @@ export async function GET(req: Request) {
   if (u0.searchParams.get('news') === '1') await setMarketing(u.email, true, 'Sign-in form (confirmed by email)').catch(() => null);
   const res = NextResponse.redirect(`${base}${safePath(u0.searchParams.get('next'))}`, 303);
   const s = sessionCookie(u.id); res.cookies.set(s.name, s.value, s.options);
-  if (isMember(u) && u.customer) { const c = accessCookie(u.customer, u.paidUntil); res.cookies.set(c.name, c.value, c.options); }
+  if (isMember(u) && u.customer) { const c = accessCookie(u.customer, u.paidUntil, userQuarter(u)); res.cookies.set(c.name, c.value, c.options); }
   return res;
 }

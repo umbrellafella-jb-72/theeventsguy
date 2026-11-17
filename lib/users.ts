@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { sign, verify } from './access';
 import { addTo, allIn, getJSON, newId, redis, setJSON, storeReady } from './store';
 import type { Role } from './permissions';
+import { quarterOf, quarterRange } from './release';
 
 export type SavedSearch = { id: string; name: string; query: string; createdAt: string };
 export type User = {
@@ -16,6 +17,8 @@ export type User = {
   // Membership (Stripe). A free account has no customer.
   customer: string | null;
   paidUntil: number;             // unix seconds; 0 = never paid
+  plan?: 'quarterly' | 'yearly' | null;
+  periodStart?: number | null;   // unix seconds: start of the current billing period
   // Free-account features
   saved: string[];               // shortlisted event ids
   searches: SavedSearch[];
@@ -60,11 +63,11 @@ export async function ensureUser(email: string, init: Partial<User> = {}): Promi
   const now = new Date().toISOString();
   return saveUser({
     id: newId('u'), email: e, name: init.name ?? null, roles: admin ? ['registered', 'admin'] : ['registered'], status: 'active',
-    createdAt: now, updatedAt: now, lastLogin: null, customer: init.customer ?? null, paidUntil: init.paidUntil ?? 0,
+    createdAt: now, updatedAt: now, lastLogin: null, customer: init.customer ?? null, paidUntil: init.paidUntil ?? 0, plan: init.plan ?? null, periodStart: init.periodStart ?? null,
     saved: [], searches: [], prefs: { newEvents: true, reminders: true },
   });
 }
-const pick = (o: Partial<User>) => Object.fromEntries(Object.entries(o).filter(([k, v]) => v !== undefined && v !== null && ['name', 'customer', 'lastLogin'].includes(k)));
+const pick = (o: Partial<User>) => Object.fromEntries(Object.entries(o).filter(([k, v]) => v !== undefined && v !== null && ['name', 'customer', 'lastLogin', 'plan', 'periodStart'].includes(k)));
 
 /** The signed-in account, or null (signed out, suspended, or accounts not switched on). */
 export async function sessionUser(): Promise<User | null> {
@@ -84,4 +87,11 @@ export function sessionCookie(userId: string) {
   return { name: SESSION, value: sign({ c: userId, e, t: 'session' }), options: { httpOnly: true, secure: true, sameSite: 'lax' as const, path: '/', expires: new Date(e * 1000) } };
 }
 export const loginToken = (email: string) => sign({ c: normEmail(email), e: Math.floor(Date.now() / 1000) + 30 * 60, t: 'login' });
+/** A quarterly member's quarter ("2026-Q4"), or null for yearly members and everyone else. */
+export const userQuarter = (u: User | null) => (u && u.plan === 'quarterly' && u.periodStart ? quarterOf(u.periodStart) : null);
 export const isMember = (u: User | null) => Boolean(u && u.customer && u.paidUntil + 3 * 86400 > Date.now() / 1000);
+/** What a member's account shows of the guide (see Pass in lib/data). */
+export const userPass = (u: User | null): boolean | { from: string; to: string } => {
+  if (!isMember(u)) return false;
+  const q = userQuarter(u); return q ? quarterRange(q) : true;
+};
