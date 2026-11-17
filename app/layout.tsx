@@ -12,7 +12,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'The Events Guy — UK & European ecommerce events, month by month',
-  description: 'Every UK, Irish and European ecommerce conference, expo, meetup, dinner and awards night in one guide, tagged by format, topic, region and price. Refreshed monthly.',
+  description: 'Every UK, Irish and European ecommerce conference, expo, meetup, dinner and awards night in one guide, tagged by format, topic, region and price. Updated weekly.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://theeventsguy.co.uk'),
   applicationName: 'The Events Guy',
   appleWebApp: { title: 'Events Guy', capable: true, statusBarStyle: 'black-translucent' },

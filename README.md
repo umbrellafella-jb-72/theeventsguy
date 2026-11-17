@@ -15,7 +15,7 @@ A paid, month-by-month guide to ecommerce events and awards across the UK, Irela
 
 - **Free visitors** see the current month in full, event counts for every other month, and the first 3 podcasts.
 - **Subscribers** (Stripe) see every month and the "dates TBC" list. They can filter by tag and add events to their calendar.
-- **Listings refresh monthly** from the Google Sheet through a scheduled GitHub Action. Vercel redeploys on each refresh.
+- **Listings refresh weekly** from the Google Sheet through a scheduled GitHub Action. Vercel redeploys on each refresh.
 
 ## Tagging
 
@@ -38,7 +38,7 @@ Events that list several dates, such as monthly series, appear in each of those 
 
 The sheet's `Notes` column contains private material: contacts, partner terms, "you attended…" and Gmail references. The pipeline reads it only to infer topic tags and never writes it out. The same goes for the Awards tab's `Sponsors / partners` column (sponsorship contacts) and the Webinars tab's `Contact / socials`, `Why plug in`, `Priority` and `Last checked` columns. Bracketed text in `Organiser` and `2026 / 2025 Reference` is also stripped, because that's where contact details sit. If you want a public description per event, add a `Public summary` column and it can be wired in.
 
-## Monthly refresh
+## Weekly refresh
 
 ```bash
 npm run sync -- path/to/multi-tab-export     # a "## Sheet name:" export holding every tab
@@ -47,7 +47,7 @@ npm run sync                                  # straight from Google Sheets, one
 
 This writes `data/events.json`. The file sits outside `public/`, so it's never served directly. Only the server renders it, and only to visitors who are allowed to see it.
 
-**Automated:** `.github/workflows/monthly-refresh.yml` runs on the 1st of every month, and can also be run on demand from the Actions tab. Add one repository secret per tab. Each tab's `gid` is the number after `gid=` in the address bar when that tab is open:
+**Automated:** `.github/workflows/weekly-refresh.yml` runs every Monday morning, and can also be run on demand from the Actions tab. Add one repository secret per tab. Each tab's `gid` is the number after `gid=` in the address bar when that tab is open:
 
 | Secret | Tab |
 |---|---|
@@ -144,7 +144,7 @@ Every event has a page at `/events/<id>` with its name, dates, city, category, i
 - **Shortlist:** "Save" on any event; `/shortlist` lists them, with "Download all (.ics)".
 - **Add to calendar:** Google Calendar, Outlook.com, Outlook (Microsoft 365) and an `.ics` file for Apple Calendar and everything else (`/api/ics/<id>`), plus a private **calendar feed** of the shortlist (`/api/calendar/<token>`) that calendars keep in sync.
 - **Share:** native share sheet, copy link, copy details, email, LinkedIn, WhatsApp; "Print or save as PDF" on the event page.
-- **Emails:** "new events" after each monthly refresh (`/api/cron/digest`, using `data/changes.json` written by the sync) and reminders a week and a day before saved events (`/api/cron/reminders`). Both run daily from `vercel.json`, are opt-out from `/account`, and every email carries a one-click unsubscribe.
+- **Emails:** "new events" after each weekly refresh (`/api/cron/digest`, using `data/changes.json` written by the sync) and reminders a week and a day before saved events (`/api/cron/reminders`). Both run daily from `vercel.json`, are opt-out from `/account`, and every email carries a one-click unsubscribe.
 - **Account:** `/account` — billing (Stripe portal), the calendar feed and email settings.
 
 ### Switching on the member database

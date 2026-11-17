@@ -6,7 +6,7 @@ import { eventsEmail, sendEmail } from '@/lib/email';
 import { cronAllowed, memberLinks } from '@/lib/cron';
 import { siteUrl } from '@/lib/stripe';
 
-// "New events" email. Runs daily (vercel.json); sends once per monthly refresh that added events,
+// "New events" email. Runs daily (vercel.json); sends once per weekly refresh that added events,
 // to members with an active subscription who haven't opted out.
 export async function GET(req: Request) {
   if (!cronAllowed(req)) return new Response('Unauthorised', { status: 401 });
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
     const links = memberLinks(m.id);
     const mail = eventsEmail({
       heading: `${added.length} new event${added.length === 1 ? '' : 's'} in the guide`,
-      intro: `This month’s refresh added ${added.length} event${added.length === 1 ? '' : 's'}. Save the ones you want and they’ll go straight into your calendar feed.`,
+      intro: `This week’s update added ${added.length} event${added.length === 1 ? '' : 's'}. Save the ones you want and they’ll go straight into your calendar feed.`,
       items, footer: added.length > items.length ? `And ${added.length - items.length} more in the guide: ${base}/guide` : 'See them all in the guide.',
       manageUrl: links.manage, unsubscribeUrl: links.off('newEvents'),
     });

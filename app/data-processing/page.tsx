@@ -10,7 +10,7 @@ const PROCESSORS = [
   { name: 'Upstash Inc.', what: 'Stores accounts, saved events, profiles, enquiries and reports.', data: 'Email, name, saved items, profiles, messages.', where: 'EU (Ireland) or as configured', link: 'https://upstash.com/trust/dpa.pdf' },
   { name: 'Stripe Payments Europe Ltd.', what: 'Takes subscription payments and runs the billing page.', data: 'Email, payment details, billing address, payment history.', where: 'EU / USA', link: 'https://stripe.com/legal/dpa' },
   { name: 'Resend Inc.', what: 'Sends sign-in links, reminders, digests and enquiry notifications.', data: 'Email address and the content of those emails.', where: 'USA', link: 'https://resend.com/legal/dpa' },
-  { name: 'GitHub Inc.', what: 'Stores the site’s code and runs the monthly listings refresh.', data: 'Event listings only — no personal data about users.', where: 'USA', link: 'https://github.com/customer-terms' },
+  { name: 'GitHub Inc.', what: 'Stores the site’s code and runs the weekly listings update.', data: 'Event listings only — no personal data about users.', where: 'USA', link: 'https://github.com/customer-terms' },
   { name: 'Google LLC', what: 'Hosts the events spreadsheet the guide is built from, and serves the site’s fonts.', data: 'Event listings; IP address when fonts load.', where: 'USA / EU', link: 'https://cloud.google.com/terms/data-processing-addendum' },
 ];
 

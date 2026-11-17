@@ -34,7 +34,7 @@ export default async function Home() {
         <div className="wrap hero-grid">
           <GuyPortrait className="hero-guy" size={300} />
           <div className="hero-copy">
-          <div className="eyebrow"><Triskele size={18} tone="torc" ground="harbour" ring={false} />UK, Ireland & Europe · refreshed monthly</div>
+          <div className="eyebrow"><Triskele size={18} tone="torc" ground="harbour" ring={false} />UK, Ireland & Europe · updated weekly</div>
           <h1>Every ecommerce event worth knowing, month by month.</h1>
           <p>Conferences, expos, meetups, retailer dinners and awards nights — from ExCeL to Barcelona — tagged by area, format, topic and price, plus the podcasts and webinars worth your time between them.</p>
           <div className="hero-actions">
@@ -90,7 +90,7 @@ export default async function Home() {
               <h2 style={{ fontSize: 32, lineHeight: '38px', marginBottom: 16 }}>Plan your events year properly</h2>
               <div className="faq">
                 <details open><summary>What’s in the guide?</summary><p>Every UK, Irish and European ecommerce, retail and digital marketing event we can find — big expos, invite-only retailer dinners, regional meetups, awards with their entry deadlines — plus a directory of podcasts and webinars.</p></details>
-                <details><summary>How fresh is it?</summary><p>The listings are re-checked and refreshed every month. Each event shows whether its date is confirmed by the organiser, tentative (projected from last year) or still to be announced.</p></details>
+                <details><summary>How fresh is it?</summary><p>The listings are re-checked and updated every week. Each event shows whether its date is confirmed by the organiser, tentative (projected from last year) or still to be announced.</p></details>
                 <details><summary>How do the tags work?</summary><p>Each event has an area (UK & Ireland or Europe), one format (conference, expo, meetup, dinner, awards…), any number of topics (AI, Shopify, DTC, payments, agencies…), a region or country and a price band. Combine them to narrow the year to what matters to you.</p></details>
                 <details><summary>What does each plan open up?</summary><p><b>Quarterly:</b> every event and award in the calendar quarter you join (Jan–Mar, Apr–Jun, Jul–Sep or Oct–Dec) opens in full straight away; each renewal moves you on to the quarter it starts in. <b>Yearly:</b> the rolling release below, across the whole year.</p></details>
                 <details><summary>Why are details released 30 days ahead?</summary><p>On the yearly plan, so the guide stays worth paying for. You can see every event’s name, date and city for the year and save it; its venue, prices, booking links and speakers open up {RELEASE_DAYS} days before it starts (for awards, before the entry deadline or ceremony). Saved events fill in on your shortlist and calendar feed automatically.</p></details>

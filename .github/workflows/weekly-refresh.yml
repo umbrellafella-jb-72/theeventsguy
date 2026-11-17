@@ -1,10 +1,10 @@
-# Refreshes the listings from the Google Sheet on the 1st of every month (and on demand).
+# Refreshes the listings from the Google Sheet every Monday (and on demand).
 # Pushing the new data/events.json makes Vercel redeploy automatically.
-name: Monthly listings refresh
+name: Weekly listings refresh
 
 on:
   schedule:
-    - cron: '17 6 1 * *'   # 06:17 UTC on the 1st
+    - cron: '17 6 * * 1'   # 06:17 UTC every Monday
   workflow_dispatch: {}
 
 permissions:
@@ -32,5 +32,5 @@ jobs:
           git config user.name "theeventsguy-bot"
           git config user.email "theeventsguy-bot@users.noreply.github.com"
           git add data/events.json
-          git commit -m "Monthly listings refresh $(date -u +%Y-%m)"
+          git commit -m "Weekly listings refresh $(date -u +%Y-%m-%d)"
           git push

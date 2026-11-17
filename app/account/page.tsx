@@ -126,7 +126,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <h2>Name and emails</h2>
         <form action="/api/account/prefs" method="post" className="prefs">
           <label>Your name<input name="name" defaultValue={u.name ?? ''} maxLength={80} /></label>
-          <label className="toggle"><input type="checkbox" name="newEvents" defaultChecked={u.prefs.newEvents} /> New events: one email when the monthly refresh adds events {member ? '' : '(members)'}</label>
+          <label className="toggle"><input type="checkbox" name="newEvents" defaultChecked={u.prefs.newEvents} /> New events: one email when the weekly update adds events {member ? '' : '(members)'}</label>
           <label className="toggle"><input type="checkbox" name="reminders" defaultChecked={u.prefs.reminders} /> Reminders a week before and the day before each saved event {member ? '' : '(members)'}</label>
           <label className="toggle"><input type="checkbox" name="roundup" defaultChecked={Boolean(roundup?.subscribed)} /> The monthly roundup: new events, awards deadlines and news (marketing, optional)</label>
           <p className="muted">Messages from organisers, sponsors and speakers are always emailed to you.{!emailReady() && ' (Email sending isn’t switched on for this site yet.)'}</p>
