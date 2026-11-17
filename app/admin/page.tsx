@@ -62,7 +62,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       <nav className="admin-tabs" aria-label="Admin">{TABS.map(([k, l]) => (
         <Link key={k} href={`/admin?tab=${k}`} aria-current={tab === k ? 'page' : undefined}>{l}{k === 'leads' && newLeads.length ? <span className="n">{newLeads.length}</span> : null}{k === 'queue' && pending.length ? <span className="n">{pending.length}</span> : null}{k === 'reports' && openReports.length ? <span className="n">{openReports.length}</span> : null}</Link>
       ))}</nav>
-      {sp.done && <p className="note banner">Done: {sp.done}.</p>}
+      {sp.done && <p className="note banner">{({ hide: 'Hidden from the site. Nothing was deleted; show it again any time.', approve: 'Now shown on the site.', remove: 'Removed for good.', suspend: 'Account suspended.', restore: 'Account restored.', roles: 'Roles saved.' } as Record<string, string>)[sp.done] ?? 'Done.'}</p>}
 
       {tab === 'queue' && (pending.length === 0 ? <p className="muted">Nothing waiting for approval.</p> : (
         <div className="plist">{pending.map(it => (
