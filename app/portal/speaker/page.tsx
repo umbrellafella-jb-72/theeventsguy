@@ -64,7 +64,8 @@ export default async function SpeakerEditor({ searchParams }: { searchParams: Pr
             <SpeakerAvatar id={t.id} name={p?.name ?? t.name ?? 'Speaker'} image={stored ? `/api/speaker-photo/${t.id}?v=${Date.parse(p?.updatedAt ?? '') || 0}` : p?.image ?? null} size={112} />
             <div className="photo-controls">
               <label>Upload a photo<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" /><span className="hint">Square works best. We crop it to a circle. JPG, PNG or WebP, up to 5 MB.</span></label>
-              {stored && <label className="check"><input type="checkbox" name="photoConsent" defaultChecked={Boolean(p?.photoConsent)} /> {t.id === me.id ? 'Show this photo on my profile' : 'The speaker has agreed to this photo being shown'}</label>}
+              <label className="check"><input type="checkbox" name="photoConsent" defaultChecked={Boolean(p?.photoConsent)} /> {t.id === me.id ? 'Show my photo on my profile' : 'The speaker has agreed to their photo being shown'}</label>
+              {stored && !p?.photoConsent && <p className="hint warn-hint">This photo isn’t showing publicly yet: tick the box above and save.</p>}
               {stored && <label className="check"><input type="checkbox" name="removePhoto" /> Remove this photo</label>}
               {!stored && <p className="hint">No photo yet. Upload one{p?.linkedin ? ', or use Fill from LinkedIn' : ''}. Until then the card shows an illustration.</p>}
             </div>
