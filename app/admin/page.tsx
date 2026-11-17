@@ -5,7 +5,9 @@ import { can, roleLabel, type Role } from '@/lib/permissions';
 import { allUsers, isMember } from '@/lib/users';
 import { allEnquiries, allOpps, allReports, allSpeakers, allSponsors, type Status } from '@/lib/portal';
 import { events } from '@/lib/data';
-import { closeReport, manageUser, moderate, saveLead } from '../portal/actions';
+import { addSpeakerFromLinkedIn, closeReport, manageUser, moderate, saveLead } from '../portal/actions';
+import { SpeakerAvatar } from '@/components/SpeakerAvatar';
+import { speakers as sheetSpeakers } from '@/lib/data';
 import { allLeads, FORM_LABELS, LEAD_STATUSES, type LeadForm } from '@/lib/leads';
 import { members } from '@/lib/store';
 import { StatusBadge } from '@/components/portal/Bits';
@@ -13,7 +15,7 @@ import { StatusBadge } from '@/components/portal/Bits';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Admin — The Events Guy', robots: { index: false } };
 
-const TABS = [['leads', 'Leads'], ['queue', 'Approvals'], ['content', 'All content'], ['users', 'Users'], ['reports', 'Reports'], ['reporting', 'Reporting']] as const;
+const TABS = [['leads', 'Leads'], ['queue', 'Approvals'], ['speakers', 'Speakers'], ['content', 'All content'], ['users', 'Users'], ['reports', 'Reports'], ['reporting', 'Reporting']] as const;
 type Item = { type: 'speaker' | 'sponsor' | 'opportunity'; id: string; title: string; sub: string; status: Status; updatedAt: string; edit: string; view: string | null };
 
 function Actions({ it, tab }: { it: Item; tab: string }) {
@@ -31,7 +33,7 @@ function Actions({ it, tab }: { it: Item; tab: string }) {
   );
 }
 
-export default async function Admin({ searchParams }: { searchParams: Promise<{ tab?: string; q?: string; done?: string; status?: string; form?: string; lead?: string }> }) {
+export default async function Admin({ searchParams }: { searchParams: Promise<{ li?: string; tab?: string; q?: string; done?: string; status?: string; form?: string; lead?: string }> }) {
   const sp = await searchParams;
   const { me } = await pageUser('/admin');
   if (!can(me, 'reporting.view')) redirect('/account');
@@ -44,7 +46,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const leadFilters = new URLSearchParams({ ...(leadForm ? { form: leadForm } : {}), ...(leadStatus ? { status: leadStatus } : {}) }).toString();
   const emailOf = new Map(users.map(u => [u.id, u.email]));
   const items: Item[] = [
-    ...speakers.map(p => ({ type: 'speaker' as const, id: p.userId, title: p.name, sub: `Speaker · ${emailOf.get(p.userId) ?? ''}`, status: p.status, updatedAt: p.updatedAt, edit: `/portal/speaker?as=${p.userId}`, view: p.status === 'published' ? `/speakers#sp-${p.userId}` : null })),
+    ...speakers.map(p => ({ type: 'speaker' as const, id: p.userId, title: p.name, sub: `Speaker · ${p.managed ? 'added from LinkedIn' : emailOf.get(p.userId) ?? ''}`, status: p.status, updatedAt: p.updatedAt, edit: `/portal/speaker?as=${p.userId}`, view: p.status === 'published' ? `/speakers#sp-${p.userId}` : null })),
     ...sponsors.map(p => ({ type: 'sponsor' as const, id: p.userId, title: p.company, sub: `Sponsor · ${emailOf.get(p.userId) ?? ''}`, status: p.status, updatedAt: p.updatedAt, edit: `/portal/sponsor?as=${p.userId}`, view: null })),
     ...opps.map(o => ({ type: 'opportunity' as const, id: o.id, title: o.title, sub: `Opportunity · ${o.eventName ?? 'no event'} · ${emailOf.get(o.ownerId) ?? ''}`, status: o.status, updatedAt: o.updatedAt, edit: `/portal/opportunities?edit=${o.id}`, view: `/opportunities/${o.id}` })),
   ].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -65,6 +67,32 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           <div key={it.type + it.id} className="prow"><div><b>{it.title}</b><span className="muted"> · {it.sub}</span></div><Actions it={it} tab="queue" /></div>
         ))}</div>
       ))}
+
+      {tab === 'speakers' && (
+        <>
+          <section className="acc-card admin-add">
+            <h2>Add a speaker from LinkedIn</h2>
+            <p className="muted">Paste their LinkedIn profile link. We fill in what LinkedIn shares publicly (name, headline, company, photo) and open the profile for you to check, complete and publish. LinkedIn often limits these lookups, so some profiles will need filling in by hand.</p>
+            {sp.li === 'bad' && <p className="note banner">That isn’t a LinkedIn profile link. It should look like linkedin.com/in/their-name.</p>}
+            {sp.li === 'busy' && <p className="note banner">Too many LinkedIn lookups in the last hour. Try again later.</p>}
+            <form action={addSpeakerFromLinkedIn} className="pform admin-add-form">
+              <label>LinkedIn profile link<input name="linkedin" type="text" inputMode="url" autoComplete="off" required placeholder="linkedin.com/in/their-name" /></label>
+              <button className="btn btn-primary" type="submit">Add speaker</button>
+            </form>
+            <p className="hint">Only show a speaker’s photo once they’ve agreed to it. There’s a box for that on their profile.</p>
+          </section>
+          <h2 className="admin-sub">Speaker profiles ({speakers.length})</h2>
+          <div className="plist">{[...speakers].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map(p => (
+            <div key={p.userId} className="prow sp-admin-row">
+              <SpeakerAvatar id={p.userId} name={p.name} image={p.image ?? null} size={44} />
+              <div><b>{p.status === 'published' ? <Link href={`/speakers#sp-${p.userId}`}>{p.name}</Link> : p.name}</b><span className="muted"> · {[p.headline, p.company].filter(Boolean).join(', ') || 'No headline yet'} · {p.managed ? 'added from LinkedIn' : 'self-published'}{p.image ? '' : ' · no photo'}</span> <StatusBadge status={p.status} /></div>
+              <div className="prow-actions"><Link className="btn btn-secondary btn-sm" href={`/portal/speaker?as=${p.userId}`}>Edit</Link></div>
+            </div>
+          ))}</div>
+          {speakers.length === 0 && <p className="muted">No speaker profiles yet.</p>}
+          <p className="muted" style={{ marginTop: 16 }}>{sheetSpeakers.length} more speaker{sheetSpeakers.length === 1 ? '' : 's'} come from the Speakers tab of the Google Sheet.</p>
+        </>
+      )}
 
       {tab === 'content' && (
         <>

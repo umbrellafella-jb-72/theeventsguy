@@ -13,6 +13,10 @@ import { siteUrl } from '@/lib/stripe';
 import { newId, safePath, tooMany } from '@/lib/store';
 import { LEAD_STATUSES, updateLead, type LeadStatus } from '@/lib/leads';
 import { headers } from 'next/headers';
+import { fetchLinkedIn, normaliseLinkedIn, type LinkedInPreview } from '@/lib/linkedin';
+import { deletePhoto, hasPhoto, isStoredPhoto, photoPath, storePhoto, storePhotoFromUrl } from '@/lib/photos';
+import { MANAGED_SPEAKER_DOMAIN, speakerByLinkedIn } from '@/lib/portal';
+import { ensureUser } from '@/lib/users';
 
 const str = (f: FormData, k: string, max = 2000) => String(f.get(k) ?? '').trim().slice(0, max);
 async function me(next = '/account'): Promise<User> {
@@ -44,18 +48,75 @@ export async function saveSpeakerProfile(f: FormData) {
   const t = await target(f, u);
   if (!can(t, 'speakerProfile.publish') && !can(u, 'content.moderate')) redirect('/account');
   const prev = await getSpeaker(t.id);
-  const li = cleanUrl(str(f, 'linkedin', 300));
+  const isAdmin = can(u, 'content.moderate');
+  const back = (q: string) => (t.id === u.id ? `/portal/speaker?${q}` : `/portal/speaker?as=${t.id}&${q}`);
+  const li = normaliseLinkedIn(str(f, 'linkedin', 300)) ?? cleanUrl(str(f, 'linkedin', 300));
+
+  // "Fill from LinkedIn": read the public preview and fill whatever is blank (and the photo).
+  let filled: LinkedInPreview | null = null;
+  if (f.get('fill') === '1') {
+    if (!li || !isLinkedIn(li)) redirect(back('li=bad'));
+    if (await tooMany(`li:${u.id}`, 20, 3600)) redirect(back('li=busy'));
+    filled = await fetchLinkedIn(li);
+  }
+  const pick = (k: string, max: number, from?: string) => str(f, k, max) || (from ? from.slice(0, max) : '');
+
+  // Photo: a new upload, or the one LinkedIn shared; shown only with the speaker's agreement.
+  let photoStored = await hasPhoto(t.id);
+  const file = f.get('photo');
+  if (file && typeof file === 'object' && 'arrayBuffer' in file && (file as File).size > 0) {
+    if ((file as File).size > 5_000_000 || !/^image\//.test((file as File).type)) redirect(back('photo=bad'));
+    if (!(await storePhoto(t.id, Buffer.from(await (file as File).arrayBuffer())))) redirect(back('photo=bad'));
+    photoStored = true;
+  }
+  if (filled?.photo && await storePhotoFromUrl(t.id, filled.photo)) photoStored = true;
+  if (f.get('removePhoto') === 'on') { await deletePhoto(t.id); photoStored = false; }
+  const consent = f.get('photoConsent') === 'on';
+  const cartoon = (x => (x && /^https:\/\/[^\s"'<>]+$/i.test(x) ? x : null))(cleanUrl(str(f, 'image', 500)));
+  // A stored photo wins when agreed; otherwise a cartoon portrait link, if one was given.
+  const image = consent && photoStored ? photoPath(t.id) : cartoon && !isStoredPhoto(cartoon, t.id) ? cartoon : null;
+
   const p: SpeakerProfile = {
-    userId: t.id, name: str(f, 'name', 80) || t.name || t.email.split('@')[0], headline: str(f, 'headline', 120) || null, company: str(f, 'company', 120) || null,
-    bio: str(f, 'bio', 1200), linkedin: isLinkedIn(li) ? li : null, website: cleanUrl(str(f, 'website', 300)),
+    userId: t.id, name: pick('name', 80, filled?.name) || t.name || t.email.split('@')[0],
+    headline: pick('headline', 120, filled?.headline) || null, company: pick('company', 120, filled?.company) || null,
+    bio: pick('bio', 1200, filled?.about), linkedin: li && isLinkedIn(li) ? li : null, website: cleanUrl(str(f, 'website', 300)),
     topics: list(str(f, 'topics', 400)).slice(0, 12), events: [...new Set(f.getAll('events').map(v => eventIdFrom(String(v))).filter((x): x is string => !!x))].slice(0, 20),
     openTo: f.getAll('openTo').map(String).slice(0, 6),
-    image: (u => (u && /^https:\/\/[^\s"'<>]+$/i.test(u) ? u : null))(cleanUrl(str(f, 'image', 500))),
-    status: prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
+    image, photoConsent: consent && photoStored, managed: prev?.managed ?? t.email.endsWith('@' + MANAGED_SPEAKER_DOMAIN),
+    status: isAdmin && f.get('publish') === 'on' ? 'published' : prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
   };
-  // Admin edits keep the current status; an owner's edit goes back for approval.
-  await saveSpeaker(p, t.id === u.id && !can(u, 'content.moderate'));
-  redirect(t.id === u.id ? '/portal/speaker?saved=1' : `/portal/speaker?as=${t.id}&saved=1`);
+  // Admin edits keep the current status (or publish it); an owner's edit goes back for approval.
+  await saveSpeaker(p, t.id === u.id && !isAdmin);
+  if (filled) {
+    const got = (['name', 'headline', 'company', 'about', 'photo'] as const).filter(k => filled![k]);
+    redirect(back(filled.ok ? `li=ok&got=${got.join(',')}` : `li=none&why=${encodeURIComponent(filled.reason ?? '')}`));
+  }
+  redirect(back('saved=1'));
+}
+
+/** Admin: add a speaker from a LinkedIn link. Makes a sign-in-less speaker account, fills what
+ *  LinkedIn shares, then opens the profile for the admin to check and publish. */
+export async function addSpeakerFromLinkedIn(f: FormData) {
+  const a = await admin('content.moderate');
+  const li = normaliseLinkedIn(str(f, 'linkedin', 300));
+  if (!li) redirect('/admin?tab=speakers&li=bad');
+  const existing = await speakerByLinkedIn(li);
+  if (existing) redirect(`/portal/speaker?as=${existing.userId}&li=exists`);
+  if (await tooMany(`li:${a.id}`, 20, 3600)) redirect('/admin?tab=speakers&li=busy');
+  const handle = li.split('/in/')[1].replace(/\/$/, '').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40) || newId('s');
+  const t = await ensureUser(`${handle}@${MANAGED_SPEAKER_DOMAIN}`, { name: null });
+  if (!t.roles.includes('speaker')) await saveUser({ ...t, roles: [...t.roles, 'speaker'] });
+  const got = await fetchLinkedIn(li);
+  const photo = got.photo ? await storePhotoFromUrl(t.id, got.photo) : false;
+  const now = new Date().toISOString();
+  await saveSpeaker({
+    userId: t.id, name: got.name || handle.replace(/-(?=[a-z0-9]*\d)[a-z0-9]{2,}$/, '').split('-').filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1)).join(' '),
+    headline: got.headline ?? null, company: got.company ?? null, bio: got.about ?? '', linkedin: li, website: null,
+    topics: [], events: [], openTo: [], image: null, photoConsent: false, managed: true,
+    status: 'pending', createdAt: now, updatedAt: now,
+  }, false);
+  const fields = (['name', 'headline', 'company', 'about'] as const).filter(k => got[k]).concat(photo ? ['photo' as never] : []);
+  redirect(`/portal/speaker?as=${t.id}&new=1&` + (got.ok ? `li=ok&got=${fields.join(',')}` : `li=none&why=${encodeURIComponent(got.reason ?? '')}`));
 }
 
 export async function saveSponsorProfile(f: FormData) {

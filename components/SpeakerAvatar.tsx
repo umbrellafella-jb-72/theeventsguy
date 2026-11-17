@@ -22,7 +22,7 @@ const HAIR = [
 export function SpeakerAvatar({ id, name, image, size = 120 }: { id: string; name: string; image?: string | null; size?: number }) {
   if (image) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <span className="sp-avatar" style={{ width: size, height: size }}><img src={image} alt={`Cartoon portrait of ${name}`} width={size} height={size} loading="lazy" referrerPolicy="no-referrer" /></span>;
+    return <span className="sp-avatar" style={{ width: size, height: size }}><img src={image} alt={`Portrait of ${name}`} width={size} height={size} loading="lazy" referrerPolicy="no-referrer" /></span>;
   }
   const h = hash(id);
   const [a, b] = BACKS[h % BACKS.length];

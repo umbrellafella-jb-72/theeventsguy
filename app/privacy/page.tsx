@@ -21,7 +21,7 @@ export default function Privacy() {
           <li><b>Your account:</b> your email address, and your name if you add it. We use your email to send sign-in links — there are no passwords.</li>
           <li><b>Membership:</b> your Stripe customer reference and when your membership is paid up to. Stripe holds your card details; we never see or store them.</li>
           <li><b>What you save:</b> your shortlist, saved searches and email settings.</li>
-          <li><b>Profiles you publish:</b> if you’re a speaker, sponsor or organiser, what you put in your profile or opportunity, including any LinkedIn link or portrait. These are public once approved (sponsor budgets and contact details are only shown to organisers and sponsors).</li>
+          <li><b>Profiles you publish:</b> if you’re a speaker, sponsor or organiser, what you put in your profile or opportunity, including any LinkedIn link, photo or portrait. These are public once approved. Admins may also list a speaker from their public LinkedIn profile (name, headline, company and photo); a photo is shown only once the speaker has agreed, and any speaker can ask us to change or remove their listing (sponsor budgets and contact details are only shown to organisers and sponsors).</li>
           <li><b>Messages:</b> enquiries you send or receive through the site, and anything you send through the contact forms (Services, Sponsors and the awards finder, including your quiz answers). We keep these as a record so we can reply and follow up.</li>
           <li><b>Roundup consent:</b> if you tick the box for our monthly roundup, when and where you agreed — and when you unsubscribe.</li>
           <li><b>Reports:</b> if you report content, what you report and why.</li>

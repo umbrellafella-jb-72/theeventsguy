@@ -10,7 +10,9 @@ export type SpeakerProfile = {
   userId: string; name: string; headline: string | null; company: string | null; bio: string;
   linkedin: string | null; website: string | null; topics: string[]; events: string[]; // event ids from the guide
   openTo: string[];                // e.g. keynotes, panels, judging, podcasts
-  image?: string | null;           // https link to a cartoon portrait (shown once approved)
+  image?: string | null;           // a stored photo (/api/speaker-photo/…) or an https link to a cartoon portrait
+  photoConsent?: boolean;          // the speaker agreed to their stored photo being shown
+  managed?: boolean;               // added by an admin from a LinkedIn link; no sign-in, no enquiries
   status: Status; createdAt: string; updatedAt: string;
 };
 export type SponsorProfile = {
@@ -88,7 +90,7 @@ export async function setStatus(type: 'speaker' | 'sponsor' | 'opportunity', id:
   await setJSON(key, { ...d, status, updatedAt: now() });
 }
 export async function removeContent(type: 'speaker' | 'sponsor' | 'opportunity', id: string) {
-  if (type === 'speaker') { await del(K.speaker(id)); await removeFrom('speakers', id); }
+  if (type === 'speaker') { await del(K.speaker(id)); await removeFrom('speakers', id); await del(`spkimg:${id}`); }
   else if (type === 'sponsor') { await del(K.sponsor(id)); await removeFrom('sponsors', id); }
   else { await del(K.opp(id)); await removeFrom('opps', id); }
 }
@@ -131,4 +133,12 @@ export async function namesFor(ids: string[]): Promise<Record<string, string>> {
     out[id] = so?.company || sp?.name || u?.name || (u ? u.email.split('@')[0] : 'Former user');
   }
   return out;
+}
+
+// ---------- Speakers added by an admin ----------
+/** Accounts that only hold an admin-added speaker profile use this domain: they can't sign in or get email. */
+export const MANAGED_SPEAKER_DOMAIN = 'speakers.theeventsguy.invalid';
+export async function speakerByLinkedIn(url: string): Promise<SpeakerProfile | null> {
+  const want = url.toLowerCase().replace(/\/+$/, '');
+  return (await allSpeakers()).find(p => (p.linkedin || '').toLowerCase().replace(/\/+$/, '') === want) ?? null;
 }

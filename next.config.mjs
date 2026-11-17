@@ -12,6 +12,8 @@ const csp = [
 /** @type {import('next').NextConfig} */
 export default {
   poweredByHeader: false,
+  // Speaker photo uploads go through a server action (photos up to 5 MB).
+  experimental: { serverActions: { bodySizeLimit: '6mb' } },
   async headers() {
     return [{
       source: '/:path*',

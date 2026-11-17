@@ -43,7 +43,7 @@ export default async function Speakers({ searchParams }: { searchParams: Promise
   }));
   const own: SpeakerView[] = portal.map(p => ({
     id: p.userId, name: p.name, role: p.headline, company: p.company, bio: p.bio, linkedin: p.linkedin, topics: p.topics, image: p.image ?? null,
-    featured: false, openTo: p.openTo, events: toEvents(p.events, see), enquire: canEnquire && viewer?.id !== p.userId, portal: true,
+    featured: false, openTo: p.openTo, events: toEvents(p.events, see), enquire: canEnquire && viewer?.id !== p.userId && !p.managed, portal: true,
   }));
   const seen = new Set<string>();
   const all = [...curated, ...own]
@@ -75,7 +75,7 @@ export default async function Speakers({ searchParams }: { searchParams: Promise
           <GuyPortrait size={140} className="sp-apply-guy" />
           <div>
             <h2>Speaking at an event in the guide?</h2>
-            <p>Create a free account, switch on the Speaker role and send us your profile: your specialities, a short bio, your LinkedIn and a cartoon portrait. Every profile is reviewed before it’s listed, and organisers can send you enquiries without ever seeing your email.</p>
+            <p>Create a free account, switch on the Speaker role and send us your profile: your specialities, a short bio, your LinkedIn and a photo. Every profile is reviewed before it’s listed, and organisers can send you enquiries without ever seeing your email.</p>
             <Link className="btn btn-secondary btn-sm" href={viewer ? '/portal/speaker' : '/login?next=/portal/speaker'}>Apply to be listed</Link>
           </div>
         </section>
