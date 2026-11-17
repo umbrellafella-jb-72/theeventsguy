@@ -5,8 +5,8 @@
 // (SITE_PUBLIC is not "true"). Launching the site switches them off automatically: the /demo page
 // 404s and any demo session stops working. Demo addresses use the reserved .invalid domain, so no
 // email is ever sent to them, and demo members have a made-up Stripe customer that Stripe never sees.
-import { addTo, allIn, del, getJSON, members, removeFrom, setJSON, storeReady } from './store';
-import { getUser, saveUser, userByEmail, type User } from './users';
+import { allIn, members, pipeline, storeReady } from './store';
+import type { User } from './users';
 import type { Role } from './permissions';
 import type { Enquiry, Opportunity, Report, SpeakerProfile, SponsorProfile } from './portal';
 import { events, todayKey } from './data';
@@ -65,27 +65,31 @@ const DAY = 86400;
 const nowS = () => Math.floor(Date.now() / 1000);
 const iso = (daysAgo = 0) => new Date(Date.now() - daysAgo * DAY * 1000).toISOString();
 
-async function makeUser(p: Persona): Promise<User> {
-  const email = personaEmail(p.key);
-  const existing = await userByEmail(email);
+const demoId = (k: PersonaKey) => `u_demo_${k}`;
+const DEMO_IDS = () => PERSONAS.map(p => demoId(p.key));
+
+/** A persona's account in its starting state. */
+function makeUser(p: Persona, saved: string[]): User {
   const paid = p.plan === 'quarterly' ? nowS() + 80 * DAY : p.plan === 'yearly' ? nowS() + 300 * DAY : p.plan === 'lapsed' ? nowS() - 10 * DAY : 0;
-  return saveUser({
-    id: existing?.id ?? `u_demo_${p.key}`, email, name: p.name,
+  return {
+    id: demoId(p.key), email: personaEmail(p.key), name: p.name,
     roles: ['registered', ...p.roles], status: 'active',
-    createdAt: existing?.createdAt ?? iso(30), updatedAt: iso(), lastLogin: existing?.lastLogin ?? null,
+    createdAt: iso(30), updatedAt: iso(), lastLogin: null,
     customer: p.plan === 'none' ? null : `demo_cus_${p.key}`, paidUntil: paid,
     plan: p.plan === 'yearly' ? 'yearly' : p.plan === 'none' ? null : 'quarterly', periodStart: p.plan === 'none' ? null : nowS() - 10 * DAY,
-    saved: existing?.saved ?? [], searches: existing?.searches ?? [], prefs: { newEvents: true, reminders: true },
-  });
+    saved: ['free', 'member', 'yearly', 'lapsed'].includes(p.key) ? saved : [], searches: [], prefs: { newEvents: true, reminders: true },
+  };
 }
 
 const OPP_LIVE = 'opp_demo_live', OPP_PENDING = 'opp_demo_pending', ENQ = 'enq_demo_1', REP = 'rep_demo_1';
 
 /** Create (or put back to its starting state) every demo account and its sample content. */
 export async function seedDemo(): Promise<void> {
-  const u = Object.fromEntries(await Promise.all(PERSONAS.map(async p => [p.key, await makeUser(p)] as const))) as Record<PersonaKey, User>;
+  // Start clean, so a reset also clears anything made while testing.
+  await removeDemo();
   const today = todayKey();
   const upcoming = events.filter(e => e.kind === 'event' && e.sortKey >= today).slice(0, 4);
+  const u = Object.fromEntries(PERSONAS.map(p => [p.key, makeUser(p, upcoming.slice(0, 3).map(e => e.id))])) as Record<PersonaKey, User>;
   const [e1, e2] = upcoming;
 
   const spk: SpeakerProfile = {
@@ -117,40 +121,36 @@ export async function seedDemo(): Promise<void> {
   };
   const rep: Report = { id: REP, by: u.free.id, target: { type: 'speaker', id: u.speaker.id, label: spk.name }, reason: 'Demo report: link in bio looks wrong.', status: 'open', createdAt: iso(1) };
 
-  await setJSON(`speaker:${spk.userId}`, spk); await addTo('speakers', spk.userId);
-  await setJSON(`sponsor:${spn.userId}`, spn); await addTo('sponsors', spn.userId);
+  const J = (v: unknown) => JSON.stringify(v);
+  const cmds: (string | number)[][] = [];
+  for (const x of Object.values(u)) cmds.push(['SET', `user:${x.id}`, J(x)], ['SET', `user-email:${x.email}`, x.id], ['SADD', 'users', x.id]);
+  cmds.push(['SET', `speaker:${spk.userId}`, J(spk)], ['SADD', 'speakers', spk.userId]);
+  cmds.push(['SET', `sponsor:${spn.userId}`, J(spn)], ['SADD', 'sponsors', spn.userId]);
   for (const o of [opp(OPP_LIVE, 'Headline sponsor, Retention Supper (demo)', e1, 'published'), opp(OPP_PENDING, 'Drinks sponsor, Marketplace Meetup (demo)', e2, 'pending')]) {
-    await setJSON(`opp:${o.id}`, o); await addTo('opps', o.id);
+    cmds.push(['SET', `opp:${o.id}`, J(o)], ['SADD', 'opps', o.id]);
   }
-  await setJSON(`enq:${ENQ}`, enq); await addTo('enquiries', ENQ); await addTo(`inbox:${enq.from}`, ENQ); await addTo(`inbox:${enq.to}`, ENQ);
-  await setJSON(`report:${REP}`, rep); await addTo('reports', REP);
-  // A starting shortlist so My events isn't empty.
-  for (const k of ['free', 'member', 'yearly', 'lapsed'] as const) {
-    const x = await getUser(u[k].id); if (x && !x.saved.length) await saveUser({ ...x, saved: upcoming.slice(0, 3).map(e => e.id) });
-  }
+  cmds.push(['SET', `enq:${ENQ}`, J(enq)], ['SADD', 'enquiries', ENQ], ['SADD', `inbox:${enq.from}`, ENQ], ['SADD', `inbox:${enq.to}`, ENQ]);
+  cmds.push(['SET', `report:${REP}`, J(rep)], ['SADD', 'reports', REP]);
+  await pipeline(cmds);
 }
 
 /** Remove every demo account and anything they created (including enquiries and reports made while testing). */
 export async function removeDemo(): Promise<number> {
-  const ids = new Set<string>();
-  for (const p of PERSONAS) { const x = await userByEmail(personaEmail(p.key)); if (x) ids.add(x.id); }
+  const ids = new Set(DEMO_IDS());
+  const [opps, enqs, reps, present] = await Promise.all([
+    allIn<Opportunity>('opps', i => `opp:${i}`), allIn<Enquiry>('enquiries', i => `enq:${i}`), allIn<Report>('reports', i => `report:${i}`),
+    members('users'),
+  ]);
+  const cmds: (string | number)[][] = [];
   for (const id of ids) {
-    await del(`speaker:${id}`); await removeFrom('speakers', id);
-    await del(`sponsor:${id}`); await removeFrom('sponsors', id);
+    cmds.push(['DEL', `speaker:${id}`, `sponsor:${id}`, `inbox:${id}`, `user:${id}`], ['SREM', 'speakers', id], ['SREM', 'sponsors', id], ['SREM', 'users', id]);
   }
-  for (const o of await allIn<Opportunity>('opps', i => `opp:${i}`)) if (ids.has(o.ownerId)) { await del(`opp:${o.id}`); await removeFrom('opps', o.id); }
-  for (const e of await allIn<Enquiry>('enquiries', i => `enq:${i}`)) {
-    if (ids.has(e.from) || ids.has(e.to)) { await del(`enq:${e.id}`); await removeFrom('enquiries', e.id); await removeFrom(`inbox:${e.from}`, e.id); await removeFrom(`inbox:${e.to}`, e.id); }
-  }
-  for (const r of await allIn<Report>('reports', i => `report:${i}`)) {
-    if ((r.by && ids.has(r.by)) || ids.has(r.target.id)) { await del(`report:${r.id}`); await removeFrom('reports', r.id); }
-  }
-  for (const id of ids) {
-    const x = await getJSON<User>(`user:${id}`);
-    await del(`inbox:${id}`); await del(`user:${id}`); await removeFrom('users', id);
-    if (x) await del(`user-email:${x.email}`);
-  }
-  return ids.size;
+  for (const p of PERSONAS) cmds.push(['DEL', `user-email:${personaEmail(p.key)}`]);
+  for (const o of opps) if (ids.has(o.ownerId)) cmds.push(['DEL', `opp:${o.id}`], ['SREM', 'opps', o.id]);
+  for (const e of enqs) if (ids.has(e.from) || ids.has(e.to)) cmds.push(['DEL', `enq:${e.id}`], ['SREM', 'enquiries', e.id], ['SREM', `inbox:${e.from}`, e.id], ['SREM', `inbox:${e.to}`, e.id]);
+  for (const r of reps) if ((r.by && ids.has(r.by)) || ids.has(r.target.id)) cmds.push(['DEL', `report:${r.id}`], ['SREM', 'reports', r.id]);
+  await pipeline(cmds);
+  return present.filter(id => ids.has(id)).length;
 }
 
 export async function demoUsersExist(): Promise<boolean> {

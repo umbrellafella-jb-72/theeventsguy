@@ -5,6 +5,8 @@ import { SESSION, sessionCookie, userByEmail } from '@/lib/users';
 import { siteUrl } from '@/lib/stripe';
 import { clientIp, tooMany } from '@/lib/store';
 
+export const maxDuration = 60;
+
 // Signs in as a demo persona (see lib/demo.ts). 404 unless demo mode is on and the site is gated.
 export async function POST(req: Request) {
   if (!demoEnabled()) return new NextResponse('Not found', { status: 404 });

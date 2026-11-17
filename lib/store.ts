@@ -29,10 +29,33 @@ export async function addTo(set: string, member: string): Promise<void> { await 
 export async function removeFrom(set: string, member: string): Promise<void> { await redis('SREM', set, member); }
 export async function members(set: string): Promise<string[]> { return redis<string[]>('SMEMBERS', set); }
 
-/** Every JSON doc whose id is in `set` (missing ones skipped). */
+/** Several commands in one round trip (Upstash's /pipeline endpoint). Not atomic. */
+export async function pipeline(cmds: (string | number)[][]): Promise<unknown[]> {
+  const out: unknown[] = [];
+  for (let i = 0; i < cmds.length; i += 200) {
+    const chunk = cmds.slice(i, i + 200);
+    const res = await fetch(`${url().replace(/\/$/, '')}/pipeline`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(chunk),
+      cache: 'no-store',
+    });
+    const json = await res.json() as { result?: unknown; error?: string }[] | { error?: string };
+    if (!res.ok || !Array.isArray(json)) throw new Error(`Redis pipeline: ${(json as { error?: string }).error ?? res.status}`);
+    const bad = json.find(r => r.error); if (bad) throw new Error(`Redis pipeline: ${bad.error}`);
+    out.push(...json.map(r => r.result));
+  }
+  return out;
+}
+
+/** Every JSON doc whose id is in `set` (missing ones skipped). One MGET per 200 ids. */
 export async function allIn<T>(set: string, key: (id: string) => string): Promise<T[]> {
+  const ids = await members(set);
   const out: T[] = [];
-  for (const id of await members(set)) { const d = await getJSON<T>(key(id)); if (d) out.push(d); }
+  for (let i = 0; i < ids.length; i += 200) {
+    const raws = await redis<(string | null)[]>('MGET', ...ids.slice(i, i + 200).map(key));
+    for (const r of raws) if (r) { try { out.push(JSON.parse(r) as T); } catch { /* skip a bad record */ } }
+  }
   return out;
 }
 
