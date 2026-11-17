@@ -1,8 +1,8 @@
 import dataset from '@/data/events.json';
 import overrides from '@/data/overrides.json';
 import { entryInfo } from './awards';
-import { LISTING_DAYS, RELEASE_DAYS, releaseLabel } from './release';
-export { LISTING_DAYS, RELEASE_DAYS, releaseLabel };
+import { FREE_DAYS, LISTING_DAYS, RELEASE_DAYS, releaseLabel } from './release';
+export { FREE_DAYS, LISTING_DAYS, RELEASE_DAYS, releaseLabel };
 
 export type EventItem = {
   id: string;
@@ -145,7 +145,7 @@ export function quarterSummaries() {
 }
 
 /** Per-month summary, safe to show to anyone: counts only, no event details. */
-export function monthSummaries() {
+export function monthSummaries(listDays = LISTING_DAYS) {
   return monthKeys().map(key => {
     const list = eventsIn(key);
     const formats: Record<string, number> = {};
@@ -161,7 +161,7 @@ export function monthSummaries() {
       formats: Object.entries(formats).sort((a, b) => b[1] - a[1]),
       // When this month's events start appearing: each event's date in this month (recurring events
       // count from the month's first day), less the listing window.
-      listsOn: key === TBC ? null : list.map(e => { const s = startOf(e); return addDays(s && s > `${key}-01` ? s : `${key}-01`, -LISTING_DAYS); }).sort()[0] ?? null,
+      listsOn: key === TBC ? null : list.map(e => { const s = startOf(e); return addDays(s && s > `${key}-01` ? s : `${key}-01`, -listDays); }).sort()[0] ?? null,
     };
   });
 }
@@ -219,14 +219,15 @@ export function released(e: EventItem, now = new Date()): boolean {
 
 // ---------- Rolling listing ----------
 // Nothing further out than LISTING_DAYS is sent to anyone (apart from featured events and the free
-// month): an event appears as a teaser 60 days ahead and opens in full for members at 30 days.
+// month): an event appears as a teaser 60 days ahead for yearly members (30 for free accounts) and
+// opens in full for yearly members at 30 days.
 /** The day an event first appears in the guide (null while no date is known). */
-export const listsOn = (e: EventItem) => {
+export const listsOn = (e: EventItem, days = LISTING_DAYS) => {
   const dates = [startOf(e), deadlineOf(e)].filter((d): d is string => !!d).sort();
-  return dates.length ? addDays(dates[0], -LISTING_DAYS) : null;
+  return dates.length ? addDays(dates[0], -days) : null;
 };
-export function listed(e: EventItem, now = new Date()): boolean {
-  const cut = addDays(todayKey(now), LISTING_DAYS);
+export function listed(e: EventItem, now = new Date(), days = LISTING_DAYS): boolean {
+  const cut = addDays(todayKey(now), days);
   const s = startOf(e), dl = deadlineOf(e, now);
   return Boolean((s && s <= cut) || (dl && dl <= cut));
 }
@@ -243,8 +244,10 @@ export function inQuarter(e: EventItem, w: { from: string; to: string }): boolea
 /** May this viewer see that the event exists at all? Visitors: free month and featured only.
  *  Free accounts and members: also anything within the listing window; quarterly members: their quarter. */
 export function visibleTo(e: EventItem, paid: Pass, signedIn: boolean, previewMonth = currentMonthKey()): boolean {
-  return openToAll(e, previewMonth) || ((Boolean(paid) || signedIn) && listed(e)) || (isWindow(paid) && inQuarter(e, paid));
+  return openToAll(e, previewMonth) || (paid === true && listed(e)) || ((signedIn || isWindow(paid)) && listed(e, undefined, FREE_DAYS)) || (isWindow(paid) && inQuarter(e, paid));
 }
+/** How far ahead this viewer sees listings: yearly members LISTING_DAYS, everyone signed in FREE_DAYS. */
+export const listingDays = (paid: Pass) => (paid === true ? LISTING_DAYS : FREE_DAYS);
 
 /** May this visitor see the whole event? Everyone: featured and the free month. Members: also
  *  anything starting within the release window. */

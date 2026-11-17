@@ -34,10 +34,10 @@ export type Persona = {
 export const PERSONAS: Persona[] = [
   { key: 'free', label: 'Free account', name: 'Fran Free', roles: [], plan: 'none', start: '/guide',
     blurb: 'Signed up, never paid.',
-    tryThis: ['Guide shows teasers up to 60 days out, full details locked', 'Save an event to My events', 'Save a search', 'Pricing and checkout prompts'] },
+    tryThis: ['Guide shows teasers up to 30 days out, full details locked', 'Save an event to My events', 'Save a search', 'Pricing and checkout prompts'] },
   { key: 'member', label: 'Member (quarterly)', name: 'Morgan Member', roles: [], plan: 'quarterly', start: '/guide',
     blurb: 'Quarterly member who joined this calendar quarter.',
-    tryThis: ['Every event in this quarter open in full', 'Events after the quarter: listings only', 'Calendar sync and reminders', '“Manage billing” is disabled for demo members'] },
+    tryThis: ['Every event in this quarter open in full', 'After the quarter: listings 30 days out only', 'Calendar sync and reminders', '“Manage billing” is disabled for demo members'] },
   { key: 'yearly', label: 'Member (yearly)', name: 'Yan Yearly', roles: [], plan: 'yearly', start: '/guide',
     blurb: 'Yearly member on the rolling release.',
     tryThis: ['Full details from 30 days out', 'Listings 60 days out', 'Not limited to a quarter'] },

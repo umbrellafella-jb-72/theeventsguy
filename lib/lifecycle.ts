@@ -52,7 +52,9 @@ export const MAILS = {
   welcome: (base: string, email: string, plan: string | null, until: number) => noticeEmail({
     heading: 'Welcome to The Events Guy',
     paras: [`Thanks for joining${plan ? ` on the ${plan} plan` : ''}. Your membership runs to ${day(until)} and renews automatically.`,
-      'Every event is listed 60 days ahead, with venue, prices, booking links and speakers from 30 days. Save events to your shortlist and they’ll go straight into your calendar.',
+      plan === 'quarterly'
+        ? 'Every event and award in the calendar quarter you joined is open in full now: venue, prices, booking links and speakers. Save events to your shortlist and they’ll go straight into your calendar.'
+        : 'Every event is listed 60 days ahead, with venue, prices, booking links and speakers from 30 days. Save events to your shortlist and they’ll go straight into your calendar.',
       'Use the button to sign in on any device. It works once, for 30 minutes — after that, request a fresh link with this email address.'],
     button: { label: 'Sign in and get started', url: `${base}/api/login/verify?token=${encodeURIComponent(loginToken(email))}&next=/welcome` } }),
   paymentFailed: (base: string, amount: string) => noticeEmail({
@@ -69,7 +71,7 @@ export const MAILS = {
     button: { label: 'Restart membership', url: `${base}/account#membership` } }),
   ended: (base: string) => noticeEmail({
     heading: 'Your membership has ended',
-    paras: ['Your membership has now ended. Your account, shortlist and saved searches are still there, and you can still see what’s on over the next 60 days.', 'Rejoin any time to get full event details again.'],
+    paras: ['Your membership has now ended. Your account, shortlist and saved searches are still there, and you can still see what’s on over the next 30 days.', 'Rejoin any time to get full event details again.'],
     button: { label: 'See membership plans', url: `${base}/#pricing` } }),
   refunded: (base: string, amount: string) => noticeEmail({
     heading: 'Your refund is on its way',

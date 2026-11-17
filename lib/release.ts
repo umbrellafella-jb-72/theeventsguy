@@ -2,6 +2,8 @@
 export const RELEASE_DAYS = 30;
 /** Events appear (name, date, city, organiser) this many days ahead; full details at RELEASE_DAYS. */
 export const LISTING_DAYS = 60;
+/** Free accounts (and quarterly members, outside their quarter) see listings this many days ahead. */
+export const FREE_DAYS = 30;
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** "Fri 4 Dec" for a release date. Built by hand so server and browser render identical text. */
