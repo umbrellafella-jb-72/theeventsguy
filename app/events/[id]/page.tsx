@@ -1,3 +1,5 @@
+import { hiddenSheetSpeakers } from '@/lib/portal';
+import { storeReady } from '@/lib/store';
 import { quarterLabel } from '@/lib/release';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -59,7 +61,8 @@ export default async function EventPage({ params, searchParams }: Props) {
   const opens = access.view === true && !full ? opensOn(e) : null;
   const d = eventDates(e);
   const plate = dayIn(e, null);
-  const evSpeakers = full ? allSpeakers.filter(s => s.events.includes(e.id)) : [];
+  const hiddenSheet = full && storeReady() ? await hiddenSheetSpeakers() : new Set<string>();
+  const evSpeakers = full ? allSpeakers.filter(s => s.events.includes(e.id) && !hiddenSheet.has(s.id)) : [];
   const sectors = e.sectors.filter(s => s !== 'Cross-sector');
 
   // schema.org Event: public facts always; the rest only when the page shows it.

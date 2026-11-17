@@ -1,6 +1,6 @@
 // Portal content: speaker and sponsor profiles, sponsorship opportunities, enquiries and reports.
 // Profiles and opportunities start "pending" and go public when an admin approves them.
-import { addTo, allIn, del, getJSON, newId, removeFrom, setJSON } from './store';
+import { addTo, allIn, del, getJSON, members, newId, removeFrom, setJSON } from './store';
 import { getUser, type User } from './users';
 import { can } from './permissions';
 
@@ -142,4 +142,10 @@ export const MANAGED_SPEAKER_DOMAIN = 'speakers.theeventsguy.invalid';
 export async function speakerByLinkedIn(url: string): Promise<SpeakerProfile | null> {
   const want = url.toLowerCase().replace(/\/+$/, '');
   return (await allSpeakers()).find(p => (p.linkedin || '').toLowerCase().replace(/\/+$/, '') === want) ?? null;
+}
+
+/** Speakers from the Google Sheet that an admin has hidden from the site. */
+export const hiddenSheetSpeakers = async () => new Set(await members('hidden-sheet-speakers').catch(() => [] as string[]));
+export async function hideSheetSpeaker(id: string, hide: boolean) {
+  if (hide) await addTo('hidden-sheet-speakers', id); else await removeFrom('hidden-sheet-speakers', id);
 }

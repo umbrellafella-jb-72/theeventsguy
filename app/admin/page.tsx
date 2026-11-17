@@ -5,7 +5,8 @@ import { can, roleLabel, type Role } from '@/lib/permissions';
 import { allUsers, isMember } from '@/lib/users';
 import { allEnquiries, allOpps, allReports, allSpeakers, allSponsors, type Status } from '@/lib/portal';
 import { events } from '@/lib/data';
-import { addSpeakerFromLinkedIn, closeReport, manageUser, moderate, saveLead } from '../portal/actions';
+import { addSpeakerFromLinkedIn, closeReport, manageUser, moderate, saveLead, toggleSheetSpeaker } from '../portal/actions';
+import { hiddenSheetSpeakers } from '@/lib/portal';
 import { SpeakerAvatar } from '@/components/SpeakerAvatar';
 import { speakers as sheetSpeakers } from '@/lib/data';
 import { allLeads, FORM_LABELS, LEAD_STATUSES, type LeadForm } from '@/lib/leads';
@@ -39,6 +40,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   if (!can(me, 'reporting.view')) redirect('/account');
   const tab = TABS.some(t => t[0] === sp.tab) ? sp.tab! : 'leads';
   const [speakers, sponsors, opps, users, reports, enquiries, leads, subscriberIds] = await Promise.all([allSpeakers(), allSponsors(), allOpps(), allUsers(), allReports(), allEnquiries(), allLeads(), members('subscribers')]);
+  const hiddenSheet = await hiddenSheetSpeakers();
   const newLeads = leads.filter(l => l.status === 'new');
   const leadForm = (Object.keys(FORM_LABELS) as LeadForm[]).includes(sp.form as LeadForm) ? sp.form as LeadForm : null;
   const leadStatus = LEAD_STATUSES.some(s => s.key === sp.status) ? sp.status! : null;
@@ -86,11 +88,24 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <div key={p.userId} className="prow sp-admin-row">
               <SpeakerAvatar id={p.userId} name={p.name} image={p.image ?? null} size={44} />
               <div><b>{p.status === 'published' ? <Link href={`/speakers#sp-${p.userId}`}>{p.name}</Link> : p.name}</b><span className="muted"> · {[p.headline, p.company].filter(Boolean).join(', ') || 'No headline yet'} · {p.managed ? 'added from LinkedIn' : 'self-published'}{p.image ? '' : ' · no photo'}</span> <StatusBadge status={p.status} /></div>
-              <div className="prow-actions"><Link className="btn btn-secondary btn-sm" href={`/portal/speaker?as=${p.userId}`}>Edit</Link></div>
+              <div className="prow-actions">
+                <Link className="btn btn-secondary btn-sm" href={`/portal/speaker?as=${p.userId}`}>Edit</Link>
+                <form action={moderate}><input type="hidden" name="type" value="speaker" /><input type="hidden" name="id" value={p.userId} /><input type="hidden" name="tab" value="speakers" />
+                  <input type="hidden" name="action" value={p.status === 'published' ? 'hide' : 'approve'} />
+                  <button className={`btn btn-sm ${p.status === 'published' ? 'btn-ghost' : 'btn-primary'}`} type="submit">{p.status === 'published' ? 'Hide from site' : 'Show on site'}</button></form>
+              </div>
             </div>
           ))}</div>
           {speakers.length === 0 && <p className="muted">No speaker profiles yet.</p>}
-          <p className="muted" style={{ marginTop: 16 }}>{sheetSpeakers.length} more speaker{sheetSpeakers.length === 1 ? '' : 's'} come from the Speakers tab of the Google Sheet.</p>
+          <h2 className="admin-sub" id="sheet-speakers" style={{ marginTop: 24 }}>From the Google Sheet ({sheetSpeakers.length})</h2>
+          <p className="muted">Edit these in the Speakers tab of the sheet. You can hide one here straight away; it stays hidden after each refresh until you show it again.</p>
+          <div className="plist">{sheetSpeakers.map(s => { const off = hiddenSheet.has(s.id); return (
+            <div key={s.id} className="prow sp-admin-row">
+              <SpeakerAvatar id={s.id} name={s.name} image={s.image ?? null} size={44} />
+              <div><b>{s.name}</b><span className="muted"> · {[s.role, s.company].filter(Boolean).join(', ') || 'No headline'}</span> <span className={`badge ${off ? '' : 'badge-glen'}`}>{off ? 'Hidden' : 'Shown'}</span></div>
+              <div className="prow-actions"><form action={toggleSheetSpeaker}><input type="hidden" name="id" value={s.id} /><input type="hidden" name="action" value={off ? 'show' : 'hide'} />
+                <button className={`btn btn-sm ${off ? 'btn-primary' : 'btn-ghost'}`} type="submit">{off ? 'Show on site' : 'Hide from site'}</button></form></div>
+            </div>); })}</div>
         </>
       )}
 

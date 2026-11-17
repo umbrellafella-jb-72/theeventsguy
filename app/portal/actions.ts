@@ -86,7 +86,7 @@ export async function saveSpeakerProfile(f: FormData) {
     topics: list(str(f, 'topics', 400)).slice(0, 12), events: [...new Set(f.getAll('events').map(v => eventIdFrom(String(v))).filter((x): x is string => !!x))].slice(0, 20),
     openTo: f.getAll('openTo').map(String).slice(0, 6),
     image, photoConsent: consent && photoStored, photoStyle: style, managed: prev?.managed ?? t.email.endsWith('@' + MANAGED_SPEAKER_DOMAIN),
-    status: isAdmin && f.get('publish') === 'on' ? 'published' : prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
+    status: isAdmin && ['published', 'hidden', 'pending'].includes(str(f, 'visibility', 20)) ? str(f, 'visibility', 20) as SpeakerProfile['status'] : prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
   };
   // Admin edits keep the current status (or publish it); an owner's edit goes back for approval.
   await saveSpeaker(p, t.id === u.id && !isAdmin);
@@ -268,4 +268,13 @@ export async function closeReport(f: FormData) {
   await admin('reports.manage');
   await resolveReport(str(f, 'id', 60));
   redirect('/admin?tab=reports&done=resolved');
+}
+
+/** Admin: hide or show a speaker that comes from the Google Sheet (the sheet itself is untouched). */
+export async function toggleSheetSpeaker(f: FormData) {
+  await admin('content.moderate');
+  const id = str(f, 'id', 120);
+  const { hideSheetSpeaker } = await import('@/lib/portal');
+  await hideSheetSpeaker(id, str(f, 'action', 10) === 'hide');
+  redirect(`/admin?tab=speakers&done=${str(f, 'action', 10) === 'hide' ? 'hide' : 'approve'}#sheet-speakers`);
 }

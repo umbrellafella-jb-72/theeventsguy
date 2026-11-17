@@ -78,7 +78,13 @@ export default async function SpeakerEditor({ searchParams }: { searchParams: Pr
           <EventOptions id="ev-list" />
           <div className="event-picks">{[0, 1, 2, 3, 4].map(i => <input key={i} name="events" list="ev-list" placeholder="Start typing an event…" defaultValue={evs[i] ?? ''} />)}</div>
         </fieldset>
-        {admin && <label className="check"><input type="checkbox" name="publish" defaultChecked={p?.status === 'published' || managed} /> Publish on the speakers page (no separate approval needed)</label>}
+        {admin && <label className="visibility">On the speakers page
+          <select name="visibility" defaultValue={p?.status ?? (managed ? 'published' : 'pending')}>
+            <option value="published">Shown (live)</option>
+            <option value="hidden">Hidden from the site</option>
+            <option value="pending">Waiting for approval</option>
+          </select>
+          <span className="hint">Hidden speakers disappear from the speakers page and can’t be found or contacted; nothing is deleted, and you can show them again any time.</span></label>}
         <button className="btn btn-primary" type="submit">Save profile</button>
       </form>
     </div>

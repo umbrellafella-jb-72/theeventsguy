@@ -80,9 +80,9 @@ export const speakers: Speaker[] = data.speakers ?? [];
 export const eventById = new Map(events.map(e => [e.id, e]));
 
 /** eventId → the speakers on it, for the event cards. */
-export function speakersByEvent(): Record<string, SpeakerRef[]> {
+export function speakersByEvent(hidden: Set<string> = new Set()): Record<string, SpeakerRef[]> {
   const out: Record<string, SpeakerRef[]> = {};
-  for (const s of speakers) for (const id of s.events) (out[id] ||= []).push({ id: s.id, name: s.name });
+  for (const s of speakers) if (!hidden.has(s.id)) for (const id of s.events) (out[id] ||= []).push({ id: s.id, name: s.name });
   return out;
 }
 

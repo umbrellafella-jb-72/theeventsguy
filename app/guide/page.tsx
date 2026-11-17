@@ -1,3 +1,5 @@
+import { hiddenSheetSpeakers } from '@/lib/portal';
+import { storeReady } from '@/lib/store';
 import { quarterLabel } from '@/lib/release';
 import Guide from '@/components/Guide';
 import { getAccess } from '@/lib/access';
@@ -49,7 +51,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         initialMonth={initialMonth}
         today={todayKey()}
         paymentsReady={access.paymentsReady}
-        speakers={speakersByEvent()}
+        speakers={speakersByEvent(storeReady() ? await hiddenSheetSpeakers() : undefined)}
         priceLabel={process.env.NEXT_PUBLIC_PRICE_LABEL || 'monthly'}
         visitorLocked={visitorLocked}
         snapshot={snapshot}

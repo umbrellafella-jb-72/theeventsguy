@@ -833,3 +833,4 @@ mark.todo { background: var(--torc-soft); color: var(--torc-ink); padding: 0 4px
 .admin-sub { font-size: 22px; margin: 8px 0 12px; }
 .sp-admin-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
 .warn-hint { color: var(--rowan); }
+.visibility select { max-width: 320px; }

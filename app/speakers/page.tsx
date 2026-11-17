@@ -6,7 +6,7 @@ import type { SpeakerEvent, SpeakerView } from '@/components/SpeakerCard';
 import { ReportButton } from '@/components/portal/Bits';
 import { eventById, eventHref, speakers, visibleTo, type EventItem } from '@/lib/data';
 import { getAccess } from '@/lib/access';
-import { allSpeakers } from '@/lib/portal';
+import { allSpeakers, hiddenSheetSpeakers } from '@/lib/portal';
 import { storeReady } from '@/lib/store';
 import { sessionUser } from '@/lib/users';
 import { can } from '@/lib/permissions';
@@ -37,7 +37,8 @@ export default async function Speakers({ searchParams }: { searchParams: Promise
   const see = (e: EventItem) => visibleTo(e, paid, Boolean(viewer));
   const canEnquire = can(viewer, 'directory.speakers') && can(viewer, 'enquiry.send');
   const portal = storeReady() ? (await allSpeakers().catch(() => [])).filter(p => p.status === 'published') : [];
-  const curated: SpeakerView[] = speakers.map(s => ({
+  const hiddenSheet = storeReady() ? await hiddenSheetSpeakers() : new Set<string>();
+  const curated: SpeakerView[] = speakers.filter(s => !hiddenSheet.has(s.id)).map(s => ({
     id: s.id, name: s.name, role: s.role, company: s.company, bio: s.bio, linkedin: s.linkedin, topics: s.topics ?? [], image: s.image ?? null,
     featured: Boolean(s.featured), openTo: s.openTo ?? [], events: toEvents(s.events, see), enquire: false, portal: false,
   }));
