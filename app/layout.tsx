@@ -49,6 +49,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </nav>
           </div>
         </header>
+        {user && user.email.endsWith('@demo.theeventsguy.invalid') && (
+          <div className="demo-bar" role="status"><div className="wrap">Demo account: <b>{user.name}</b><Link href="/demo">Switch account</Link></div></div>
+        )}
         <main>{children}</main>
         <footer className="site-foot">
           <div className="wrap">

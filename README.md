@@ -202,3 +202,11 @@ Every Services, Sponsors and Awards-finder enquiry is **saved as a lead first** 
 | `charge.refunded` | Full refund ends access; "Your refund is on its way" |
 
 Setup: Stripe → Developers → Webhooks → Add endpoint `https://<site>/api/stripe/webhook` with the events above, then set `STRIPE_WEBHOOK_SECRET` (starts `whsec_`) in Vercel.
+
+## Demo accounts (UAT)
+
+Set `DEMO_ACCOUNTS=true` in Vercel and redeploy, then open **/demo** (behind the preview password). One click signs you in as a free account, a member, a lapsed member, an organiser, a sponsor, a speaker or an admin, with sample opportunities, profiles, an enquiry thread and a report already in place. A gold bar shows which persona you're using and links back to switch.
+
+- Demo addresses use the reserved `.invalid` domain, so no email is sent to them; demo members have a made-up Stripe customer and "Manage billing" is switched off for them.
+- Demo mode only works while the site is gated: `SITE_PUBLIC=true` turns /demo into a 404 and ends every demo session.
+- Before launch, use **Remove all demo data** on /demo, then delete `DEMO_ACCOUNTS` in Vercel.

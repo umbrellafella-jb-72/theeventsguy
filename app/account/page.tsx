@@ -19,7 +19,7 @@ const NEED: Record<string, string> = {
   directory: 'Searching sponsors and speakers needs the Organiser role.',
 };
 
-export default async function AccountPage({ searchParams }: { searchParams: Promise<{ saved?: string; unsubscribed?: string; role?: string; need?: string; welcome?: string }> }) {
+export default async function AccountPage({ searchParams }: { searchParams: Promise<{ saved?: string; unsubscribed?: string; role?: string; need?: string; welcome?: string; demoBilling?: string }> }) {
   const sp = await searchParams;
   const a = await getAccess();
   const u = await sessionUser();
@@ -51,6 +51,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       </div>
       {sp.saved && <p className="note banner">Settings saved.</p>}
       {sp.unsubscribed && <p className="note banner">You’re unsubscribed from those emails.</p>}
+      {sp.demoBilling && <p className="note banner">Billing is switched off for demo accounts — real members go to Stripe’s billing page from here.</p>}
       {sp.need && <p className="note banner">{NEED[sp.need] ?? 'That needs another role — switch it on below.'}</p>}
       {sp.role && <p className="note banner">{u.roles.includes(sp.role as never) ? `${roleLabel(sp.role as never)} role switched on.` : `${roleLabel(sp.role as never)} role switched off.`}</p>}
 

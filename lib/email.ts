@@ -3,6 +3,8 @@
 export const emailReady = () => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
 
 export async function sendEmail(msg: { to: string; subject: string; text: string; html?: string; unsubscribeUrl?: string; replyTo?: string }): Promise<boolean> {
+  // Demo accounts use the reserved .invalid domain: never send to them.
+  if (/\.invalid$/i.test(msg.to.trim())) { console.log(`[email] demo address, not sent: "${msg.subject}" to ${msg.to}`); return true; }
   if (!emailReady()) { console.log(`[email] not configured — would send "${msg.subject}" to ${msg.to}\n${msg.text}`); return false; }
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
