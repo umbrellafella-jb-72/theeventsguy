@@ -2,20 +2,52 @@
 // development and previews never send real mail.
 export const emailReady = () => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
 
-export async function sendEmail(msg: { to: string; subject: string; text: string; html?: string; unsubscribeUrl?: string; replyTo?: string }): Promise<boolean> {
+export type EmailLog = { at: string; tag: string; to: string; subject: string; ok: boolean; error: string | null };
+/** The last 200 send attempts, newest first, for Admin → Emails & forms. Team alerts are logged
+ *  without their address, so the private alert inbox never appears on the site. */
+async function logSend(e: Omit<EmailLog, 'at'>) {
+  try {
+    const { pipeline, storeReady } = await import('./store');
+    if (!storeReady()) return;
+    await pipeline([['LPUSH', 'emaillog', JSON.stringify({ at: new Date().toISOString(), ...e })], ['LTRIM', 'emaillog', 0, 199]]);
+  } catch { /* logging never blocks an email */ }
+}
+export async function emailLog(): Promise<EmailLog[]> {
+  const { redis, storeReady } = await import('./store');
+  if (!storeReady()) return [];
+  const raw = await redis<string[]>('LRANGE', 'emaillog', 0, 199).catch(() => [] as string[]);
+  return raw.map(r => { try { return JSON.parse(r) as EmailLog; } catch { return null; } }).filter((x): x is EmailLog => !!x);
+}
+
+export async function sendEmail(msg: { to: string; subject: string; text: string; html?: string; unsubscribeUrl?: string; replyTo?: string; tag?: string; hideTo?: boolean }): Promise<boolean> {
+  const tag = msg.tag ?? 'other', shownTo = msg.hideTo ? 'Team inbox' : msg.to;
   // Demo accounts use the reserved .invalid domain: never send to them.
   if (/\.invalid$/i.test(msg.to.trim())) { console.log(`[email] demo address, not sent: "${msg.subject}" to ${msg.to}`); return true; }
-  if (!emailReady()) { console.log(`[email] not configured — would send "${msg.subject}" to ${msg.to}\n${msg.text}`); return false; }
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: process.env.EMAIL_FROM, to: msg.to, reply_to: msg.replyTo, subject: msg.subject, text: msg.text, html: msg.html,
-      headers: msg.unsubscribeUrl ? { 'List-Unsubscribe': `<${msg.unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : undefined,
-    }),
-  });
-  if (!res.ok) console.error(`[email] Resend ${res.status} for ${msg.to}`);
-  return res.ok;
+  if (!emailReady()) {
+    console.log(`[email] not configured — would send "${msg.subject}" to ${shownTo}`);
+    await logSend({ tag, to: shownTo, subject: msg.subject, ok: false, error: 'Email isn’t set up: RESEND_API_KEY and EMAIL_FROM are needed in Vercel' });
+    return false;
+  }
+  let ok = false, error: string | null = null;
+  try {
+    const res = await fetch(`${process.env.RESEND_API_BASE || 'https://api.resend.com'}/emails`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM, to: msg.to, reply_to: msg.replyTo, subject: msg.subject, text: msg.text, html: msg.html,
+        headers: msg.unsubscribeUrl ? { 'List-Unsubscribe': `<${msg.unsubscribeUrl}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : undefined,
+      }),
+    });
+    ok = res.ok;
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      let m = body; try { m = JSON.parse(body).message ?? body; } catch { /* plain text */ }
+      error = `Resend ${res.status}: ${String(m).slice(0, 300)}`;
+      console.error(`[email] ${error} (${tag})`);
+    }
+  } catch (e) { error = `Couldn’t reach Resend: ${(e as Error).message}`.slice(0, 300); }
+  await logSend({ tag, to: shownTo, subject: msg.subject, ok, error });
+  return ok;
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));

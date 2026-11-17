@@ -1,11 +1,14 @@
+import { formCopy } from '@/lib/forms';
+import { publicEmail } from '@/lib/alerts';
 import Link from 'next/link';
 import { safePath, storeReady } from '@/lib/store';
 
 export const metadata = { title: 'Sign in — The Events Guy' };
 export const dynamic = 'force-dynamic';
 
-export default async function Login({ searchParams }: { searchParams: Promise<{ sent?: string; expired?: string; bad?: string; off?: string; suspended?: string; next?: string; slow?: string; used?: string }> }) {
+export default async function Login({ searchParams }: { searchParams: Promise<{ sent?: string; expired?: string; bad?: string; off?: string; suspended?: string; next?: string; slow?: string; used?: string; failed?: string }> }) {
   const sp = await searchParams;
+  const optin = await formCopy('optin');
   return (
     <div className="wrap">
       <div className="form-card">
@@ -23,12 +26,13 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
             {sp.bad && <p className="note">That doesn’t look like an email address.</p>}
             {sp.used && <p className="note">That link has already been used. Each sign-in link works once — request a fresh one below.</p>}
             {sp.slow && <p className="note">Too many sign-in requests. Please wait a few minutes and try again.</p>}
+            {sp.failed && <p className="note">We couldn’t send your sign-in email just now. Please try again in a minute — if it keeps happening, email {publicEmail()}.</p>}
             <form action="/api/login" method="post">
               <input type="hidden" name="next" value={safePath(sp.next)} />
               <label htmlFor="email" className="sr-only">Email</label>
               <input id="email" name="email" type="email" autoComplete="email" required placeholder="you@company.co.uk" />
               <button className="btn btn-primary" type="submit">Email me a link</button>
-              <label className="optin login-optin"><input type="checkbox" name="marketing" value="yes" /> <span>Also send me the monthly roundup of new events and awards. Unsubscribe any time.</span></label>
+              <label className="optin login-optin"><input type="checkbox" name="marketing" value="yes" /> <span>{optin.signin}</span></label>
             </form>
           </>
         )}

@@ -197,7 +197,9 @@ async function notify(userId: string, subject: string, enqId: string) {
   const r = await getUser(userId);
   if (!r) return;
   const link = `${siteUrl()}/portal/inbox?e=${enqId}`;
-  await sendEmail({ to: r.email, subject: `New message on The Events Guy: ${subject}`, text: `You have a new message on The Events Guy.\n\n${subject}\n\nRead and reply: ${link}\n\nWe don't share your email address — replies go through The Events Guy.` });
+  const { renderNotice } = await import('@/lib/templates');
+  const m = await renderNotice('message', { subject }, link);
+  await sendEmail({ to: r.email, subject: m.subject, text: m.text, html: m.html, tag: 'message' });
 }
 
 // ---------- Reports (anyone, signed in or not) ----------
@@ -277,4 +279,40 @@ export async function toggleSheetSpeaker(f: FormData) {
   const { hideSheetSpeaker } = await import('@/lib/portal');
   await hideSheetSpeaker(id, str(f, 'action', 10) === 'hide');
   redirect(`/admin?tab=speakers&done=${str(f, 'action', 10) === 'hide' ? 'hide' : 'approve'}#sheet-speakers`);
+}
+
+// ---------- Emails & forms (Admin) ----------
+export async function saveEmailTemplate(f: FormData) {
+  await admin('content.moderate');
+  const { isTemplateKey, saveTemplate, resetTemplate } = await import('@/lib/templates');
+  const key = str(f, 'key', 40);
+  if (!isTemplateKey(key)) redirect('/admin?tab=emails');
+  if (f.get('reset') === '1') { await resetTemplate(key); redirect(`/admin?tab=emails&saved=${key}&reset=1#tpl-${key}`); }
+  await saveTemplate(key, { subject: str(f, 'subject', 200), heading: str(f, 'heading', 200), body: str(f, 'body', 4000), button: str(f, 'button', 80), footer: str(f, 'footer', 300) });
+  redirect(`/admin?tab=emails&saved=${key}#tpl-${key}`);
+}
+export async function sendTestEmail(f: FormData) {
+  const a = await admin('content.moderate');
+  const { isTemplateKey, renderNotice, renderEvents, TEMPLATES, SAMPLE_VARS: SAMPLE } = await import('@/lib/templates');
+  const key = str(f, 'key', 40);
+  if (!isTemplateKey(key)) redirect('/admin?tab=emails');
+  if (a.email.endsWith('.invalid')) redirect(`/admin?tab=emails&test=demo&key=${key}#tpl-${key}`);
+  if (await tooMany(`testmail:${a.id}`, 20, 3600)) redirect(`/admin?tab=emails&test=busy#tpl-${key}`);
+  const base = siteUrl();
+  const m = TEMPLATES[key].kind === 'events'
+    ? await renderEvents(key as 'reminder' | 'digest', SAMPLE, { items: [{ name: 'Retail Expo (sample)', when: 'Tomorrow · 18 Nov 2026', where: 'ExCeL, London', url: `${base}/guide` }], manageUrl: `${base}/account`, unsubscribeUrl: `${base}/account` })
+    : await renderNotice(key, SAMPLE, `${base}/guide`);
+  const ok = await sendEmail({ to: a.email, subject: `[Test] ${m.subject}`, text: m.text, html: m.html, tag: `test:${key}` });
+  redirect(`/admin?tab=emails&test=${ok ? 'sent' : 'failed'}&key=${key}#tpl-${key}`);
+}
+export async function saveFormText(f: FormData) {
+  await admin('content.moderate');
+  const { FORMS, isFormKey, saveFormCopy, resetFormCopy } = await import('@/lib/forms');
+  const key = str(f, 'key', 40);
+  if (!isFormKey(key)) redirect('/admin?tab=emails');
+  if (f.get('reset') === '1') { await resetFormCopy(key); redirect(`/admin?tab=emails&form=${key}&reset=1#form-${key}`); }
+  const v: Record<string, string> = {};
+  for (const k of Object.keys(FORMS[key].fields)) v[k] = str(f, k, 2000);
+  await saveFormCopy(key, v);
+  redirect(`/admin?tab=emails&form=${key}#form-${key}`);
 }

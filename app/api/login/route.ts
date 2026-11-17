@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { loginToken, normEmail, validEmail } from '@/lib/users';
 import { clientIp, safePath, storeReady, tooMany } from '@/lib/store';
 import { sendEmail } from '@/lib/email';
+import { renderNotice } from '@/lib/templates';
 import { siteUrl } from '@/lib/stripe';
 
 // One login for everyone: we email a 30-minute, single-use sign-in link. The account is created
@@ -20,8 +21,11 @@ export async function POST(req: Request) {
   // Ticking the roundup box only counts once they click the emailed link (confirmed opt-in).
   const news = f.get('marketing') === 'yes' ? '&news=1' : '';
   const link = `${base}/api/login/verify?token=${encodeURIComponent(loginToken(email))}&next=${encodeURIComponent(next)}${news}`;
-  const sent = await sendEmail({ to: email, subject: 'Your sign-in link for The Events Guy', text: `Here's your link to sign in to The Events Guy. It works once, for 30 minutes.\n\n${link}\n\nIf you didn't ask for this, you can ignore this email.` });
+  const m = await renderNotice('login', {}, link);
+  const sent = await sendEmail({ to: email, subject: m.subject, text: m.text, html: m.html, tag: 'login' });
   // Only print the link when email isn't set up at all (local development), never in production.
   if (!sent && process.env.NODE_ENV !== 'production') console.log(`[login] sign-in link for ${email}: ${link}`);
+  // In production, say so if it didn't go (the reason is in Admin → Emails & forms).
+  if (!sent && process.env.NODE_ENV === 'production') return NextResponse.redirect(`${base}/login?failed=1&next=${encodeURIComponent(next)}`, 303);
   return NextResponse.redirect(`${base}/login?sent=1`, 303);
 }

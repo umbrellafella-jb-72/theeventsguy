@@ -37,7 +37,7 @@ export async function GET(req: Request) {
   if (email && me && me.email === email) await startMembership(s.customer, await linkMembership(email, s.customer, until, plan, start), until, plan, start);
   else if (storeReady()) await del(endedKey(s.customer));
   // One welcome email per checkout, shared with the Stripe webhook (whichever runs first sends it).
-  if (email && storeReady() && await claimOnce(`welcome:${id}`, 90 * 86400)) await mail(email, 'Welcome to The Events Guy', MAILS.welcome(base, email, plan, until));
+  if (email && storeReady() && await claimOnce(`welcome:${id}`, 90 * 86400)) await mail(email, MAILS.welcome(base, email, plan, until));
   const res = NextResponse.redirect(`${base}/welcome`, 303);
   const c = accessCookie(s.customer, s.subscription!.current_period_end, subQuarter(s.subscription, quarterOf));
   res.cookies.set(c.name, c.value, c.options);

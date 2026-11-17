@@ -12,5 +12,5 @@ const list = (s: string) => s.split(',').map(x => x.trim()).filter(Boolean);
 /** Send a short plain-text alert to each address in the list. Never throws. */
 export async function teamAlert(to: string, subject: string, lines: (string | false | null | undefined)[]) {
   const text = lines.filter(Boolean).join('\n');
-  for (const addr of list(to)) await sendEmail({ to: addr, subject, text }).catch(() => false);
+  for (const addr of list(to)) await sendEmail({ to: addr, subject, text, tag: 'team-alert', hideTo: true }).catch(() => false);
 }

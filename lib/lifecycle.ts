@@ -1,7 +1,8 @@
 // Membership emails and access changes driven by Stripe's webhook (app/api/stripe/webhook).
 import { del, getValue, setValue, storeReady } from './store';
 import { getUser, loginToken, saveUser, userByEmail, type User } from './users';
-import { noticeEmail, sendEmail } from './email';
+import { sendEmail } from './email';
+import { renderNotice, type TemplateKey } from './templates';
 import { stripe } from './stripe';
 
 /** Customers whose membership ended early (cancelled now, or fully refunded): their access cookie stops working. */
@@ -48,38 +49,26 @@ export async function endMembership(customer: string, u: User | null) {
 const day = (unix: number) => new Date(unix * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/London' });
 const money = (pence: number, cur = 'gbp') => new Intl.NumberFormat('en-GB', { style: 'currency', currency: cur.toUpperCase() }).format(pence / 100);
 
+// Membership emails: the words live in lib/templates (editable in Admin → Emails & forms); this
+// only supplies the values and the button link for each one.
+type Mail = { key: TemplateKey; vars: Record<string, string>; url?: string };
 export const MAILS = {
-  welcome: (base: string, email: string, plan: string | null, until: number) => noticeEmail({
-    heading: 'Welcome to The Events Guy',
-    paras: [`Thanks for joining${plan ? ` on the ${plan} plan` : ''}. Your membership runs to ${day(until)} and renews automatically.`,
-      plan === 'quarterly'
-        ? 'Every event and award in the calendar quarter you joined is open in full now: venue, prices, booking links and speakers. Save events to your shortlist and they’ll go straight into your calendar.'
-        : 'Every event is listed 60 days ahead, with venue, prices, booking links and speakers from 30 days. Save events to your shortlist and they’ll go straight into your calendar.',
-      'Use the button to sign in on any device. It works once, for 30 minutes — after that, request a fresh link with this email address.'],
-    button: { label: 'Sign in and get started', url: `${base}/api/login/verify?token=${encodeURIComponent(loginToken(email))}&next=/welcome` } }),
-  paymentFailed: (base: string, amount: string) => noticeEmail({
-    heading: 'Your payment didn’t go through',
-    paras: [`We couldn’t take your membership payment of ${amount}. Stripe will try again over the next few days.`, 'To keep your access, please check your card details. It only takes a minute.'],
-    button: { label: 'Update your card', url: `${base}/account#membership` } }),
-  renewing: (base: string, amount: string, on: number) => noticeEmail({
-    heading: 'Your membership renews soon',
-    paras: [`Your membership renews on ${day(on)} for ${amount}. You don’t need to do anything.`, 'If you’d like to change plan or cancel, you can do it from your account before then.'],
-    button: { label: 'Manage membership', url: `${base}/account#membership` } }),
-  cancelling: (base: string, until: number) => noticeEmail({
-    heading: 'Your membership is set to end',
-    paras: [`You’ve cancelled your membership. You keep full access until ${day(until)}, and you won’t be charged again.`, 'Changed your mind? You can restart it from your account any time before then.'],
-    button: { label: 'Restart membership', url: `${base}/account#membership` } }),
-  ended: (base: string) => noticeEmail({
-    heading: 'Your membership has ended',
-    paras: ['Your membership has now ended. Your account, shortlist and saved searches are still there, and you can still see what’s on over the next 30 days.', 'Rejoin any time to get full event details again.'],
-    button: { label: 'See membership plans', url: `${base}/#pricing` } }),
-  refunded: (base: string, amount: string) => noticeEmail({
-    heading: 'Your refund is on its way',
-    paras: [`We’ve refunded ${amount}. It usually reaches your account in 5–10 working days.`, 'Your membership has ended. Your free account stays open if you want to keep browsing.'],
-    button: { label: 'Go to your account', url: `${base}/account` } }),
+  welcome: (base: string, email: string, plan: string | null, until: number): Mail => ({ key: 'welcome', url: `${base}/api/login/verify?token=${encodeURIComponent(loginToken(email))}&next=/welcome`, vars: {
+    plan: plan ?? 'membership', until: day(until),
+    access: plan === 'quarterly'
+      ? 'Every event and award in the calendar quarter you joined is open in full now: venue, prices, booking links and speakers. Save events to your shortlist and they’ll go straight into your calendar.'
+      : 'Every event is listed 60 days ahead, with venue, prices, booking links and speakers from 30 days. Save events to your shortlist and they’ll go straight into your calendar.',
+  } }),
+  paymentFailed: (base: string, amount: string): Mail => ({ key: 'paymentFailed', url: `${base}/account#membership`, vars: { amount } }),
+  renewing: (base: string, amount: string, on: number): Mail => ({ key: 'renewing', url: `${base}/account#membership`, vars: { amount, date: day(on) } }),
+  cancelling: (base: string, until: number): Mail => ({ key: 'cancelling', url: `${base}/account#membership`, vars: { until: day(until) } }),
+  ended: (base: string): Mail => ({ key: 'ended', url: `${base}/#pricing`, vars: {} }),
+  refunded: (base: string, amount: string): Mail => ({ key: 'refunded', url: `${base}/account`, vars: { amount } }),
 };
 export { day, money };
 
-export async function mail(to: string | null, subject: string, m: { text: string; html: string }) {
-  if (to) await sendEmail({ to, subject, ...m });
+export async function mail(to: string | null, m: Mail) {
+  if (!to) return false;
+  const r = await renderNotice(m.key, m.vars, m.url);
+  return sendEmail({ to, subject: r.subject, text: r.text, html: r.html, tag: m.key });
 }

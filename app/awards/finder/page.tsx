@@ -1,3 +1,4 @@
+import { formCopy } from '@/lib/forms';
 import Link from 'next/link';
 import { PageHero } from '@/components/PageHero';
 import { GuyPortrait } from '@/components/Art';
@@ -17,6 +18,7 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
   const sp = await searchParams;
   const a = readAnswers(sp);
   const access = await getAccess();
+  const copy = await formCopy('awards');
   const user = await sessionUser();
   // Visitors who haven't registered get the count, not the names (they only see this month elsewhere).
   const canSee = access.paid || Boolean(user);
@@ -79,12 +81,12 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
             <section id="enquire" className="finder-enquire" aria-labelledby="enq-title">
               <GuyPortrait size={120} className="finder-guy" />
               {sent ? (
-                <div><h2 id="enq-title">Thanks — we have your answers</h2><p className="muted">We’ll come back by email, usually within a couple of working days, with the awards we’d go for and how to make the entries count.</p></div>
+                <div><h2 id="enq-title">{copy.thanksHeading}</h2><p className="muted">{copy.thanksText}</p></div>
               ) : (
                 <form action="/api/enquire" method="post" className="enquiry">
                   <div className="hp" aria-hidden="true"><label>Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label></div>
-                  <h2 id="enq-title">Want a hand with the entries?</h2>
-                  <p className="muted">Send us your answers and we’ll tell you which of these to prioritise, what the judges look for and how to write an entry that gets shortlisted.</p>
+                  <h2 id="enq-title">{copy.heading}</h2>
+                  {copy.intro && <p className="muted">{copy.intro}</p>}
                   <input type="hidden" name="from" value="awards" />
                   <input type="hidden" name="interest" value="Awards entry advice" />
                   <input type="hidden" name="quiz" value={summary(a)} />
@@ -95,9 +97,9 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
                     <label>Work email<input name="email" type="email" required autoComplete="email" /></label>
                   </div>
                   <label>Company<input name="company" autoComplete="organization" /></label>
-                  <label>Anything we should know?<textarea name="message" rows={3} placeholder="The campaign or result you’re proudest of, budget for entry fees, deadlines you’re working to…" /></label>
+                  <label>{copy.messageLabel}<textarea name="message" rows={3} placeholder="The campaign or result you’re proudest of, budget for entry fees, deadlines you’re working to…" /></label>
                   <MarketingOptIn />
-                  <button className="btn btn-primary" type="submit">Send my answers</button>
+                  <button className="btn btn-primary" type="submit">{copy.button}</button>
                 </form>
               )}
             </section>

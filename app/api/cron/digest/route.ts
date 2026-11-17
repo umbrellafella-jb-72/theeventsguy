@@ -1,8 +1,9 @@
+import { renderEvents } from '@/lib/templates';
 import changes from '@/data/changes.json';
 import { eventById, listed, monthLabel } from '@/lib/data';
 import { getValue, setValue, storeReady } from '@/lib/store';
 import { allUsers, isMember } from '@/lib/users';
-import { eventsEmail, sendEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email';
 import { cronAllowed, memberLinks } from '@/lib/cron';
 import { siteUrl } from '@/lib/stripe';
 
@@ -24,13 +25,12 @@ export async function GET(req: Request) {
   for (const m of await allUsers()) {
     if (m.status !== 'active' || !m.prefs.newEvents || !isMember(m)) continue;
     const links = memberLinks(m.id);
-    const mail = eventsEmail({
-      heading: `${added.length} new event${added.length === 1 ? '' : 's'} in the guide`,
-      intro: `This week’s update added ${added.length} event${added.length === 1 ? '' : 's'}. Save the ones you want and they’ll go straight into your calendar feed.`,
-      items, footer: added.length > items.length ? `And ${added.length - items.length} more in the guide: ${base}/guide` : 'See them all in the guide.',
-      manageUrl: links.manage, unsubscribeUrl: links.off('newEvents'),
+    const n = String(added.length), plural = added.length === 1 ? '' : 's';
+    const mail = await renderEvents('digest', { count: n, s: plural }, {
+      items, manageUrl: links.manage, unsubscribeUrl: links.off('newEvents'),
+      ...(added.length > items.length ? { footer: `And ${added.length - items.length} more in the guide: ${base}/guide` } : {}),
     });
-    if (await sendEmail({ to: m.email, subject: `New in The Events Guy: ${added.length} event${added.length === 1 ? '' : 's'}`, ...mail, unsubscribeUrl: links.off('newEvents') })) sent++;
+    if (await sendEmail({ to: m.email, ...mail, unsubscribeUrl: links.off('newEvents'), tag: 'digest' })) sent++;
   }
   return Response.json({ added: added.length, sent });
 }

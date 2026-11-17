@@ -834,3 +834,23 @@ mark.todo { background: var(--torc-soft); color: var(--torc-ink); padding: 0 4px
 .sp-admin-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
 .warn-hint { color: var(--rowan); }
 .visibility select { max-width: 320px; }
+
+/* Admin → Emails & forms */
+.status-list { list-style: none; padding: 0; margin: 8px 0 12px; display: grid; gap: 6px; }
+.status-list li { padding-left: 22px; position: relative; }
+.status-list li::before { content: ""; position: absolute; left: 4px; top: .55em; width: 9px; height: 9px; border-radius: 50%; background: var(--glen); }
+.status-list li.warn::before { background: var(--torc); } .status-list li.bad::before { background: var(--rowan); }
+.table-wrap { overflow-x: auto; }
+.mail-log { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mail-log th, .mail-log td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.mail-log tr.is-bad td { background: var(--rowan-soft); }
+.small { font-size: 13px; }
+.tpl-group h3 { font-size: 18px; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: .04em; }
+details.tpl { border: 1px solid var(--line); background: var(--surface-raised); margin-bottom: 8px; }
+details.tpl > summary { padding: 12px 14px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+details.tpl > .pform, details.tpl .tpl-body, details.tpl > .note { margin: 0 14px 14px; }
+.tpl-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 860px) { .tpl-body { grid-template-columns: minmax(0, 1fr); } }
+.tpl-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.tpl-preview { display: grid; gap: 8px; align-content: start; }
+.mail-preview { border: 1px solid var(--line); background: #fff; max-height: 460px; overflow: auto; color: #121a1c; }

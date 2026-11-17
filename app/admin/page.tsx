@@ -1,3 +1,4 @@
+import { EmailsAdmin } from '@/components/admin/EmailsAdmin';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { pageUser } from '@/lib/guard';
@@ -16,7 +17,7 @@ import { StatusBadge } from '@/components/portal/Bits';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Admin — The Events Guy', robots: { index: false } };
 
-const TABS = [['leads', 'Leads'], ['queue', 'Approvals'], ['speakers', 'Speakers'], ['content', 'All content'], ['users', 'Users'], ['reports', 'Reports'], ['reporting', 'Reporting']] as const;
+const TABS = [['leads', 'Leads'], ['queue', 'Approvals'], ['speakers', 'Speakers'], ['content', 'All content'], ['users', 'Users'], ['reports', 'Reports'], ['emails', 'Emails & forms'], ['reporting', 'Reporting']] as const;
 type Item = { type: 'speaker' | 'sponsor' | 'opportunity'; id: string; title: string; sub: string; status: Status; updatedAt: string; edit: string; view: string | null };
 
 function Actions({ it, tab }: { it: Item; tab: string }) {
@@ -34,7 +35,7 @@ function Actions({ it, tab }: { it: Item; tab: string }) {
   );
 }
 
-export default async function Admin({ searchParams }: { searchParams: Promise<{ li?: string; tab?: string; q?: string; done?: string; status?: string; form?: string; lead?: string }> }) {
+export default async function Admin({ searchParams }: { searchParams: Promise<{ saved?: string; test?: string; key?: string; reset?: string; li?: string; tab?: string; q?: string; done?: string; status?: string; form?: string; lead?: string }> }) {
   const sp = await searchParams;
   const { me } = await pageUser('/admin');
   if (!can(me, 'reporting.view')) redirect('/account');
@@ -69,6 +70,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           <div key={it.type + it.id} className="prow"><div><b>{it.title}</b><span className="muted"> · {it.sub}</span></div><Actions it={it} tab="queue" /></div>
         ))}</div>
       ))}
+
+      {tab === 'emails' && <EmailsAdmin sp={sp as Record<string, string | undefined>} adminEmail={me.email} />}
 
       {tab === 'speakers' && (
         <>

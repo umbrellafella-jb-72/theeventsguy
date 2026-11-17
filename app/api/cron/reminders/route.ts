@@ -1,8 +1,9 @@
+import { renderEvents } from '@/lib/templates';
 import { eventById, todayKey } from '@/lib/data';
 import { eventDates } from '@/lib/calendar';
 import { claimOnce, storeReady } from '@/lib/store';
 import { allUsers, isMember } from '@/lib/users';
-import { eventsEmail, sendEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email';
 import { cronAllowed, memberLinks } from '@/lib/cron';
 import { siteUrl } from '@/lib/stripe';
 
@@ -25,14 +26,14 @@ export async function GET(req: Request) {
     }
     if (!due.length) continue;
     const links = memberLinks(m.id);
-    const mail = eventsEmail({
-      heading: due.length === 1 ? `${due[0].e.name} is ${due[0].lead === 1 ? 'tomorrow' : 'next week'}` : `${due.length} of your events are coming up`,
-      intro: 'A reminder about events on your shortlist. Check the organiser’s site for final timings and tickets.',
+    const mail = await renderEvents('reminder', {
+      first_event: due.length === 1 ? due[0].e.name : `${due.length} saved events coming up`,
+      headline: due.length === 1 ? `${due[0].e.name} is ${due[0].lead === 1 ? 'tomorrow' : 'next week'}` : `${due.length} of your events are coming up`,
+    }, {
       items: due.map(({ e, lead }) => ({ name: e.name, when: `${lead === 1 ? 'Tomorrow' : 'In a week'} · ${e.dates}`, where: [e.venue, e.city].filter(Boolean).join(', '), url: `${base}/events/${e.id}` })),
-      footer: 'You’re getting this because you saved these events on The Events Guy.',
       manageUrl: links.manage, unsubscribeUrl: links.off('reminders'),
     });
-    if (await sendEmail({ to: m.email, subject: due.length === 1 ? `Reminder: ${due[0].e.name}` : `Reminder: ${due.length} saved events coming up`, ...mail, unsubscribeUrl: links.off('reminders') })) sent++;
+    if (await sendEmail({ to: m.email, ...mail, unsubscribeUrl: links.off('reminders'), tag: 'reminder' })) sent++;
   }
   return Response.json({ sent });
 }

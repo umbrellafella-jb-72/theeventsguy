@@ -1,10 +1,14 @@
 import Link from 'next/link';
-/** Unticked opt-in for the monthly roundup, plus the privacy line. Leaving it unticked means no marketing email. */
-export function MarketingOptIn() {
+import { formCopy } from '@/lib/forms';
+/** Unticked opt-in for the roundup, plus the privacy line. Leaving it unticked means no marketing email.
+ *  Wording: Admin → Emails & forms. */
+export async function MarketingOptIn() {
+  const c = await formCopy('optin');
+  const [before, after] = c.privacy.split(/privacy policy/i);
   return (
     <>
-      <label className="optin"><input type="checkbox" name="marketing" value="yes" /> <span>Send me The Events Guy’s monthly roundup of new events and awards. Unsubscribe any time.</span></label>
-      <p className="form-privacy">We’ll use your details to reply to this message. See our <Link href="/privacy">privacy policy</Link>.</p>
+      <label className="optin"><input type="checkbox" name="marketing" value="yes" /> <span>{c.label}</span></label>
+      <p className="form-privacy">{after !== undefined ? <>{before}<Link href="/privacy">privacy policy</Link>{after}</> : c.privacy}</p>
     </>
   );
 }

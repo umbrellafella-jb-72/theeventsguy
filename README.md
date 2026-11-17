@@ -210,3 +210,7 @@ Set `DEMO_ACCOUNTS=true` in Vercel and redeploy, then open **/demo** (behind the
 - Demo addresses use the reserved `.invalid` domain, so no email is sent to them; demo members have a made-up Stripe customer and "Manage billing" is switched off for them.
 - Demo mode only works while the site is gated: `SITE_PUBLIC=true` turns /demo into a 404 and ends every demo session.
 - Before launch, use **Remove all demo data** on /demo, then delete `DEMO_ACCOUNTS` in Vercel.
+
+## Emails & forms (Admin)
+
+**Admin → Emails & forms** shows whether email is set up (Resend key, sender, domain verification), the last 200 send attempts with Resend's reason for any failure (team alerts are logged as "Team inbox", never the address), and lets admins edit the wording of every customer email (sign-in link, membership confirmation and lifecycle emails, form auto-replies, portal messages, reminders, new events) and of the forms (Services, Sponsors, Awards finder, the roundup opt-in). Edits are stored in Redis and override the defaults in `lib/templates.ts` and `lib/forms.ts`; "Reset to original" removes them. "Send me a test" sends any email to the signed-in admin.

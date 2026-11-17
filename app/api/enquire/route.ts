@@ -3,18 +3,13 @@ import { siteUrl } from '@/lib/stripe';
 import { clientIp, storeReady, tooMany } from '@/lib/store';
 import { createLead, FORM_LABELS, updateLead, type LeadForm } from '@/lib/leads';
 import { setMarketing } from '@/lib/marketing';
-import { noticeEmail, sendEmail } from '@/lib/email';
+import { sendEmail } from '@/lib/email';
+import { renderNotice } from '@/lib/templates';
 import { enquiriesTo, publicEmail } from '@/lib/alerts';
 
 // Services, Sponsors and Awards-finder enquiries.
 // 1. Save it as a lead (so nothing is lost), 2. email you, 3. send the person an acknowledgement,
 // 4. record marketing consent if they ticked the box.
-const REPLIES: Record<LeadForm, { subject: string; paras: (name: string) => string[] }> = {
-  services: { subject: 'Thanks — we’ve got your enquiry', paras: n => [`Hi ${n},`, 'Thanks for getting in touch with The Events Guy. We’ve got your message and will come back to you within two working days.', 'If anything changes in the meantime, just reply to this email.'] },
-  sponsors: { subject: 'Thanks for your interest in sponsoring', paras: n => [`Hi ${n},`, 'Thanks for your interest in sponsoring The Events Guy. We’ll send availability and rates within two working days.', 'If you have dates or a budget in mind, reply to this email and we’ll take them into account.'] },
-  awards: { subject: 'Your awards shortlist — we’ll be in touch', paras: n => [`Hi ${n},`, 'Thanks for sending your awards finder answers. We’ll come back within two working days with the awards we’d prioritise for you and how to make the entries count.', 'You can revisit your shortlist any time from the link below.'] },
-};
-
 export async function POST(req: Request) {
   const base = siteUrl(req);
   const f = await req.formData();
@@ -47,14 +42,12 @@ export async function POST(req: Request) {
   const to = enquiriesTo();
   let alerted = false;
   for (const addr of to.split(',').map(x => x.trim()).filter(Boolean))
-    alerted = (await sendEmail({ to: addr, replyTo: email, subject: `New ${FORM_LABELS[form]} enquiry${get('interest') ? `: ${get('interest')}` : ''} — ${get('name')}`, text: lines })) || alerted;
+    alerted = (await sendEmail({ to: addr, replyTo: email, subject: `New ${FORM_LABELS[form]} enquiry${get('interest') ? `: ${get('interest')}` : ''} — ${get('name')}`, text: lines, tag: `alert-${form}`, hideTo: true })) || alerted;
   if (lead && alerted) await updateLead(lead.id, { emailed: true });
 
-  // Acknowledgement to them
-  const r = REPLIES[form];
-  const mail = noticeEmail({ heading: r.subject, paras: r.paras(get('name').split(' ')[0]),
-    button: form === 'awards' ? { label: 'See my shortlist', url: `${base}${awardsBack}` } : { label: 'Browse the guide', url: `${base}/guide` } });
+  // Acknowledgement to them (wording: Admin → Emails & forms)
+  const ack = await renderNotice(`ack_${form}`, { first_name: get('name').split(' ')[0] }, form === 'awards' ? `${base}${awardsBack}` : `${base}/guide`);
   // Replies go to the public address, so the private alert inbox (ENQUIRIES_TO) is never shown to the sender.
-  await sendEmail({ to: email, replyTo: publicEmail(), subject: r.subject, ...mail });
+  await sendEmail({ to: email, replyTo: publicEmail(), subject: ack.subject, text: ack.text, html: ack.html, tag: `ack_${form}` });
   return back;
 }
