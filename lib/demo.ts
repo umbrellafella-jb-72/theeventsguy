@@ -12,7 +12,16 @@ import type { Enquiry, Opportunity, Report, SpeakerProfile, SponsorProfile } fro
 import { events, todayKey } from './data';
 
 export const DEMO_DOMAIN = 'demo.theeventsguy.invalid';
-export const demoEnabled = () => process.env.DEMO_ACCOUNTS === 'true' && process.env.SITE_PUBLIC !== 'true' && storeReady();
+export const demoFlag = () => (process.env.DEMO_ACCOUNTS || '').trim().replace(/^["']|["']$/g, '').toLowerCase() === 'true';
+export const sitePublic = () => process.env.SITE_PUBLIC === 'true';
+export const demoEnabled = () => demoFlag() && !sitePublic() && storeReady();
+/** Why demo mode is off, for the /demo page while the site is still gated (never shown once public). */
+export function demoProblems(): string[] {
+  const out: string[] = [];
+  if (!demoFlag()) out.push(`DEMO_ACCOUNTS isn't set to true for this deployment (it reads ${process.env.DEMO_ACCOUNTS === undefined ? 'as missing' : 'as something else'}). Add it under Settings → Environment Variables for the environment this address uses, then redeploy.`);
+  if (!storeReady()) out.push('The Upstash Redis store isn\'t connected (KV_REST_API_URL and KV_REST_API_TOKEN), so accounts can\'t be saved.');
+  return out;
+}
 export const isDemoEmail = (e: string | null | undefined) => Boolean(e && e.toLowerCase().endsWith('@' + DEMO_DOMAIN));
 export const isDemoCustomer = (c: string | null | undefined) => Boolean(c && c.startsWith('demo_'));
 

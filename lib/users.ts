@@ -75,7 +75,7 @@ export async function sessionUser(): Promise<User | null> {
   const u = await getUser(tok.c).catch(() => null);
   if (!u || u.status !== 'active') return null;
   // Demo accounts (lib/demo.ts) only work while demo mode is on and the site is still gated.
-  if (u.email.endsWith('@demo.theeventsguy.invalid') && !(process.env.DEMO_ACCOUNTS === 'true' && process.env.SITE_PUBLIC !== 'true')) return null;
+  if (u.email.endsWith('@demo.theeventsguy.invalid') && !((process.env.DEMO_ACCOUNTS || '').trim().replace(/^["']|["']$/g, '').toLowerCase() === 'true' && process.env.SITE_PUBLIC !== 'true')) return null;
   return u;
 }
 

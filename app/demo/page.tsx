@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { PERSONAS, demoEnabled, demoUsersExist, personaFor } from '@/lib/demo';
+import { PERSONAS, demoEnabled, demoProblems, demoUsersExist, personaFor, sitePublic } from '@/lib/demo';
 import { sessionUser } from '@/lib/users';
 
 export const dynamic = 'force-dynamic';
@@ -8,7 +8,14 @@ export const metadata = { title: 'Demo accounts — The Events Guy', robots: { i
 const DONE: Record<string, string> = { reset: 'Demo data reset to its starting state.', removed: 'Demo accounts and everything they created have been removed.' };
 
 export default async function DemoPage({ searchParams }: { searchParams: Promise<{ done?: string }> }) {
-  if (!demoEnabled()) notFound();
+  if (sitePublic()) notFound();
+  if (!demoEnabled()) return (
+    <div className="wrap section">
+      <h1 className="page-title">Demo accounts are switched off</h1>
+      <ul>{demoProblems().map(p => <li key={p}>{p}</li>)}</ul>
+      <p className="muted">Environment: {process.env.VERCEL_ENV ?? 'local'}{process.env.VERCEL_GIT_COMMIT_SHA ? ` · build ${process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7)}` : ''}</p>
+    </div>
+  );
   const sp = await searchParams;
   const me = personaFor((await sessionUser())?.email);
   const seeded = await demoUsersExist();
