@@ -11,7 +11,7 @@ export const maxDuration = 60;
 export async function POST(req: Request) {
   if (!demoEnabled()) return new NextResponse('Not found', { status: 404 });
   const base = siteUrl(req);
-  if (await tooMany(`demo:${clientIp(req)}`, 60, 600)) return new NextResponse('Too many requests', { status: 429 });
+  if (await tooMany(`demo:${clientIp(req)}`, 300, 600)) return new NextResponse('Too many requests', { status: 429 });
   const as = String((await req.formData()).get('as') ?? '');
 
   if (as === 'reset') { await seedDemo(); return NextResponse.redirect(`${base}/demo?done=reset`, 303); }

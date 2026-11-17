@@ -48,6 +48,18 @@ export async function activeSubscription(customer: string): Promise<Sub | null> 
   return list.data.find(s => s.status === 'active' || s.status === 'trialing' || s.status === 'past_due') ?? null;
 }
 
+/** The site's address. With a request, the address it actually came in on, so redirects after a
+ *  form post stay on the same site (the preview address before the domain is live; a redirect to
+ *  another address is also blocked by the CSP's form-action rule). Otherwise NEXT_PUBLIC_SITE_URL. */
 export function siteUrl(req?: Request) {
-  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || (req ? new URL(req.url).origin : 'http://localhost:3000');
+  if (req) {
+    const h = req.headers;
+    const host = h.get('x-forwarded-host') || h.get('host');
+    if (host && /^[a-z0-9.-]+(:\d+)?$/i.test(host)) {
+      const proto = h.get('x-forwarded-proto') || new URL(req.url).protocol.replace(':', '');
+      return `${proto === 'http' ? 'http' : 'https'}://${host}`;
+    }
+    return new URL(req.url).origin;
+  }
+  return process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'http://localhost:3000';
 }
