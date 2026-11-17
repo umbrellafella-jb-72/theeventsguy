@@ -12,6 +12,7 @@ export type SpeakerProfile = {
   openTo: string[];                // e.g. keynotes, panels, judging, podcasts
   image?: string | null;           // a stored photo (/api/speaker-photo/…) or an https link to a cartoon portrait
   photoConsent?: boolean;          // the speaker agreed to their stored photo being shown
+  photoStyle?: 'guy' | 'photo';    // stored photo in the Events Guy palette (default) or as taken
   managed?: boolean;               // added by an admin from a LinkedIn link; no sign-in, no enquiries
   status: Status; createdAt: string; updatedAt: string;
 };
@@ -90,7 +91,7 @@ export async function setStatus(type: 'speaker' | 'sponsor' | 'opportunity', id:
   await setJSON(key, { ...d, status, updatedAt: now() });
 }
 export async function removeContent(type: 'speaker' | 'sponsor' | 'opportunity', id: string) {
-  if (type === 'speaker') { await del(K.speaker(id)); await removeFrom('speakers', id); await del(`spkimg:${id}`); }
+  if (type === 'speaker') { await del(K.speaker(id)); await removeFrom('speakers', id); await del(`spkimg:${id}`); await del(`spkimg-orig:${id}`); }
   else if (type === 'sponsor') { await del(K.sponsor(id)); await removeFrom('sponsors', id); }
   else { await del(K.opp(id)); await removeFrom('opps', id); }
 }

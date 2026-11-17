@@ -14,7 +14,7 @@ import { newId, safePath, tooMany } from '@/lib/store';
 import { LEAD_STATUSES, updateLead, type LeadStatus } from '@/lib/leads';
 import { headers } from 'next/headers';
 import { fetchLinkedIn, normaliseLinkedIn, type LinkedInPreview } from '@/lib/linkedin';
-import { deletePhoto, hasPhoto, isStoredPhoto, photoPath, storePhoto, storePhotoFromUrl } from '@/lib/photos';
+import { deletePhoto, hasPhoto, isStoredPhoto, photoPath, restylePhoto, storePhoto, storePhotoFromUrl, type PhotoStyle } from '@/lib/photos';
 import { MANAGED_SPEAKER_DOMAIN, speakerByLinkedIn } from '@/lib/portal';
 import { ensureUser } from '@/lib/users';
 
@@ -62,14 +62,17 @@ export async function saveSpeakerProfile(f: FormData) {
   const pick = (k: string, max: number, from?: string) => str(f, k, max) || (from ? from.slice(0, max) : '');
 
   // Photo: a new upload, or the one LinkedIn shared; shown only with the speaker's agreement.
+  const style: PhotoStyle = f.get('photoStyle') === 'on' ? 'guy' : 'photo';
   let photoStored = await hasPhoto(t.id);
+  let fresh = false;
   const file = f.get('photo');
   if (file && typeof file === 'object' && 'arrayBuffer' in file && (file as File).size > 0) {
     if ((file as File).size > 5_000_000 || !/^image\//.test((file as File).type)) redirect(back('photo=bad'));
-    if (!(await storePhoto(t.id, Buffer.from(await (file as File).arrayBuffer())))) redirect(back('photo=bad'));
-    photoStored = true;
+    if (!(await storePhoto(t.id, Buffer.from(await (file as File).arrayBuffer()), style))) redirect(back('photo=bad'));
+    photoStored = true; fresh = true;
   }
-  if (filled?.photo && await storePhotoFromUrl(t.id, filled.photo)) photoStored = true;
+  if (filled?.photo && await storePhotoFromUrl(t.id, filled.photo, style)) { photoStored = true; fresh = true; }
+  if (photoStored && !fresh && style !== (prev?.photoStyle ?? 'photo')) await restylePhoto(t.id, style);
   if (f.get('removePhoto') === 'on') { await deletePhoto(t.id); photoStored = false; }
   const consent = f.get('photoConsent') === 'on';
   const cartoon = (x => (x && /^https:\/\/[^\s"'<>]+$/i.test(x) ? x : null))(cleanUrl(str(f, 'image', 500)));
@@ -82,7 +85,7 @@ export async function saveSpeakerProfile(f: FormData) {
     bio: pick('bio', 1200, filled?.about), linkedin: li && isLinkedIn(li) ? li : null, website: cleanUrl(str(f, 'website', 300)),
     topics: list(str(f, 'topics', 400)).slice(0, 12), events: [...new Set(f.getAll('events').map(v => eventIdFrom(String(v))).filter((x): x is string => !!x))].slice(0, 20),
     openTo: f.getAll('openTo').map(String).slice(0, 6),
-    image, photoConsent: consent && photoStored, managed: prev?.managed ?? t.email.endsWith('@' + MANAGED_SPEAKER_DOMAIN),
+    image, photoConsent: consent && photoStored, photoStyle: style, managed: prev?.managed ?? t.email.endsWith('@' + MANAGED_SPEAKER_DOMAIN),
     status: isAdmin && f.get('publish') === 'on' ? 'published' : prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
   };
   // Admin edits keep the current status (or publish it); an owner's edit goes back for approval.
@@ -107,12 +110,12 @@ export async function addSpeakerFromLinkedIn(f: FormData) {
   const t = await ensureUser(`${handle}@${MANAGED_SPEAKER_DOMAIN}`, { name: null });
   if (!t.roles.includes('speaker')) await saveUser({ ...t, roles: [...t.roles, 'speaker'] });
   const got = await fetchLinkedIn(li);
-  const photo = got.photo ? await storePhotoFromUrl(t.id, got.photo) : false;
+  const photo = got.photo ? await storePhotoFromUrl(t.id, got.photo, 'guy') : false;
   const now = new Date().toISOString();
   await saveSpeaker({
     userId: t.id, name: got.name || handle.replace(/-(?=[a-z0-9]*\d)[a-z0-9]{2,}$/, '').split('-').filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1)).join(' '),
     headline: got.headline ?? null, company: got.company ?? null, bio: got.about ?? '', linkedin: li, website: null,
-    topics: [], events: [], openTo: [], image: null, photoConsent: false, managed: true,
+    topics: [], events: [], openTo: [], image: null, photoConsent: false, photoStyle: 'guy', managed: true,
     status: 'pending', createdAt: now, updatedAt: now,
   }, false);
   const fields = (['name', 'headline', 'company', 'about'] as const).filter(k => got[k]).concat(photo ? ['photo' as never] : []);
