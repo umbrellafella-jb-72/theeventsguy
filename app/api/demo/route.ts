@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     res.cookies.delete(SESSION); res.cookies.delete(COOKIE); return res;
   }
   if (as === 'visitor') {
-    const res = NextResponse.redirect(`${base}/`, 303);
+    const res = NextResponse.redirect(`${base}/demo?done=out`, 303);
     res.cookies.delete(SESSION); res.cookies.delete(COOKIE); return res;
   }
   const p = PERSONAS.find(x => x.key === as);

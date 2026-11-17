@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
+import { personaFor } from '@/lib/demo';
 import { can } from '@/lib/permissions';
 import { generatedAt } from '@/lib/data';
 import { Logo } from '@/components/Art';
@@ -50,7 +51,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         {user && user.email.endsWith('@demo.theeventsguy.invalid') && (
-          <div className="demo-bar" role="status"><div className="wrap">Demo account: <b>{user.name}</b><Link href="/demo">Switch account</Link></div></div>
+          <div className="demo-bar" role="status"><div className="wrap">
+            <span className="demo-tag">Demo</span>
+            <span>Signed in as <b>{personaFor(user.email)?.label ?? 'demo account'}</b> · {user.name}</span>
+            <span className="demo-bar-actions"><Link href="/demo">Switch account</Link>
+              <form action="/api/demo" method="post"><input type="hidden" name="as" value="visitor" /><button type="submit">Sign out</button></form></span>
+          </div></div>
         )}
         <main>{children}</main>
         <footer className="site-foot">

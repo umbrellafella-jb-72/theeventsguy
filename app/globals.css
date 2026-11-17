@@ -104,7 +104,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text
 }
 .hero-scene { display: block; width: 100%; height: clamp(140px, 30vw, 300px); margin-top: var(--space-4); }
 
-.section { padding: var(--space-12) 0 0; }
+.section { padding-top: var(--space-12); }
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--space-4); margin-bottom: var(--space-6); flex-wrap: wrap; }
 .section-head h2 { font-size: 36px; line-height: 38px; }
 .months-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--space-3); }
@@ -805,7 +805,15 @@ mark.todo { background: var(--torc-soft); color: var(--torc-ink); padding: 0 4px
 /* Demo accounts bar (UAT only) */
 .demo-bar { background: var(--torc); color: var(--on-torc); font-size: 14px; }
 .demo-bar .wrap { display: flex; gap: 12px; align-items: center; padding-top: 8px; padding-bottom: 8px; flex-wrap: wrap; }
-.demo-bar a { color: var(--on-torc); font-weight: 700; margin-left: auto; }
+.demo-bar a, .demo-bar button { color: var(--on-torc); font-weight: 700; background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; font-size: inherit; }
+.demo-bar-actions { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+.demo-tag { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; border: 1.5px solid currentColor; padding: 1px 6px; border-radius: var(--radius-sm); }
+.demo-now { border: 1px solid var(--line); border-left: 4px solid var(--torc); background: var(--surface-raised); padding: 16px 18px; margin: 20px 0 12px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.demo-now .label { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-muted); width: 100%; }
+.demo-now p { margin: 0; font-size: 18px; }
+.demo-now-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+.demo-card-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.demo-here { margin: auto 0 0; font-weight: 600; }
 .demo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 24px 0; }
 .demo-card { border: 1px solid var(--line); background: var(--surface-raised); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
 .demo-card.is-current { border-color: var(--glen); box-shadow: inset 4px 0 0 var(--glen); }
