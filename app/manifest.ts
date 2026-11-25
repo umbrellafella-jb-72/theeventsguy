@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-// Lets people add The Events Guy to their phone's home screen as an app, with the triskele icon.
+// Lets people add The Events Guy to their phone's home screen as an app, with The Events Guy's portrait as the icon.
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'The Events Guy',
