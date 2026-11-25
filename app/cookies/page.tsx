@@ -11,7 +11,7 @@ export default function Cookies() {
         intro="Cookies are small files a website stores in your browser. We keep them to the few the site needs, and ask before setting anything else." />
       <div className="wrap section prose">
         <h2>The cookies we set</h2>
-        <div className="tier-wrap">
+        <div className="tier-wrap" tabIndex={0} role="region" aria-label="Cookies we use (table, scrolls sideways)">
           <table className="tiers cookie-table">
             <thead><tr><th scope="col">Cookie</th><th scope="col">Type</th><th scope="col">What it does</th><th scope="col">How long</th><th scope="col">Set by</th></tr></thead>
             <tbody>{COOKIE_LIST.map(c => (

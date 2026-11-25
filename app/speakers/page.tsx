@@ -68,7 +68,7 @@ export default async function Speakers({ searchParams }: { searchParams: Promise
         {canEnquire ? <Link className="btn btn-secondary" href="/portal/directory">Organiser directory</Link> : null}
       </PageHero>
       <div className="wrap section">
-        {sp.reported && <p className="note banner">Thanks — an admin will take a look.</p>}
+        {sp.reported && <p className="note banner" role="status">Thanks — an admin will take a look.</p>}
         {example && <p className="note">These are example cards showing how the portal will look. Real speakers appear here as you add them to the Speakers tab of the sheet, or approve their profiles.</p>}
         <SpeakerDirectory speakers={list} example={example} extras={extras} />
 

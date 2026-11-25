@@ -74,7 +74,7 @@ export default async function WelcomePage() {
               {feed
                 ? <div className="tool-row">
                     <a className="btn btn-secondary btn-sm" href={feed.replace(/^https?:/, 'webcal:')}>Apple Calendar / Outlook</a>
-                    <a className="btn btn-secondary btn-sm" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feed.replace(/^https?:/, 'webcal:'))}`} target="_blank" rel="noopener noreferrer">Google Calendar</a>
+                    <a className="btn btn-secondary btn-sm" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feed.replace(/^https?:/, 'webcal:'))}`} target="_blank" rel="noopener noreferrer">Google Calendar<span className="sr-only"> (opens in a new tab)</span></a>
                   </div>
                 : <Link className="btn btn-secondary btn-sm" href="/login?next=/account">Sign in for your feed</Link>}
             </li>
@@ -93,7 +93,7 @@ export default async function WelcomePage() {
 
         <section className="welcome-charity">
           <div className="charity-share" aria-hidden="true">{CHARITY.share}</div>
-          <p><strong>Your subscription is already doing good.</strong> {CHARITY.share} of it goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a> (registered charity {CHARITY.number}).</p>
+          <p><strong>Your subscription is already doing good.</strong> {CHARITY.share} of it goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}<span className="sr-only"> (opens in a new tab)</span></a> (registered charity {CHARITY.number}).</p>
         </section>
 
         <div className="welcome-billing">

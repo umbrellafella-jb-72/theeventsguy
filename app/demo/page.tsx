@@ -29,7 +29,7 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
   return (
     <div className="wrap section">
       <h1 className="page-title">Demo accounts</h1>
-      {sp.done && DONE[sp.done] && <p className="note banner">{DONE[sp.done]}</p>}
+      {sp.done && DONE[sp.done] && <p className="note banner" role="status">{DONE[sp.done]}</p>}
       <section className="demo-now" aria-live="polite">
         <span className="label">Right now</span>
         {me ? <p>You’re signed in as <b>{me.label}</b> ({me.name}).</p>

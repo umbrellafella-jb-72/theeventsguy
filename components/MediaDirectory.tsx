@@ -31,6 +31,7 @@ export default function MediaDirectory({ items, total, types, paid, paymentsRead
           ))}
         </div>
       )}
+      <h2 className="sr-only">Webinars and podcasts</h2>
       <div className="media-grid">
         {shown.map(m => (
           <article key={m.id} className="media">
@@ -44,7 +45,7 @@ export default function MediaDirectory({ items, total, types, paid, paymentsRead
             {m.frequency && <p className="muted">{m.frequency}</p>}
             {m.topics.length > 0 && <div className="ev-topics">{m.topics.map(t => <span key={t}>{t}</span>)}</div>}
             <div className="actions">
-              {m.url ? <a className="btn btn-secondary btn-sm" href={m.url} target="_blank" rel="noopener noreferrer">Listen or sign up<span className="sr-only"> — {m.name}</span></a>
+              {m.url ? <a className="btn btn-secondary btn-sm" href={m.url} target="_blank" rel="noopener noreferrer">Listen or sign up<span className="sr-only"> — {m.name}</span><span className="sr-only"> (opens in a new tab)</span></a>
                 : m.whereText && <span className="muted" style={{ fontSize: 14 }}>Find it on {m.whereText}</span>}
             </div>
           </article>

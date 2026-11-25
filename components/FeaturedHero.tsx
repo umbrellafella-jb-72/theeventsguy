@@ -60,7 +60,7 @@ export function FeaturedHero({ e, paid, canSave, today }: { e: EventItem | null;
         </div>
         {e.description && <p className="fhero-desc">{e.description}</p>}
         <div className="fhero-actions">
-          {(e.bookingUrl || e.website) && <a className="btn btn-primary" href={e.bookingUrl || e.website!} target="_blank" rel="noopener noreferrer">{e.bookingUrl ? 'Book tickets' : 'Event website'}</a>}
+          {(e.bookingUrl || e.website) && <a className="btn btn-primary" href={e.bookingUrl || e.website!} target="_blank" rel="noopener noreferrer">{e.bookingUrl ? 'Book tickets' : 'Event website'}<span className="sr-only"> (opens in a new tab)</span></a>}
           <Link className="btn btn-secondary fhero-more" href={`/events/${e.id}`}>See the event</Link>
           <EventActions e={e} paid={paid} full canSave={canSave} />
         </div>

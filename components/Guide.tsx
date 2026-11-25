@@ -146,6 +146,7 @@ export default function Guide(props: {
 
       <div className="wrap layout">
         <aside className={`filters${showFilters ? '' : ' collapsed'}`} aria-label="Filters">
+          <h2 className="sr-only">Filter events</h2>
           <div className="search">
             <label htmlFor="q">Search</label>
             <input id="q" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Event, organiser, city, country…" />
@@ -181,6 +182,7 @@ export default function Guide(props: {
         <section aria-live="polite">
           {(
             <>
+              <h2 className="sr-only">Events</h2>
               <div className="results-head">
                 {props.visitorLocked && month !== previewMonth
                   ? <strong>{summary?.key === 'tbc' ? 'Dates TBC' : summary?.label}</strong>

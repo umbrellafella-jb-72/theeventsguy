@@ -102,13 +102,13 @@ export default async function EventPage({ params, searchParams }: Props) {
 
       <div className="wrap ev-page">
         <div className="ev-main">
-          {sp.members && !full && <p className="note banner">Adding events to your calendar is for members — join below and every event opens up.</p>}
+          {sp.members && !full && <p className="note banner" role="status">Adding events to your calendar is for members — join below and every event opens up.</p>}
           <dl className="ev-facts">
             <dt>When</dt><dd>{e.dates || 'To be confirmed'}{e.status !== 'Confirmed' && <span className="muted"> · {e.status === 'Tentative' ? 'projected from the last edition' : 'not announced yet'}</span>}</dd>
             <dt>Where</dt><dd>{e.city}{e.area === 'Europe' ? `, ${e.region}` : ''}</dd>
             <dt>Category</dt><dd>{e.format}</dd>
             <dt>Industry</dt><dd>{e.sectors.join(', ')}</dd>
-            {e.organiser && <><dt>Organiser</dt><dd>{full && e.organiserUrl ? <a href={e.organiserUrl} target="_blank" rel="noopener noreferrer">{e.organiser}</a> : e.organiser}</dd></>}
+            {e.organiser && <><dt>Organiser</dt><dd>{full && e.organiserUrl ? <a href={e.organiserUrl} target="_blank" rel="noopener noreferrer">{e.organiser}<span className="sr-only"> (opens in a new tab)</span></a> : e.organiser}</dd></>}
           </dl>
 
           {full ? (
@@ -126,12 +126,12 @@ export default async function EventPage({ params, searchParams }: Props) {
                 {e.frequency && <><dt>How often</dt><dd>{e.frequency}</dd></>}
                 {e.lastEdition && <><dt>Last edition</dt><dd>{e.lastEdition}</dd></>}
                 {(e.website || (e.socials && e.socials.length > 0)) && <><dt>Online</dt><dd className="ev-links">
-                  {e.website && <a href={e.website} target="_blank" rel="noopener noreferrer">Event website</a>}
-                  {e.socials?.map(s => <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer">{s.label}</a>)}
+                  {e.website && <a href={e.website} target="_blank" rel="noopener noreferrer">Event website<span className="sr-only"> (opens in a new tab)</span></a>}
+                  {e.socials?.map(s => <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer">{s.label}<span className="sr-only"> (opens in a new tab)</span></a>)}
                 </dd></>}
               </dl>
               <div className="ev-actions">
-                {(e.bookingUrl || e.website) && <a className="btn btn-primary" href={e.bookingUrl || e.website!} target="_blank" rel="noopener noreferrer">{e.bookingUrl ? 'Book tickets' : 'Tickets & registration'}</a>}
+                {(e.bookingUrl || e.website) && <a className="btn btn-primary" href={e.bookingUrl || e.website!} target="_blank" rel="noopener noreferrer">{e.bookingUrl ? 'Book tickets' : 'Tickets & registration'}<span className="sr-only"> (opens in a new tab)</span></a>}
                 <EventActions e={e} paid={access.paid} full />
                 <PrintButton />
               </div>

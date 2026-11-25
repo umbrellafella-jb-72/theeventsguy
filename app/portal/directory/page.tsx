@@ -29,14 +29,14 @@ export default async function Directory({ searchParams }: { searchParams: Promis
             {p.interests.length > 0 && <p className="muted"><b>Wants to sponsor:</b> {p.interests.join(', ')}</p>}
             <div className="ev-topics">{p.sectors.map(s => <span key={s} className="is-sector">{s}</span>)}</div>
             <dl className="mini"><dt>Budget</dt><dd>{p.budget ?? 'Not given'}</dd><dt>Contact</dt><dd>{p.contactName ?? '—'}</dd></dl>
-            <div className="ev-actions">{p.website && <a className="btn btn-ghost btn-sm" href={p.website} target="_blank" rel="noopener noreferrer">Website</a>}<Link className="btn btn-primary btn-sm" href={`/portal/enquire?type=sponsor&id=${p.userId}`}>Send enquiry</Link></div>
+            <div className="ev-actions">{p.website && <a className="btn btn-ghost btn-sm" href={p.website} target="_blank" rel="noopener noreferrer">Website<span className="sr-only"> (opens in a new tab)</span></a>}<Link className="btn btn-primary btn-sm" href={`/portal/enquire?type=sponsor&id=${p.userId}`}>Send enquiry</Link></div>
           </article>
         ))}
         {type === 'speakers' && speakers.map(p => (
           <article key={p.userId} className="dir-card"><h2>{p.name}</h2><p className="muted">{[p.headline, p.company].filter(Boolean).join(', ')}</p><p>{p.bio}</p>
             {p.openTo.length > 0 && <p className="muted"><b>Open to:</b> {p.openTo.join(', ')}</p>}
             <div className="ev-topics">{p.topics.map(s => <span key={s}>{s}</span>)}</div>
-            <div className="ev-actions">{p.linkedin && <a className="btn btn-ghost btn-sm" href={p.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>}<Link className="btn btn-primary btn-sm" href={`/portal/enquire?type=speaker&id=${p.userId}`}>Send enquiry</Link></div>
+            <div className="ev-actions">{p.linkedin && <a className="btn btn-ghost btn-sm" href={p.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn<span className="sr-only"> (opens in a new tab)</span></a>}<Link className="btn btn-primary btn-sm" href={`/portal/enquire?type=speaker&id=${p.userId}`}>Send enquiry</Link></div>
           </article>
         ))}
         {(type === 'sponsors' ? sponsors : speakers).length === 0 && <p className="muted">No published {type} match yet.</p>}

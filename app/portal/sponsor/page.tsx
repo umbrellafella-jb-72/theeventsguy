@@ -21,7 +21,7 @@ export default async function SponsorEditor({ searchParams }: { searchParams: Pr
       <h1 className="page-title">{t.id === me.id ? 'My sponsor profile' : `Sponsor profile: ${t.email}`}</h1>
       <div className="portal-status">{p ? <StatusBadge status={p.status} /> : <span className="badge">Not published yet</span>}
         <span className="muted">Public: company, about, sectors and what you want to sponsor. Budget and contact name are only shown to signed-in organisers and admins.</span></div>
-      {sp.saved && <p className="note banner">{t.id === me.id && p?.status === 'pending' ? 'Saved — it goes live once an admin approves it.' : 'Saved.'}</p>}
+      {sp.saved && <p className="note banner" role="status">{t.id === me.id && p?.status === 'pending' ? 'Saved — it goes live once an admin approves it.' : 'Saved.'}</p>}
       <form action={saveSponsorProfile} className="pform">
         {t.id !== me.id && <input type="hidden" name="as" value={t.id} />}
         <div className="field-row">

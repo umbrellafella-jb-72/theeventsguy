@@ -17,7 +17,7 @@ export function CharityLogo() {
       {src
         ? <img src={src} alt={CHARITY.name} width={600} height={140} />
         : <span className="charity-name">{CHARITY.name}</span>}
-    </a>
+    <span className="sr-only"> (opens in a new tab)</span></a>
   );
 }
 
@@ -29,7 +29,7 @@ export function CharityCallout() {
         <div className="charity-text">
           <h2 id="charity-title">Half of every subscription goes to {CHARITY.name}</h2>
           <p>{CHARITY.blurb}</p>
-          <p className="charity-small">Registered charity no. {CHARITY.number} · <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">forgetmenotchild.co.uk</a></p>
+          <p className="charity-small">Registered charity no. {CHARITY.number} · <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">forgetmenotchild.co.uk<span className="sr-only"> (opens in a new tab)</span></a></p>
         </div>
         <CharityLogo />
       </div>

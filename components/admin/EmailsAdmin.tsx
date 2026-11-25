@@ -54,7 +54,7 @@ export async function EmailsAdmin({ sp, adminEmail }: { sp: Record<string, strin
         <p className="hint">Use <b>Send me a test</b> on any email below; it goes to your sign-in address ({adminEmail}).</p>
       </section>
 
-      {sp.test && <p className="note banner">{sp.test === 'sent' ? `Test sent to ${adminEmail}. Check your inbox (and spam).` : sp.test === 'busy' ? 'Too many test emails in the last hour.' : sp.test === 'demo' ? 'Demo accounts can’t receive email. Sign in with your own account to send yourself a test.' : 'The test didn’t go out. The reason is in Recent emails below.'}</p>}
+      {sp.test && <p className="note banner" role="status">{sp.test === 'sent' ? `Test sent to ${adminEmail}. Check your inbox (and spam).` : sp.test === 'busy' ? 'Too many test emails in the last hour.' : sp.test === 'demo' ? 'Demo accounts can’t receive email. Sign in with your own account to send yourself a test.' : 'The test didn’t go out. The reason is in Recent emails below.'}</p>}
 
       <h2 className="admin-sub">Recent emails</h2>
       {log.length === 0 ? <p className="muted">No emails recorded yet.</p> : (
@@ -75,7 +75,7 @@ export async function EmailsAdmin({ sp, adminEmail }: { sp: Record<string, strin
             return (
               <details key={k} id={`tpl-${k}`} className="tpl" open={open}>
                 <summary><b>{d.label}</b>{t.edited && <span className="badge badge-glen">Edited</span>}<span className="muted"> · {d.when}</span></summary>
-                {sp.saved === k && <p className="note banner">{sp.reset ? 'Back to the original wording.' : 'Saved. New emails use this wording now.'}</p>}
+                {sp.saved === k && <p className="note banner" role="status">{sp.reset ? 'Back to the original wording.' : 'Saved. New emails use this wording now.'}</p>}
                 <div className="tpl-body">
                   <form action={saveEmailTemplate} className="pform">
                     <input type="hidden" name="key" value={k} />
@@ -110,7 +110,7 @@ export async function EmailsAdmin({ sp, adminEmail }: { sp: Record<string, strin
         return (
           <details key={k} id={`form-${k}`} className="tpl" open={sp.form === k}>
             <summary><b>{d.label}</b>{c.edited && <span className="badge badge-glen">Edited</span>}<span className="muted"> · {d.where}</span></summary>
-            {sp.form === k && <p className="note banner">{sp.reset ? 'Back to the original wording.' : 'Saved.'}</p>}
+            {sp.form === k && <p className="note banner" role="status">{sp.reset ? 'Back to the original wording.' : 'Saved.'}</p>}
             <form action={saveFormText} className="pform">
               <input type="hidden" name="key" value={k} />
               {Object.entries(d.fields).map(([f, fd]) => (

@@ -23,14 +23,14 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
           <>
             <p className="muted">One login for everything: a free account for your shortlist, saved searches and speaker, sponsor or organiser profile, and your membership if you have one. No password — we email you a link.</p>
             {sp.expired && <p className="note">That link has expired — request a fresh one below.</p>}
-            {sp.bad && <p className="note">That doesn’t look like an email address.</p>}
+            {sp.bad && <p className="note" id="email-error" role="alert">That doesn’t look like an email address.</p>}
             {sp.used && <p className="note">That link has already been used. Each sign-in link works once — request a fresh one below.</p>}
             {sp.slow && <p className="note">Too many sign-in requests. Please wait a few minutes and try again.</p>}
-            {sp.failed && <p className="note">We couldn’t send your sign-in email just now. Please try again in a minute — if it keeps happening, email {publicEmail()}.</p>}
+            {sp.failed && <p className="note" role="alert">We couldn’t send your sign-in email just now. Please try again in a minute — if it keeps happening, email {publicEmail()}.</p>}
             <form action="/api/login" method="post">
               <input type="hidden" name="next" value={safePath(sp.next)} />
               <label htmlFor="email" className="sr-only">Email</label>
-              <input id="email" name="email" type="email" autoComplete="email" required placeholder="you@company.co.uk" />
+              <input id="email" name="email" type="email" autoComplete="email" required placeholder="you@company.co.uk" aria-invalid={sp.bad ? true : undefined} aria-describedby={sp.bad ? 'email-error' : undefined} />
               <button className="btn btn-primary" type="submit">Email me a link</button>
               <label className="optin login-optin"><input type="checkbox" name="marketing" value="yes" /> <span>{optin.signin}</span></label>
             </form>

@@ -69,7 +69,7 @@ export default async function Sponsors({ searchParams }: { searchParams: Promise
             {SPONSORS.map(x => {
               const logo = <img src={x.logo} alt={x.name} loading="lazy" />;
               return x.url
-                ? <a key={x.name} className="slot slot-sponsor" style={x.plate ? { background: x.plate } : undefined} href={x.url} target="_blank" rel="noopener noreferrer sponsored">{logo}</a>
+                ? <a key={x.name} className="slot slot-sponsor" style={x.plate ? { background: x.plate } : undefined} href={x.url} target="_blank" rel="noopener noreferrer sponsored">{logo}<span className="sr-only"> (opens in a new tab)</span></a>
                 : <div key={x.name} className="slot slot-sponsor" style={x.plate ? { background: x.plate } : undefined}>{logo}</div>;
             })}
             {Array.from({ length: Math.max(0, SPONSOR_SLOTS - SPONSORS.length) }, (_, i) => (

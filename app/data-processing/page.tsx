@@ -24,11 +24,11 @@ export default function DataProcessing() {
 
         <h2>Our processors</h2>
         <p>Each provider acts on our instructions under a data processing agreement, and only sees what it needs to do its job.</p>
-        <div className="tier-wrap">
+        <div className="tier-wrap" tabIndex={0} role="region" aria-label="Who processes data (table, scrolls sideways)">
           <table className="tiers cookie-table">
             <thead><tr><th scope="col">Provider</th><th scope="col">What it does</th><th scope="col">Data it handles</th><th scope="col">Where</th></tr></thead>
             <tbody>{PROCESSORS.map(p => (
-              <tr key={p.name}><th scope="row"><a href={p.link} target="_blank" rel="noopener noreferrer">{p.name}</a></th><td>{p.what}</td><td>{p.data}</td><td>{p.where}</td></tr>
+              <tr key={p.name}><th scope="row"><a href={p.link} target="_blank" rel="noopener noreferrer">{p.name}<span className="sr-only"> (opens in a new tab)</span></a></th><td>{p.what}</td><td>{p.data}</td><td>{p.where}</td></tr>
             ))}</tbody>
           </table>
         </div>

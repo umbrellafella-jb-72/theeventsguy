@@ -40,7 +40,7 @@ export function AwardCard({ a }: { a: AwardView }) {
                 <span>
                   {j.speakerId ? <a href={`/speakers#sp-${j.speakerId}`}>{j.name}</a> : <b>{j.name}</b>}
                   {(j.role || j.company) && <span className="muted"> · {[j.role, j.company].filter(Boolean).join(', ')}</span>}
-                  {j.linkedin && <> · <a href={j.linkedin} target="_blank" rel="noopener noreferrer nofollow">LinkedIn<span className="sr-only"> for {j.name}</span></a></>}
+                  {j.linkedin && <> · <a href={j.linkedin} target="_blank" rel="noopener noreferrer nofollow">LinkedIn<span className="sr-only"> for {j.name}</span><span className="sr-only"> (opens in a new tab)</span></a></>}
                 </span>
               </li>
             ))}</ul>
@@ -59,7 +59,7 @@ export function AwardCard({ a }: { a: AwardView }) {
         </details>
 
         <div className="ev-actions">
-          {enter && <a className="btn btn-secondary btn-sm" href={enter} target="_blank" rel="noopener noreferrer">{a.entry.state === 'open' ? 'Enter on the organiser’s site' : 'Awards website'}<span className="sr-only"> for {a.name}</span></a>}
+          {enter && <a className="btn btn-secondary btn-sm" href={enter} target="_blank" rel="noopener noreferrer">{a.entry.state === 'open' ? 'Enter on the organiser’s site' : 'Awards website'}<span className="sr-only"> for {a.name}</span><span className="sr-only"> (opens in a new tab)</span></a>}
         </div>
       </div>
     </article>

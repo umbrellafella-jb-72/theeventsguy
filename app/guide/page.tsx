@@ -36,9 +36,9 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         <p className="muted" style={{ margin: '8px 0 0' }}>
           {events.length} events and awards across the UK, Ireland and Europe. A free account shows what’s on over the next {FREE_DAYS} days. Yearly members see {LISTING_DAYS} days ahead with full details from {RELEASE_DAYS}; quarterly members get their whole quarter in full.
         </p>
-        {sp.welcome && <p className="note banner">You’re in. Every month is now unlocked — welcome to The Events Guy.</p>}
-        {sp.restored && <p className="note banner">Access restored on this device.</p>}
-        {sp.savedSearch && <p className="note banner">Search saved. Find it any time in <a href="/account#searches">your account</a>.</p>}
+        {sp.welcome && <p className="note banner" role="status">You’re in. Every month is now unlocked — welcome to The Events Guy.</p>}
+        {sp.restored && <p className="note banner" role="status">Access restored on this device.</p>}
+        {sp.savedSearch && <p className="note banner" role="status">Search saved. Find it any time in <a href="/account#searches">your account</a>.</p>}
       </div>
       <Guide
         events={visible}

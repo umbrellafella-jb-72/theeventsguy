@@ -20,7 +20,7 @@ export default async function Opportunity({ params, searchParams }: { params: Pr
   return (
     <div className="wrap section portal">
       <p className="crumbs"><Link href="/opportunities">Sponsorship opportunities</Link></p>
-      {sp.reported && <p className="note banner">Thanks — an admin will take a look.</p>}
+      {sp.reported && <p className="note banner" role="status">Thanks — an admin will take a look.</p>}
       {raw.status !== 'published' && <p className="note">Only you{can(viewer, 'content.moderate') ? ' and other admins' : ' and the admins'} can see this: it’s {raw.status === 'pending' ? 'waiting for approval' : 'hidden'}.</p>}
       <h1 className="page-title">{o.title}</h1>
       <p className="lede">{[o.eventName, o.when, o.city].filter(Boolean).join(' · ')}{o.eventId && <> · <Link href={`/events/${o.eventId}`}>Event details</Link></>}</p>

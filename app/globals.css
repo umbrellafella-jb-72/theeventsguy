@@ -40,7 +40,10 @@
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; font-family: var(--font-sans); font-size: 16px; line-height: 24px; background: var(--surface); color: var(--ink); }
 a { color: var(--glen); }
-a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid transparent; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid transparent; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+/* Date fields put focus inside the browser's own control, so :focus-visible doesn't reach them. */
+input[type="date"]:focus, input[type="date"]:focus-within { outline: 2px solid transparent; box-shadow: var(--focus-ring); }
+main:focus { outline: none; }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 700; margin: 0; text-wrap: balance; }
 .wrap { max-width: 1160px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 @media (min-width: 720px) { .wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
@@ -854,3 +857,23 @@ details.tpl > .pform, details.tpl .tpl-body, details.tpl > .note { margin: 0 14p
 .tpl-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .tpl-preview { display: grid; gap: 8px; align-content: start; }
 .mail-preview { border: 1px solid var(--line); background: #fff; max-height: 460px; overflow: auto; color: #121a1c; }
+
+
+/* ---------- Accessibility (WCAG 2.2 AA) ---------- */
+/* Skip link: first thing a keyboard user reaches; visible only when focused. */
+.skip-link { position: absolute; left: 12px; top: -64px; z-index: 100; background: var(--harbour, #17262b); color: #fff; padding: 10px 16px; font-weight: 700; border-radius: var(--radius-sm); text-decoration: none; }
+.skip-link:focus { top: 12px; outline: 3px solid var(--torc); outline-offset: 2px; }
+/* Keep focused items clear of the sticky month strip and filter bar (2.4.11 Focus not obscured). */
+html { scroll-padding-top: 96px; }
+/* Long words and enlarged text spacing never push the page sideways (1.4.10 Reflow, 1.4.12 Text spacing). */
+h1, h2, h3, h4, p, li, dd, dt, td, th, a, .badge, label, summary { overflow-wrap: break-word; }
+.section-title, .page-title, h1, h2 { hyphens: auto; }
+.section-head > * { min-width: 0; }
+.section-title { overflow-wrap: anywhere; }
+.badge { max-width: 100%; white-space: normal; }
+/* Scrollable tables are reachable by keyboard; show where focus is. */
+.tier-wrap:focus-visible { box-shadow: var(--focus-ring); outline: 2px solid transparent; }
+/* Respect "reduce motion" everywhere, not just the hero (2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

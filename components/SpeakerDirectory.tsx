@@ -18,6 +18,7 @@ export function SpeakerDirectory({ speakers, example, extras }: { speakers: Spea
   });
   return (
     <div className="sp-portal">
+      <h2 className="sr-only">Speakers</h2>
       <div className="sp-tools">
         <label className="search sp-search"><span className="label">Search speakers</span>
           <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Name, company, topic or event…" />

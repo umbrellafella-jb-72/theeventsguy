@@ -31,7 +31,7 @@ export default async function Opportunities({ searchParams }: { searchParams: Pr
               <p>{o.summary}</p>
               {o.sectors.length > 0 && <div className="ev-topics">{o.sectors.map(s => <span key={s} className="is-sector">{s}</span>)}</div>}
               <p className="muted">{o.locked ? 'Budget and contact: for signed-in sponsors and organisers.' : `Budget: ${o.budget ?? 'ask'}`}{o.deadline ? ` · Reply by ${o.deadline}` : ''}</p>
-              <Link className="btn btn-secondary btn-sm" href={`/opportunities/${o.id}`}>Details</Link>
+              <Link className="btn btn-secondary btn-sm" href={`/opportunities/${o.id}`} aria-label={`Details: ${o.title}`}>Details</Link>
             </article>
           ))}</div>
         )}

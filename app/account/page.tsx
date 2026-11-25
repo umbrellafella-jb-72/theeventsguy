@@ -29,7 +29,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
     return (
       <div className="wrap section account">
         <h1 className="page-title">My account</h1>
-        {sp.unsubscribed && <p className="note banner">You’re unsubscribed from those emails.</p>}
+        {sp.unsubscribed && <p className="note banner" role="status">You’re unsubscribed from those emails.</p>}
         {a.paid && !a.open && <section className="acc-card"><h2>Membership & billing</h2><p>Your membership is active on this device.</p><form action="/api/portal" method="post"><button className="btn btn-primary btn-sm" type="submit">Manage billing</button></form></section>}
         <div className="lock-panel"><h2>Sign in or create a free account</h2><p>One login for your shortlist, saved searches, your speaker, sponsor or organiser profile, and your membership.</p><Link className="btn btn-primary" href="/login">Sign in</Link></div>
       </div>
@@ -49,11 +49,11 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <div><h1 className="page-title">My account</h1><p className="muted">{u.email} · {u.roles.map(roleLabel).join(', ')}{member ? ' · Member' : ''}</p></div>
         <form action="/api/logout" method="post"><button className="btn btn-ghost btn-sm" type="submit">Sign out</button></form>
       </div>
-      {sp.saved && <p className="note banner">Settings saved.</p>}
-      {sp.unsubscribed && <p className="note banner">You’re unsubscribed from those emails.</p>}
-      {sp.demoBilling && <p className="note banner">Billing is switched off for demo accounts — real members go to Stripe’s billing page from here.</p>}
-      {sp.need && <p className="note banner">{NEED[sp.need] ?? 'That needs another role — switch it on below.'}</p>}
-      {sp.role && <p className="note banner">{u.roles.includes(sp.role as never) ? `${roleLabel(sp.role as never)} role switched on.` : `${roleLabel(sp.role as never)} role switched off.`}</p>}
+      {sp.saved && <p className="note banner" role="status">Settings saved.</p>}
+      {sp.unsubscribed && <p className="note banner" role="status">You’re unsubscribed from those emails.</p>}
+      {sp.demoBilling && <p className="note banner" role="status">Billing is switched off for demo accounts — real members go to Stripe’s billing page from here.</p>}
+      {sp.need && <p className="note banner" role="status">{NEED[sp.need] ?? 'That needs another role — switch it on below.'}</p>}
+      {sp.role && <p className="note banner" role="status">{u.roles.includes(sp.role as never) ? `${roleLabel(sp.role as never)} role switched on.` : `${roleLabel(sp.role as never)} role switched off.`}</p>}
 
       <section className="acc-card" id="roles">
         <h2>My roles</h2>
@@ -110,7 +110,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
               <input className="feed-url" readOnly value={feed} aria-label="Your private calendar feed address" />
               <div className="ev-actions">
                 <a className="btn btn-secondary btn-sm" href={feed.replace(/^https?:/, 'webcal:')}>Apple Calendar / Outlook</a>
-                <a className="btn btn-secondary btn-sm" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feed.replace(/^https?:/, 'webcal:'))}`} target="_blank" rel="noopener noreferrer">Google Calendar</a>
+                <a className="btn btn-secondary btn-sm" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feed.replace(/^https?:/, 'webcal:'))}`} target="_blank" rel="noopener noreferrer">Google Calendar<span className="sr-only"> (opens in a new tab)</span></a>
               </div>
             </>}
           </>

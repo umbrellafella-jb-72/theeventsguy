@@ -22,8 +22,8 @@ export default async function OppManager({ searchParams }: { searchParams: Promi
       <p className="crumbs"><Link href="/account">My account</Link> / Sponsorship opportunities</p>
       <h1 className="page-title">Sponsorship opportunities</h1>
       <p className="muted" style={{ maxWidth: '65ch' }}>Post what you’re offering sponsors. Everyone sees the title, event and summary; budgets, packages and your contact details are only shown to signed-in sponsors and organisers. New posts go live once an admin approves them.</p>
-      {sp.saved && <p className="note banner">Saved. {can(me, 'content.moderate') ? '' : 'It’s waiting for approval.'} <Link href={`/opportunities/${sp.saved}`}>View it</Link></p>}
-      {sp.deleted && <p className="note banner">Deleted.</p>}
+      {sp.saved && <p className="note banner" role="status">Saved. {can(me, 'content.moderate') ? '' : 'It’s waiting for approval.'} <Link href={`/opportunities/${sp.saved}`}>View it</Link></p>}
+      {sp.deleted && <p className="note banner" role="status">Deleted.</p>}
       {!showForm && <p><Link className="btn btn-primary" href="/portal/opportunities?edit=new">Post an opportunity</Link></p>}
       {showForm && (
         <form action={saveOpportunity} className="pform">

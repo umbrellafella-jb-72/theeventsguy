@@ -35,7 +35,7 @@ export default async function Inbox({ searchParams }: { searchParams: Promise<{ 
         <div className="thread">
           {open ? (
             <>
-              {sp.sent && <p className="note banner">Sent. We’ve let them know by email.</p>}
+              {sp.sent && <p className="note banner" role="status">Sent. We’ve let them know by email.</p>}
               <h2>{open.subject}</h2>
               <p className="muted">About: {open.about.type === 'opportunity' ? <Link href={`/opportunities/${open.about.id}`}>{open.about.label}</Link> : open.about.label}</p>
               {open.messages.map((m, i) => (

@@ -71,8 +71,8 @@ export function EventCard({ e, month, past, speakers, paid = false, canSave = pa
           </>
         )}
         <div className="ev-actions">
-          {!e.locked && book && <a className="btn btn-primary btn-sm" href={book} target="_blank" rel="noopener noreferrer">Book tickets<span className="sr-only"> for {e.name}</span></a>}
-          {!e.locked && e.website && <a className="btn btn-secondary btn-sm" href={e.website} target="_blank" rel="noopener noreferrer">Event website<span className="sr-only"> for {e.name}</span></a>}
+          {!e.locked && book && <a className="btn btn-primary btn-sm" href={book} target="_blank" rel="noopener noreferrer">Book tickets<span className="sr-only"> for {e.name}</span><span className="sr-only"> (opens in a new tab)</span></a>}
+          {!e.locked && e.website && <a className="btn btn-secondary btn-sm" href={e.website} target="_blank" rel="noopener noreferrer">Event website<span className="sr-only"> for {e.name}</span><span className="sr-only"> (opens in a new tab)</span></a>}
           {!e.locked && e.format === 'Awards' && <a className="btn btn-ghost btn-sm" href={`/awards#aw-${e.id}`}>Judges & how to enter<span className="sr-only"> — {e.name}</span></a>}
           <EventActions e={e} paid={paid} full={paid || !e.locked} canSave={canSave} />
         </div>

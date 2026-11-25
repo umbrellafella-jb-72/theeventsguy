@@ -34,6 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Saira+Stencil+One&display=swap" rel="stylesheet" />
       </head>
       <body>
+        <a className="skip-link" href="#main">Skip to main content</a>
         <header className="site-head">
           <div className="wrap">
             <Link href="/" className="logo"><Logo /><small>Ecommerce events</small></Link>
@@ -58,11 +59,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <form action="/api/demo" method="post"><input type="hidden" name="as" value="visitor" /><button type="submit">Sign out</button></form></span>
           </div></div>
         )}
-        <main>{children}</main>
+        <main id="main" tabIndex={-1}>{children}</main>
         <footer className="site-foot">
           <div className="wrap">
             <div className="sig"><span>THE EVENTS GUY · THEEVENTSGUY.CO.UK</span></div>
-            <p className="foot-charity">{CHARITY.share} of every subscription goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a> (registered charity no. {CHARITY.number}). <Link href="/charity-payments">How it’s paid</Link>.</p>
+            <p className="foot-charity">{CHARITY.share} of every subscription goes to <a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}<span className="sr-only"> (opens in a new tab)</span></a> (registered charity no. {CHARITY.number}). <Link href="/charity-payments">How it’s paid</Link>.</p>
             The Events Guy · theeventsguy.co.uk · Listings last refreshed {updated}. Dates marked tentative are projected from previous editions — always check with the organiser before booking.
             <p className="foot-links"><Link href="/privacy">Privacy</Link> · <Link href="/data-processing">Data processing</Link> · <Link href="/charity-payments">Charity payments</Link> · <Link href="/cookies">Cookies</Link> · <CookieSettingsLink /></p>
           </div>

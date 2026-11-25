@@ -32,14 +32,14 @@ export default async function SpeakerEditor({ searchParams }: { searchParams: Pr
       <div className="portal-status">{p ? <StatusBadge status={p.status} /> : <span className="badge">Not published yet</span>}
         {p?.status === 'published' && <Link href={`/speakers#sp-${p.userId}`}>See it live</Link>}
         <span className="muted">Public: name, headline, bio, topics, events and LinkedIn. Organisers can send you enquiries; your email is never shown.</span></div>
-      {sp.li === 'ok' && <p className="note banner">{sp.new ? 'Speaker added. ' : ''}Filled from LinkedIn: {got.length ? got.join(', ') : 'nothing new'}. Check everything below{got.includes('photo') ? ', tick the photo box once the speaker has agreed' : ''}, then save.</p>}
-      {sp.li === 'none' && <p className="note banner">{sp.new ? 'Speaker added, but ' : ''}LinkedIn didn’t share this profile{sp.why ? ` (${sp.why})` : ''}. Fill it in by hand below — you can upload their photo too.</p>}
-      {sp.li === 'bad' && <p className="note banner">That isn’t a LinkedIn profile link. It should look like linkedin.com/in/their-name.</p>}
-      {sp.li === 'busy' && <p className="note banner">Too many LinkedIn lookups in the last hour. Try again later, or fill it in by hand.</p>}
-      {sp.li === 'exists' && <p className="note banner">That LinkedIn profile is already listed — here it is.</p>}
-      {sp.photo === 'bad' && <p className="note banner">That photo couldn’t be used. Upload a JPG, PNG or WebP under 5 MB.</p>}
+      {sp.li === 'ok' && <p className="note banner" role="status">{sp.new ? 'Speaker added. ' : ''}Filled from LinkedIn: {got.length ? got.join(', ') : 'nothing new'}. Check everything below{got.includes('photo') ? ', tick the photo box once the speaker has agreed' : ''}, then save.</p>}
+      {sp.li === 'none' && <p className="note banner" role="status">{sp.new ? 'Speaker added, but ' : ''}LinkedIn didn’t share this profile{sp.why ? ` (${sp.why})` : ''}. Fill it in by hand below — you can upload their photo too.</p>}
+      {sp.li === 'bad' && <p className="note banner" role="status">That isn’t a LinkedIn profile link. It should look like linkedin.com/in/their-name.</p>}
+      {sp.li === 'busy' && <p className="note banner" role="status">Too many LinkedIn lookups in the last hour. Try again later, or fill it in by hand.</p>}
+      {sp.li === 'exists' && <p className="note banner" role="status">That LinkedIn profile is already listed — here it is.</p>}
+      {sp.photo === 'bad' && <p className="note banner" role="status">That photo couldn’t be used. Upload a JPG, PNG or WebP under 5 MB.</p>}
       {managed && admin && <p className="muted">Added by an admin from LinkedIn. This speaker has no sign-in, so enquiries to them are switched off.</p>}
-      {sp.saved && <p className="note banner">{t.id === me.id && p?.status === 'pending' ? 'Saved — it goes live once an admin approves it.' : 'Saved.'}</p>}
+      {sp.saved && <p className="note banner" role="status">{t.id === me.id && p?.status === 'pending' ? 'Saved — it goes live once an admin approves it.' : 'Saved.'}</p>}
       <form action={saveSpeakerProfile} className="pform">
         {/* Enter saves; the first submit button is the form's default. */}
         <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true">Save profile</button>

@@ -28,9 +28,9 @@ export function EventActions({ e, paid, full, compact, canSave = paid }: { e: Ev
           <summary className="btn btn-secondary btn-sm">Add to calendar</summary>
           <div className="menu-list" role="menu">
             <p className="menu-brand">{BRAND}</p>
-            <a role="menuitem" href={googleUrl(e, SITE)!} target="_blank" rel="noopener noreferrer">Google Calendar</a>
-            <a role="menuitem" href={outlookUrl(e, SITE)!} target="_blank" rel="noopener noreferrer">Outlook.com</a>
-            <a role="menuitem" href={office365Url(e, SITE)!} target="_blank" rel="noopener noreferrer">Outlook (Microsoft 365)</a>
+            <a role="menuitem" href={googleUrl(e, SITE)!} target="_blank" rel="noopener noreferrer">Google Calendar<span className="sr-only"> (opens in a new tab)</span></a>
+            <a role="menuitem" href={outlookUrl(e, SITE)!} target="_blank" rel="noopener noreferrer">Outlook.com<span className="sr-only"> (opens in a new tab)</span></a>
+            <a role="menuitem" href={office365Url(e, SITE)!} target="_blank" rel="noopener noreferrer">Outlook (Microsoft 365)<span className="sr-only"> (opens in a new tab)</span></a>
             <a role="menuitem" href={`/api/ics/${e.id}`} download={`${e.id}.ics`}>Apple Calendar (.ics)</a>
             <a role="menuitem" href={`/api/ics/${e.id}`} download={`${e.id}.ics`}>Other (.ics file)</a>
           </div>

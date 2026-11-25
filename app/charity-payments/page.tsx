@@ -15,7 +15,7 @@ export default function CharityPayments() {
         <p className="muted">Last updated {OPERATOR.updated}.</p>
 
         <h2>The charity</h2>
-        <p><a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}</a>, registered charity number {CHARITY.number} (England and Wales). {CHARITY.blurb}</p>
+        <p><a href={CHARITY.url} target="_blank" rel="noopener noreferrer">{CHARITY.name}<span className="sr-only"> (opens in a new tab)</span></a>, registered charity number {CHARITY.number} (England and Wales). {CHARITY.blurb}</p>
 
         <h2>How much goes to the charity</h2>
         <p><b>{CHARITY.share} of every subscription payment</b>, quarterly or yearly, worked out <Fill v={CHARITY_PAYMENTS.basis} />.</p>
@@ -26,7 +26,7 @@ export default function CharityPayments() {
 
         <h2>Checking it</h2>
         <p>We’ll publish the total paid to the charity here after each payment, and can show the charity’s receipt on request. Questions: <Fill v={OPERATOR.email} />.</p>
-        <div className="tier-wrap"><table className="tiers cookie-table"><thead><tr><th scope="col">Period</th><th scope="col">Paid to the charity</th></tr></thead>
+        <div className="tier-wrap" tabIndex={0} role="region" aria-label="Charity payments (table, scrolls sideways)"><table className="tiers cookie-table"><thead><tr><th scope="col">Period</th><th scope="col">Paid to the charity</th></tr></thead>
           <tbody><tr><td colSpan={2} className="muted">The first payment will appear here.</td></tr></tbody></table></div>
 
         <p className="muted" style={{ marginTop: 24 }}>The Events Guy isn’t a charity. We’re a business that gives part of its income to one. <Link href="/#pricing">See membership</Link>.</p>

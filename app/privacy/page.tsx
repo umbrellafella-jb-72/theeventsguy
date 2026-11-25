@@ -54,7 +54,7 @@ export default function Privacy() {
 
         <h2>Your rights</h2>
         <p>Under UK GDPR you can ask to see the personal data we hold about you, have it corrected or deleted, restrict or object to how we use it, or take a copy to another service. Email <Fill v={OPERATOR.email} /> and we’ll reply within one month. You can change your email settings and close your membership yourself from <Link href="/account">your account</Link>.</p>
-        <p>If you’re unhappy with how we’ve handled your data, you can complain to the Information Commissioner’s Office at <a href="https://ico.org.uk/make-a-complaint/" target="_blank" rel="noopener noreferrer">ico.org.uk</a>. We’d appreciate the chance to sort it out first.</p>
+        <p>If you’re unhappy with how we’ve handled your data, you can complain to the Information Commissioner’s Office at <a href="https://ico.org.uk/make-a-complaint/" target="_blank" rel="noopener noreferrer">ico.org.uk<span className="sr-only"> (opens in a new tab)</span></a>. We’d appreciate the chance to sort it out first.</p>
 
         <h2>Data outside the UK</h2>
         <p>Some of our providers are based in, or store data in, the United States or the EU. Where data leaves the UK, it’s protected by the UK’s adequacy regulations or the UK International Data Transfer Addendum to the EU standard contractual clauses.</p>

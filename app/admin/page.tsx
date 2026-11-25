@@ -63,7 +63,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       <nav className="admin-tabs" aria-label="Admin">{TABS.map(([k, l]) => (
         <Link key={k} href={`/admin?tab=${k}`} aria-current={tab === k ? 'page' : undefined}>{l}{k === 'leads' && newLeads.length ? <span className="n">{newLeads.length}</span> : null}{k === 'queue' && pending.length ? <span className="n">{pending.length}</span> : null}{k === 'reports' && openReports.length ? <span className="n">{openReports.length}</span> : null}</Link>
       ))}</nav>
-      {sp.done && <p className="note banner">{({ hide: 'Hidden from the site. Nothing was deleted; show it again any time.', approve: 'Now shown on the site.', remove: 'Removed for good.', suspend: 'Account suspended.', restore: 'Account restored.', roles: 'Roles saved.' } as Record<string, string>)[sp.done] ?? 'Done.'}</p>}
+      {sp.done && <p className="note banner" role="status">{({ hide: 'Hidden from the site. Nothing was deleted; show it again any time.', approve: 'Now shown on the site.', remove: 'Removed for good.', suspend: 'Account suspended.', restore: 'Account restored.', roles: 'Roles saved.' } as Record<string, string>)[sp.done] ?? 'Done.'}</p>}
 
       {tab === 'queue' && (pending.length === 0 ? <p className="muted">Nothing waiting for approval.</p> : (
         <div className="plist">{pending.map(it => (
@@ -78,8 +78,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           <section className="acc-card admin-add">
             <h2>Add a speaker from LinkedIn</h2>
             <p className="muted">Paste their LinkedIn profile link. We fill in what LinkedIn shares publicly (name, headline, company, photo) and open the profile for you to check, complete and publish. LinkedIn often limits these lookups, so some profiles will need filling in by hand.</p>
-            {sp.li === 'bad' && <p className="note banner">That isn’t a LinkedIn profile link. It should look like linkedin.com/in/their-name.</p>}
-            {sp.li === 'busy' && <p className="note banner">Too many LinkedIn lookups in the last hour. Try again later.</p>}
+            {sp.li === 'bad' && <p className="note banner" role="status">That isn’t a LinkedIn profile link. It should look like linkedin.com/in/their-name.</p>}
+            {sp.li === 'busy' && <p className="note banner" role="status">Too many LinkedIn lookups in the last hour. Try again later.</p>}
             <form action={addSpeakerFromLinkedIn} className="pform admin-add-form">
               <label>LinkedIn profile link<input name="linkedin" type="text" inputMode="url" autoComplete="off" required placeholder="linkedin.com/in/their-name" /></label>
               <button className="btn btn-primary" type="submit">Add speaker</button>

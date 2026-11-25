@@ -26,7 +26,7 @@ export function ShortlistView({ events, feedUrl, paid }: { events: EventItem[]; 
       {!paid && saved.length > 0 && <p className="note">Members can add the whole list to their calendar and get reminders before each event. <a href="/#pricing">See membership</a></p>}
       {saved.length === 0
         ? <div className="empty">Nothing saved yet. Tap <b>☆ Save</b> on any event in <a href="/guide">the guide</a> to build your year.</div>
-        : <div className="ev-list">{saved.map(e => <EventCard key={e.id} e={e} month={null} paid={paid} canSave />)}</div>}
+        : <><h2 className="sr-only">Saved events</h2><div className="ev-list">{saved.map(e => <EventCard key={e.id} e={e} month={null} paid={paid} canSave />)}</div></>}
     </>
   );
 }
