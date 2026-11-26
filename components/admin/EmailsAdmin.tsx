@@ -3,7 +3,8 @@ import { TEMPLATES, SAMPLE_VARS, getTemplate, renderEvents, renderNotice, type T
 import { FORMS, formCopy, type FormKey } from '@/lib/forms';
 import { emailLog, emailReady } from '@/lib/email';
 import { publicEmail } from '@/lib/alerts';
-import { saveEmailTemplate, saveFormText, sendTestEmail } from '@/app/portal/actions';
+import { saveEmailTemplate, saveFormText, saveTestRecipients, sendTestEmail } from '@/app/portal/actions';
+import { testSettings } from '@/lib/testmail';
 
 const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
 const TAGS: Record<string, string> = {
@@ -30,7 +31,8 @@ async function domainStatus(): Promise<string | null> {
 }
 
 export async function EmailsAdmin({ sp, adminEmail }: { sp: Record<string, string | undefined>; adminEmail: string }) {
-  const [log, domain] = await Promise.all([emailLog(), domainStatus()]);
+  const [log, domain, tests] = await Promise.all([emailLog(), domainStatus(), testSettings()]);
+  const whoGets = [tests.me && 'you', ...tests.extra, tests.team && process.env.ENQUIRIES_TO && 'the team inbox'].filter(Boolean) as string[];
   const failures = log.filter(l => !l.ok);
   const keys = Object.keys(TEMPLATES) as TemplateKey[];
   const groups = ['Account', 'Membership', 'Forms', 'Updates'] as const;
@@ -53,10 +55,22 @@ export async function EmailsAdmin({ sp, adminEmail }: { sp: Record<string, strin
           <li className={recaptchaReady() ? 'ok' : 'warn'}>{recaptchaReady() ? 'reCAPTCHA is protecting the speaker and sponsor application forms.' : 'reCAPTCHA isn’t set up: add NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY in Vercel. Until then the application forms rely on a hidden spam trap and rate limits.'}</li>
           <li className={failures.length ? 'bad' : 'ok'}>{failures.length ? `${failures.length} of the last ${log.length} emails failed. The most recent reason: ${failures[0].error}` : log.length ? `The last ${log.length} emails all went out.` : 'Nothing sent yet.'}</li>
         </ul>
-        <p className="hint">Use <b>Send me a test</b> on any email below; it goes to your sign-in address ({adminEmail}).</p>
       </section>
 
-      {sp.test && <p className="note banner" role="status">{sp.test === 'sent' ? `Test sent to ${adminEmail}. Check your inbox (and spam).` : sp.test === 'busy' ? 'Too many test emails in the last hour.' : sp.test === 'demo' ? 'Demo accounts can’t receive email. Sign in with your own account to send yourself a test.' : 'The test didn’t go out. The reason is in Recent emails below.'}</p>}
+      <section className="acc-card" id="test-recipients">
+        <h2>Who gets test emails</h2>
+        <p className="muted">Every <b>Send a test</b> button below sends to everyone ticked or listed here.</p>
+        {sp.recipients === 'saved' && <p className="note banner" role="status">Saved.</p>}
+        {sp.recipients === 'bad' && <p className="note banner" role="alert">Saved, but these weren’t valid email addresses and were left out: {sp.badlist}</p>}
+        <form action={saveTestRecipients} className="pform">
+          <label className="check"><input type="checkbox" name="me" defaultChecked={tests.me} /> Me ({adminEmail})</label>
+          <label className="check"><input type="checkbox" name="team" defaultChecked={tests.team} disabled={!process.env.ENQUIRIES_TO} /> The team alert inbox (ENQUIRIES_TO){process.env.ENQUIRIES_TO ? '' : ' — not set up yet'}. The address isn’t shown here.</label>
+          <label>Other addresses<textarea name="emails" rows={3} defaultValue={tests.extra.join('\n')} placeholder={'dylan@example.com\nalan@example.com'} /><span className="hint">One per line, or separated by commas. Up to 10. Anyone listed here is visible to other admins.</span></label>
+          <button className="btn btn-primary btn-sm" type="submit">Save recipients</button>
+        </form>
+      </section>
+
+      {sp.test && <p className="note banner" role="status">{sp.test === 'sent' ? `Test sent to ${sp.of === '1' ? '1 address' : `${sp.of} addresses`}. Check inboxes (and spam).` : sp.test === 'some' ? `Test sent to ${sp.n} of ${sp.of} addresses. The reasons for the others are in Recent emails below.` : sp.test === 'busy' ? 'Too many test emails in the last hour.' : sp.test === 'demo' ? 'Demo accounts can’t receive email. Add addresses under “Who gets test emails”, or sign in with your own account.' : sp.test === 'none' ? 'No one to send to: tick “Me” or add addresses under “Who gets test emails”.' : 'The test didn’t go out. The reason is in Recent emails below.'}</p>}
 
       <h2 className="admin-sub">Recent emails</h2>
       {log.length === 0 ? <p className="muted">No emails recorded yet.</p> : (
@@ -96,7 +110,7 @@ export async function EmailsAdmin({ sp, adminEmail }: { sp: Record<string, strin
                     <div className="label">Preview (sample details)</div>
                     <div className="small"><b>Subject:</b> {previews[k].subject}</div>
                     <div className="mail-preview" dangerouslySetInnerHTML={{ __html: previews[k].html }} />
-                    <form action={sendTestEmail}><input type="hidden" name="key" value={k} /><button className="btn btn-secondary btn-sm" type="submit">Send me a test</button></form>
+                    <form action={sendTestEmail}><input type="hidden" name="key" value={k} /><button className="btn btn-secondary btn-sm" type="submit">Send a test</button><span className="hint"> to {whoGets.length ? whoGets.join(', ') : 'no one yet'}</span></form>
                   </div>
                 </div>
               </details>

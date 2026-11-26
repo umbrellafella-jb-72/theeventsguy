@@ -296,14 +296,17 @@ export async function sendTestEmail(f: FormData) {
   const { isTemplateKey, renderNotice, renderEvents, TEMPLATES, SAMPLE_VARS: SAMPLE } = await import('@/lib/templates');
   const key = str(f, 'key', 40);
   if (!isTemplateKey(key)) redirect('/admin?tab=emails');
-  if (a.email.endsWith('.invalid')) redirect(`/admin?tab=emails&test=demo&key=${key}#tpl-${key}`);
+  const { testRecipients } = await import('@/lib/testmail');
+  const r = await testRecipients(a.email);
+  if (!r.list.length) redirect(`/admin?tab=emails&test=${a.email.endsWith('.invalid') ? 'demo' : 'none'}&key=${key}#tpl-${key}`);
   if (await tooMany(`testmail:${a.id}`, 20, 3600)) redirect(`/admin?tab=emails&test=busy#tpl-${key}`);
   const base = siteUrl();
   const m = TEMPLATES[key].kind === 'events'
     ? await renderEvents(key as 'reminder' | 'digest', SAMPLE, { items: [{ name: 'Retail Expo (sample)', when: 'Tomorrow · 18 Nov 2026', where: 'ExCeL, London', url: `${base}/guide` }], manageUrl: `${base}/account`, unsubscribeUrl: `${base}/account` })
     : await renderNotice(key, SAMPLE, `${base}/guide`);
-  const ok = await sendEmail({ to: a.email, subject: `[Test] ${m.subject}`, text: m.text, html: m.html, tag: `test:${key}` });
-  redirect(`/admin?tab=emails&test=${ok ? 'sent' : 'failed'}&key=${key}#tpl-${key}`);
+  let sent = 0;
+  for (const to of r.list) if (await sendEmail({ to: to.addr, subject: `[Test] ${m.subject}`, text: m.text, html: m.html, tag: `test:${key}`, hideTo: to.hidden })) sent++;
+  redirect(`/admin?tab=emails&test=${sent === r.list.length ? 'sent' : sent ? 'some' : 'failed'}&n=${sent}&of=${r.list.length}&key=${key}#tpl-${key}`);
 }
 export async function saveFormText(f: FormData) {
   await admin('content.moderate');
@@ -315,4 +318,11 @@ export async function saveFormText(f: FormData) {
   for (const k of Object.keys(FORMS[key].fields)) v[k] = str(f, k, 2000);
   await saveFormCopy(key, v);
   redirect(`/admin?tab=emails&form=${key}#form-${key}`);
+}
+
+export async function saveTestRecipients(f: FormData) {
+  await admin('content.moderate');
+  const { saveTestSettings } = await import('@/lib/testmail');
+  const bad = await saveTestSettings(str(f, 'emails', 2000), f.get('me') === 'on', f.get('team') === 'on');
+  redirect(`/admin?tab=emails&recipients=${bad.length ? 'bad' : 'saved'}${bad.length ? `&badlist=${encodeURIComponent(bad.join(', '))}` : ''}#test-recipients`);
 }
