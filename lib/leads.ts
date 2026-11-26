@@ -2,7 +2,7 @@
 // if an email fails. Admins work them in /admin?tab=leads (status, notes, CSV export).
 import { addTo, allIn, getJSON, newId, setJSON } from './store';
 
-export type LeadForm = 'services' | 'sponsors' | 'awards';
+export type LeadForm = 'services' | 'sponsors' | 'awards' | 'speakerApply' | 'sponsorProfile';
 export type LeadStatus = 'new' | 'contacted' | 'won' | 'lost';
 export type Lead = {
   id: string; form: LeadForm; status: LeadStatus;
@@ -18,7 +18,7 @@ export type Lead = {
 export const LEAD_STATUSES: { key: LeadStatus; label: string }[] = [
   { key: 'new', label: 'New' }, { key: 'contacted', label: 'Contacted' }, { key: 'won', label: 'Won' }, { key: 'lost', label: 'Lost' },
 ];
-export const FORM_LABELS: Record<LeadForm, string> = { services: 'Services', sponsors: 'Sponsors', awards: 'Awards finder' };
+export const FORM_LABELS: Record<LeadForm, string> = { services: 'Services', sponsors: 'Sponsors', awards: 'Awards finder', speakerApply: 'Speaker application', sponsorProfile: 'Sponsor profile request' };
 
 const key = (id: string) => `lead:${id}`;
 export const getLead = (id: string) => getJSON<Lead>(key(id));

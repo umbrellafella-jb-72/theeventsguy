@@ -1,3 +1,4 @@
+import { SponsorProfileForm } from '@/components/forms/ApplyForms';
 import { EnquiryForm } from '@/components/EnquiryForm';
 import { PageHero } from '@/components/PageHero';
 import { KnotRule, Triskele } from '@/components/Art';
@@ -11,7 +12,7 @@ export const metadata = { title: 'Sponsors — The Events Guy' };
 
 export const dynamic = 'force-dynamic';
 
-export default async function Sponsors({ searchParams }: { searchParams: Promise<{ sent?: string }> }) {
+export default async function Sponsors({ searchParams }: { searchParams: Promise<{ sent?: string; applied?: string; apply_error?: string }> }) {
   const sp = await searchParams;
   // From the portal: open opportunities (summary only here) and published sponsor profiles (public fields only).
   const opps = storeReady() ? (await allOpps().catch(() => [])).filter(o => o.status === 'published').sort((a, b) => (a.deadline ?? '9').localeCompare(b.deadline ?? '9')).slice(0, 6) : [];
@@ -52,7 +53,7 @@ export default async function Sponsors({ searchParams }: { searchParams: Promise
               <article key={o.id} className="dir-card"><h3><Link href={`/opportunities/${o.id}`}>{o.title}</Link></h3><p className="muted">{[o.eventName, o.when, o.city].filter(Boolean).join(' · ')}</p><p>{o.summary}</p></article>
             ))}</div>
           ) : <p className="muted">Organisers post sponsorship opportunities here. <Link href="/login?next=/portal/opportunities">Post yours</Link> — it’s free.</p>}
-          <p className="muted" style={{ marginTop: 12 }}>Budgets and contact routes are shown to signed-in sponsors and organisers. <Link href="/login?next=/portal/sponsor">Create a free sponsor profile</Link>.</p>
+          <p className="muted" style={{ marginTop: 12 }}>Budgets and contact routes are shown to signed-in sponsors and organisers. <Link href="#sponsor-profile">Request a free sponsor profile</Link>.</p>
         </section>
         {brands.length > 0 && (
           <section className="section">
@@ -63,6 +64,9 @@ export default async function Sponsors({ searchParams }: { searchParams: Promise
             ))}</div>
           </section>
         )}
+        <section className="section" id="sponsor-profile">
+          <SponsorProfileForm applied={sp.applied === '1'} error={sp.apply_error} />
+        </section>
         <section className="section">
           <h2 className="section-title">Our sponsors</h2>
           <div className="slots">

@@ -22,10 +22,10 @@ export default function Privacy() {
           <li><b>Membership:</b> your Stripe customer reference and when your membership is paid up to. Stripe holds your card details; we never see or store them.</li>
           <li><b>What you save:</b> your shortlist, saved searches and email settings.</li>
           <li><b>Profiles you publish:</b> if you’re a speaker, sponsor or organiser, what you put in your profile or opportunity, including any LinkedIn link, photo or portrait. These are public once approved. Admins may also list a speaker from their public LinkedIn profile (name, headline, company and photo); a photo is shown only once the speaker has agreed, and any speaker can ask us to change or remove their listing (sponsor budgets and contact details are only shown to organisers and sponsors).</li>
-          <li><b>Messages:</b> enquiries you send or receive through the site, and anything you send through the contact forms (Services, Sponsors and the awards finder, including your quiz answers). We keep these as a record so we can reply and follow up.</li>
+          <li><b>Messages:</b> enquiries you send or receive through the site, and anything you send through the contact forms (Services, Sponsors and the awards finder, including your quiz answers), and speaker or sponsor profile applications. Applying creates a free account for your email address with your profile waiting for our approval; sign in with that address to edit or delete it. We keep these as a record so we can reply and follow up.</li>
           <li><b>Roundup consent:</b> if you tick the box for our monthly roundup, when and where you agreed — and when you unsubscribe.</li>
           <li><b>Reports:</b> if you report content, what you report and why.</li>
-          <li><b>Technical data:</b> your IP address, used briefly to stop spam and abuse (for example, limiting sign-in requests), and the cookies listed on our <Link href="/cookies">cookies page</Link>.</li>
+          <li><b>Technical data:</b> your IP address, used briefly to stop spam and abuse (for example, limiting sign-in requests), and the cookies listed on our <Link href="/cookies">cookies page</Link>. The speaker and sponsor application forms use Google reCAPTCHA, which sends Google your IP address and details of your browser and how you use the form, to check you’re a person.</li>
         </ul>
         <p>We don’t use advertising trackers, and we don’t buy or sell personal data.</p>
 

@@ -1,3 +1,4 @@
+import { recaptchaReady } from '@/lib/recaptcha';
 import { TEMPLATES, SAMPLE_VARS, getTemplate, renderEvents, renderNotice, type TemplateKey } from '@/lib/templates';
 import { FORMS, formCopy, type FormKey } from '@/lib/forms';
 import { emailLog, emailReady } from '@/lib/email';
@@ -9,7 +10,7 @@ const TAGS: Record<string, string> = {
   login: 'Sign-in link', welcome: 'Membership confirmation', paymentFailed: 'Payment failed', renewing: 'Renewal reminder', cancelling: 'Cancellation',
   ended: 'Membership ended', refunded: 'Refund', ack_services: 'Services auto-reply', ack_sponsors: 'Sponsors auto-reply', ack_awards: 'Awards auto-reply',
   message: 'Portal message', reminder: 'Event reminder', digest: 'New events', 'team-alert': 'Team alert', 'alert-services': 'Team alert: Services',
-  'alert-sponsors': 'Team alert: Sponsors', 'alert-awards': 'Team alert: Awards',
+  'alert-sponsors': 'Team alert: Sponsors', 'alert-awards': 'Team alert: Awards', 'alert-speakerApply': 'Team alert: Speaker application', 'alert-sponsorProfile': 'Team alert: Sponsor profile', ack_speakerApply: 'Speaker application auto-reply', ack_sponsorProfile: 'Sponsor profile auto-reply',
 };
 const tagLabel = (t: string) => (t.startsWith('test:') ? `Test: ${TAGS[t.slice(5)] ?? t.slice(5)}` : TAGS[t] ?? t);
 
@@ -49,6 +50,7 @@ export async function EmailsAdmin({ sp, adminEmail }: { sp: Record<string, strin
           {domain && <li className={/verified/.test(domain) && !/isn’t|only go out/.test(domain) ? 'ok' : 'warn'}>{domain}</li>}
           <li className={process.env.ENQUIRIES_TO ? 'ok' : 'warn'}>{process.env.ENQUIRIES_TO ? 'Team alerts: an inbox is set (ENQUIRIES_TO). It’s never shown on the site.' : 'Team alerts: ENQUIRIES_TO isn’t set, so form alerts go to the public address.'}</li>
           <li className="ok">Replies from customers go to {publicEmail()} (PUBLIC_EMAIL).</li>
+          <li className={recaptchaReady() ? 'ok' : 'warn'}>{recaptchaReady() ? 'reCAPTCHA is protecting the speaker and sponsor application forms.' : 'reCAPTCHA isn’t set up: add NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY in Vercel. Until then the application forms rely on a hidden spam trap and rate limits.'}</li>
           <li className={failures.length ? 'bad' : 'ok'}>{failures.length ? `${failures.length} of the last ${log.length} emails failed. The most recent reason: ${failures[0].error}` : log.length ? `The last ${log.length} emails all went out.` : 'Nothing sent yet.'}</li>
         </ul>
         <p className="hint">Use <b>Send me a test</b> on any email below; it goes to your sign-in address ({adminEmail}).</p>

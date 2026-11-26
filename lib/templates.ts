@@ -7,7 +7,7 @@ import { noticeEmail, eventsEmail } from './email';
 
 export type TemplateKey =
   | 'login' | 'welcome' | 'paymentFailed' | 'renewing' | 'cancelling' | 'ended' | 'refunded'
-  | 'ack_services' | 'ack_sponsors' | 'ack_awards' | 'message' | 'reminder' | 'digest';
+  | 'ack_services' | 'ack_sponsors' | 'ack_awards' | 'ack_speakerApply' | 'ack_sponsorProfile' | 'message' | 'reminder' | 'digest';
 
 export type Template = {
   subject: string;
@@ -83,6 +83,18 @@ export const TEMPLATES: Record<TemplateKey, Def> = {
     button: 'See my shortlist', vars: { first_name: 'their first name' },
   },
 
+  ack_speakerApply: {
+    group: 'Forms', label: 'Speaker application: auto-reply', when: 'Someone applies to be listed as a speaker.',
+    subject: 'Thanks for applying to be listed', heading: 'Thanks for applying, {first_name}',
+    body: 'We’ve got your speaker application. We check every profile before it goes live, usually within a few working days, and we’ll email you when you’re listed.\n\nTo add a photo or change anything in the meantime, sign in with this email address: your profile is waiting in your account.',
+    button: 'Sign in to your profile', vars: { first_name: 'their first name' },
+  },
+  ack_sponsorProfile: {
+    group: 'Forms', label: 'Sponsor profile request: auto-reply', when: 'A brand asks for a sponsor profile.',
+    subject: 'Your sponsor profile request', heading: 'Thanks — we’ve got your sponsor profile',
+    body: 'Hi {first_name},\n\nThanks for asking to be listed as a sponsor. We check every profile before it goes live, usually within a few working days, and we’ll let you know when {company} appears on the Sponsors page.\n\nSign in with this email address any time to edit your profile or browse sponsorship opportunities, including budgets and contacts.',
+    button: 'Sign in to your profile', vars: { first_name: 'their first name', company: 'their company' },
+  },
   message: {
     group: 'Updates', label: 'New portal message', when: 'Someone gets a new enquiry or reply in their portal inbox.',
     subject: 'New message on The Events Guy: {subject}', heading: 'You have a new message',
@@ -138,5 +150,5 @@ export async function renderEvents(key: 'reminder' | 'digest', vars: Record<stri
 export const SAMPLE_VARS: Record<string, string> = {
   plan: 'quarterly', until: '17 February 2027', date: '17 February 2027', amount: '£45.00', first_name: 'Alex',
   access: 'Every event and award in the calendar quarter you joined is open in full now: venue, prices, booking links and speakers.',
-  subject: 'Headline sponsorship', first_event: 'Retail Expo', headline: 'Retail Expo is tomorrow', count: '3', s: 's',
+  subject: 'Headline sponsorship', company: 'Acme Retail', first_event: 'Retail Expo', headline: 'Retail Expo is tomorrow', count: '3', s: 's',
 };

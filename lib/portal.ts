@@ -149,3 +149,6 @@ export const hiddenSheetSpeakers = async () => new Set(await members('hidden-she
 export async function hideSheetSpeaker(id: string, hide: boolean) {
   if (hide) await addTo('hidden-sheet-speakers', id); else await removeFrom('hidden-sheet-speakers', id);
 }
+
+export const SECTOR_OPTIONS = ['Retail', 'Fashion & beauty', 'Food, drink & hospitality', 'Travel, leisure & gaming', 'B2B & wholesale', 'Financial services', 'Brands & DTC', 'Cross-sector'];
+export const OPEN_TO = ['Keynotes', 'Panels', 'Workshops', 'Judging awards', 'Podcasts & webinars', 'Hosting / MC'];

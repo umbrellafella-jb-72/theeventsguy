@@ -10,7 +10,7 @@ import { EventOptions, StatusBadge } from '@/components/portal/Bits';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'My speaker profile — The Events Guy' };
-const OPEN_TO = ['Keynotes', 'Panels', 'Workshops', 'Judging awards', 'Podcasts & webinars', 'Hosting / MC'];
+import { OPEN_TO } from '@/lib/portal';
 
 export default async function SpeakerEditor({ searchParams }: { searchParams: Promise<{ saved?: string; as?: string; li?: string; got?: string; why?: string; new?: string; photo?: string }> }) {
   const sp = await searchParams;

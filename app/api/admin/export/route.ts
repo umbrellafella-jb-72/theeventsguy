@@ -22,8 +22,8 @@ export async function GET(req: Request) {
   } else {
     const form = q.get('form') as LeadForm | null, status = q.get('status');
     const leads = (await allLeads()).filter(l => (!form || l.form === form) && (!status || l.status === status));
-    body = csv([['created', 'status', 'form', 'name', 'email', 'company', 'interest', 'message', 'quiz', 'shortlist', 'roundup_opt_in', 'notes', 'page'],
-      ...leads.map(l => [l.createdAt, l.status, FORM_LABELS[l.form], l.name, l.email, l.company, l.interest, l.message, l.details.quiz, l.details.shortlist, l.marketing ? 'yes' : 'no', l.notes, l.page])]);
+    body = csv([['created', 'status', 'form', 'name', 'email', 'company', 'interest', 'message', 'quiz', 'shortlist', 'other_details', 'roundup_opt_in', 'notes', 'page'],
+      ...leads.map(l => [l.createdAt, l.status, FORM_LABELS[l.form], l.name, l.email, l.company, l.interest, l.message, l.details.quiz, l.details.shortlist, Object.entries(l.details).filter(([k]) => k !== 'quiz' && k !== 'shortlist').map(([k, v]) => `${k}: ${v}`).join(' | '), l.marketing ? 'yes' : 'no', l.notes, l.page])]);
     name = `leads-${day}.csv`;
   }
   return new Response(`﻿${body}`, { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="${name}"`, 'Cache-Control': 'no-store' } });

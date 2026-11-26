@@ -20,7 +20,7 @@ export default function Cookies() {
           </table>
         </div>
         <h2>Strictly necessary cookies</h2>
-        <p>These keep your subscription working, so they don’t need your consent. We don’t use them to track you or for advertising.</p>
+        <p>These keep your subscription working and protect our forms from spam, so they don’t need your consent. We don’t use them to track you or for advertising. Google’s reCAPTCHA only loads when you start filling in the speaker or sponsor application form.</p>
         <h2>Analytics and marketing</h2>
         <p>We don’t use any analytics or marketing cookies yet. If we add them, they will stay off until you accept them, and this page will list each one.</p>
         <h2>Changing your mind</h2>

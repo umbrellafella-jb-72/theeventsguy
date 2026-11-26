@@ -877,3 +877,16 @@ h1, h2, h3, h4, p, li, dd, dt, td, th, a, .badge, label, summary { overflow-wrap
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Application forms (speakers, sponsor profiles) */
+.apply-form .req { color: var(--rowan); }
+.apply-form fieldset { border: 0; padding: 0; margin: 0; }
+.apply-form legend { font-weight: 600; margin-bottom: 6px; }
+.apply-done { padding: var(--space-6); border: 1px solid var(--line); background: var(--surface-raised); }
+.recaptcha-note { font-size: 13px; }
+/* reCAPTCHA v3 badge hidden: the form shows Google's notice instead, as Google allows. */
+.grecaptcha-badge { visibility: hidden; }
+.sp-apply { align-items: flex-start; }
+.sp-apply-body { flex: 1 1 auto; min-width: 0; }
+.sp-apply .enquiry { margin: 0; padding: 0; border: 0; background: none; max-width: none; }
+@media (max-width: 640px) { .sp-apply { text-align: left; align-items: stretch; } .sp-apply-guy { align-self: center; } }

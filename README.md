@@ -214,3 +214,7 @@ Set `DEMO_ACCOUNTS=true` in Vercel and redeploy, then open **/demo** (behind the
 ## Emails & forms (Admin)
 
 **Admin → Emails & forms** shows whether email is set up (Resend key, sender, domain verification), the last 200 send attempts with Resend's reason for any failure (team alerts are logged as "Team inbox", never the address), and lets admins edit the wording of every customer email (sign-in link, membership confirmation and lifecycle emails, form auto-replies, portal messages, reminders, new events) and of the forms (Services, Sponsors, Awards finder, the roundup opt-in). Edits are stored in Redis and override the defaults in `lib/templates.ts` and `lib/forms.ts`; "Reset to original" removes them. "Send me a test" sends any email to the signed-in admin.
+
+## Speaker and sponsor applications
+
+`/speakers#apply` and `/sponsors#sponsor-profile` have public forms (no sign-in). Each one is saved as a lead, creates the applicant's free account with a profile **waiting for approval** (Admin → Approvals), alerts `ENQUIRIES_TO` and sends an auto-reply. The applicant claims the profile by signing in with the same email. Spam protection: a hidden honeypot field, 5 per hour per IP, and Google reCAPTCHA v3 when `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY` are set. Google's script only loads once someone starts filling in a form. Wording is editable in Admin → Emails & forms.

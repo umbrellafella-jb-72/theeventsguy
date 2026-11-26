@@ -29,7 +29,8 @@ export function EventOptions({ id }: { id: string }) {
   return <datalist id={id}>{list.map(e => <option key={e.id} value={eventLabel(e)} />)}</datalist>;
 }
 
-export const SECTOR_OPTIONS = ['Retail', 'Fashion & beauty', 'Food, drink & hospitality', 'Travel, leisure & gaming', 'B2B & wholesale', 'Financial services', 'Brands & DTC', 'Cross-sector'];
+import { SECTOR_OPTIONS } from '@/lib/portal';
+export { SECTOR_OPTIONS };
 export function SectorChecks({ name, selected }: { name: string; selected: string[] }) {
   return <div className="check-grid">{SECTOR_OPTIONS.map(s => <label key={s} className="check"><input type="checkbox" name={name} value={s} defaultChecked={selected.includes(s)} /> {s}</label>)}</div>;
 }

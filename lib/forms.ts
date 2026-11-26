@@ -3,7 +3,7 @@
 import { del, getJSON, setJSON, storeReady } from './store';
 import { INTERESTS } from './offers';
 
-export type FormKey = 'services' | 'sponsors' | 'awards' | 'optin';
+export type FormKey = 'services' | 'sponsors' | 'awards' | 'speakerApply' | 'sponsorProfile' | 'optin';
 type Field = { label: string; long?: boolean; hint?: string };
 type Def = { label: string; where: string; fields: Record<string, Field>; defaults: Record<string, string> };
 
@@ -26,6 +26,20 @@ export const FORMS: Record<FormKey, Def> = {
     defaults: { heading: 'Want a hand with the entries?', intro: 'Send us your answers and we’ll tell you which of these to prioritise, what the judges look for and how to write an entry that gets shortlisted.',
       messageLabel: 'Anything we should know?', button: 'Send my answers', thanksHeading: 'Thanks — we have your answers',
       thanksText: 'We’ll come back by email, usually within a couple of working days, with the awards we’d go for and how to make the entries count.' } },
+  speakerApply: { label: 'Speakers: apply to be listed', where: '/speakers', fields: {
+      heading: { label: 'Heading' }, intro: { label: 'Intro', long: true }, button: { label: 'Button' },
+      thanksHeading: { label: 'Thank-you heading' }, thanksText: { label: 'Thank-you message', long: true } },
+    defaults: { heading: 'Speaking at an event in the guide? Apply to be listed',
+      intro: 'Tell us who you are and what you talk about. We check every profile before it goes live, and organisers can contact you without ever seeing your email address.',
+      button: 'Apply to be listed', thanksHeading: 'Thanks — your application is in',
+      thanksText: 'We’ll check it and email you when you’re listed, usually within a few working days. Sign in with the same email address to add a photo or make changes.' } },
+  sponsorProfile: { label: 'Sponsors: request a sponsor profile', where: '/sponsors', fields: {
+      heading: { label: 'Heading' }, intro: { label: 'Intro', long: true }, button: { label: 'Button' },
+      thanksHeading: { label: 'Thank-you heading' }, thanksText: { label: 'Thank-you message', long: true } },
+    defaults: { heading: 'Get your brand listed as a sponsor',
+      intro: 'A free sponsor profile puts your brand in front of organisers looking for partners, and shows you every sponsorship opportunity with budgets and contacts. We check every profile before it goes live.',
+      button: 'Request my sponsor profile', thanksHeading: 'Thanks — your sponsor profile request is in',
+      thanksText: 'We’ll check it and email you when it’s live, usually within a few working days. Sign in with the same email address to edit it or browse opportunities.' } },
   optin: { label: 'Roundup opt-in (on every form and sign-in)', where: 'all forms', fields: {
       label: { label: 'Tick-box wording on forms', long: true }, signin: { label: 'Tick-box wording on the sign-in page', long: true },
       privacy: { label: 'Privacy line under forms', long: true, hint: '“privacy policy” becomes a link.' } },

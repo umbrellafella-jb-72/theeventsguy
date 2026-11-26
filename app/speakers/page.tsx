@@ -1,3 +1,4 @@
+import { SpeakerApplyForm } from '@/components/forms/ApplyForms';
 import Link from 'next/link';
 import { PageHero } from '@/components/PageHero';
 import { GuyPortrait } from '@/components/Art';
@@ -29,7 +30,7 @@ const EXAMPLES: SpeakerView[] = [
 // The speakers portal. Curated: speakers come from the Speakers tab of the sheet (chosen by The
 // Events Guy, with Featured = Spotlight), plus profiles speakers publish themselves, which only
 // appear once an admin approves them.
-export default async function Speakers({ searchParams }: { searchParams: Promise<{ reported?: string }> }) {
+export default async function Speakers({ searchParams }: { searchParams: Promise<{ reported?: string; applied?: string; apply_error?: string }> }) {
   const sp = await searchParams;
   const viewer = await sessionUser();
   const paid = (await getAccess()).view;
@@ -72,12 +73,11 @@ export default async function Speakers({ searchParams }: { searchParams: Promise
         {example && <p className="note">These are example cards showing how the portal will look. Real speakers appear here as you add them to the Speakers tab of the sheet, or approve their profiles.</p>}
         <SpeakerDirectory speakers={list} example={example} extras={extras} />
 
-        <section className="sp-apply">
+        <section className="sp-apply" id="apply">
           <GuyPortrait size={140} className="sp-apply-guy" />
-          <div>
-            <h2>Speaking at an event in the guide?</h2>
-            <p>Create a free account, switch on the Speaker role and send us your profile: your specialities, a short bio, your LinkedIn and a photo. Every profile is reviewed before it’s listed, and organisers can send you enquiries without ever seeing your email.</p>
-            <Link className="btn btn-secondary btn-sm" href={viewer ? '/portal/speaker' : '/login?next=/portal/speaker'}>Apply to be listed</Link>
+          <div className="sp-apply-body">
+            <SpeakerApplyForm applied={sp.applied === '1'} error={sp.apply_error} />
+            {viewer && <p className="muted small">Already signed in? You can also <Link href="/portal/speaker">edit your speaker profile</Link> directly.</p>}
           </div>
         </section>
       </div>
