@@ -3,7 +3,7 @@ import { siteUrl } from '@/lib/stripe';
 import { clientIp, storeReady, tooMany } from '@/lib/store';
 import { createLead, FORM_LABELS, updateLead, type LeadForm } from '@/lib/leads';
 import { setMarketing } from '@/lib/marketing';
-import { sendEmail } from '@/lib/email';
+import { logBlocked, sendEmail } from '@/lib/email';
 import { renderNotice } from '@/lib/templates';
 import { enquiriesTo, publicEmail } from '@/lib/alerts';
 
@@ -21,7 +21,8 @@ export async function POST(req: Request) {
     : NextResponse.redirect(`${base}/${form}?sent=1#enquire`, 303);
   // Bots fill the hidden field; they get the normal thank-you but nothing is saved or sent.
   // People are limited to 5 enquiries an hour per IP address.
-  if (get('company_url') || await tooMany(`enquire:${clientIp(req)}`, 5, 3600)) return back;
+  if (get('eg_hp_check')) { await logBlocked(FORM_LABELS[form], get('email').toLowerCase(), 'the hidden anti-spam field was filled in'); return back; }
+  if (await tooMany(`enquire:${clientIp(req)}`, 5, 3600)) { await logBlocked(FORM_LABELS[form], get('email').toLowerCase(), 'more than 5 enquiries in an hour from one connection'); return back; }
   const email = get('email').toLowerCase();
   const ok = get('name') && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (form === 'awards' ? get('quiz') : get('message'));
   if (!ok) return NextResponse.redirect(`${base}${form === 'awards' ? awardsBack : `/${form}`}#enquire`, 303);

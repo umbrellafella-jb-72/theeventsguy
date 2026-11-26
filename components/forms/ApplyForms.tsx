@@ -13,7 +13,7 @@ const ERRORS: Record<string, string> = {
   captcha: 'We couldn’t confirm you’re not a bot. Please try again; if it keeps happening, email us instead.',
   busy: 'Too many applications from your connection in the last hour. Please try again later.',
 };
-const Honeypot = () => <div className="hp" aria-hidden="true"><label>Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label></div>;
+const Honeypot = () => <div className="hp" aria-hidden="true"><label>Leave this empty<input name="eg_hp_check" tabIndex={-1} autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" /></label></div>;
 const Req = () => <span className="req" aria-hidden="true"> *</span>;
 
 function Result({ applied, error, copy }: { applied?: boolean; error?: string; copy: Record<string, string> }) {

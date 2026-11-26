@@ -3,7 +3,7 @@ import { siteUrl } from '@/lib/stripe';
 import { clientIp, storeReady, tooMany } from '@/lib/store';
 import { createLead, FORM_LABELS, updateLead, type LeadForm } from '@/lib/leads';
 import { setMarketing } from '@/lib/marketing';
-import { sendEmail } from '@/lib/email';
+import { logBlocked, sendEmail } from '@/lib/email';
 import { renderNotice } from '@/lib/templates';
 import { enquiriesTo, publicEmail } from '@/lib/alerts';
 import { verifyRecaptcha } from '@/lib/recaptcha';
@@ -27,10 +27,12 @@ export async function POST(req: Request) {
   const done = NextResponse.redirect(`${base}${page}?applied=1${anchor}`, 303);
   const fail = (why: string) => NextResponse.redirect(`${base}${page}?apply_error=${why}${anchor}`, 303);
 
-  if (get('company_url')) return done; // a bot filled the hidden field: looks like success, nothing saved
-  if (await tooMany(`apply:${clientIp(req)}`, 5, 3600)) return fail('busy');
+  const who = get('email', 200).toLowerCase();
+  // A bot filled the hidden field: looks like success, nothing saved (logged for Admin).
+  if (get('eg_hp_check')) { await logBlocked(FORM_LABELS[form], who, 'the hidden anti-spam field was filled in'); return done; }
+  if (await tooMany(`apply:${clientIp(req)}`, 5, 3600)) { await logBlocked(FORM_LABELS[form], who, 'too many applications from one connection'); return fail('busy'); }
   const captcha = await verifyRecaptcha(get('captcha'), isSponsor ? 'sponsor_profile' : 'speaker_apply', clientIp(req));
-  if (!captcha.ok) { console.warn('[apply] reCAPTCHA refused', captcha); return fail('captcha'); }
+  if (!captcha.ok) { await logBlocked(FORM_LABELS[form], who, `reCAPTCHA: ${captcha.reason ?? 'refused'}${captcha.score !== undefined ? ` (score ${captcha.score})` : ''}`); return fail('captcha'); }
 
   const email = get('email', 200).toLowerCase();
   const name = get('name', 120);

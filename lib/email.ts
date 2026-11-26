@@ -12,6 +12,12 @@ async function logSend(e: Omit<EmailLog, 'at'>) {
     await pipeline([['LPUSH', 'emaillog', JSON.stringify({ at: new Date().toISOString(), ...e })], ['LTRIM', 'emaillog', 0, 199]]);
   } catch { /* logging never blocks an email */ }
 }
+/** Record a form submission that was stopped before any email went out (spam checks), so it
+ *  shows in Admin → Emails & forms → Recent emails alongside real sends. */
+export async function logBlocked(form: string, who: string, reason: string) {
+  console.warn(`[forms] ${form} blocked: ${reason}`);
+  await logSend({ tag: `blocked-${form}`, to: who || 'unknown', subject: `${form} form not sent`, ok: false, error: `Blocked before sending: ${reason}` });
+}
 export async function emailLog(): Promise<EmailLog[]> {
   const { redis, storeReady } = await import('./store');
   if (!storeReady()) return [];

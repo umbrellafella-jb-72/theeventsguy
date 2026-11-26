@@ -84,7 +84,7 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
                 <div><h2 id="enq-title">{copy.thanksHeading}</h2><p className="muted">{copy.thanksText}</p></div>
               ) : (
                 <form action="/api/enquire" method="post" className="enquiry">
-                  <div className="hp" aria-hidden="true"><label>Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label></div>
+                  <div className="hp" aria-hidden="true"><label>Leave this empty<input name="eg_hp_check" tabIndex={-1} autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" /></label></div>
                   <h2 id="enq-title">{copy.heading}</h2>
                   {copy.intro && <p className="muted">{copy.intro}</p>}
                   <input type="hidden" name="from" value="awards" />

@@ -9,7 +9,7 @@ export async function EnquiryForm({ interest, sent, from }: { interest?: string;
   if (interest && !options.includes(interest)) options.unshift(interest);
   return (
     <form className="enquiry" action="/api/enquire" method="post">
-      <div className="hp" aria-hidden="true"><label>Leave this empty<input name="company_url" tabIndex={-1} autoComplete="off" /></label></div>
+      <div className="hp" aria-hidden="true"><label>Leave this empty<input name="eg_hp_check" tabIndex={-1} autoComplete="off" data-1p-ignore data-lpignore="true" data-form-type="other" /></label></div>
       <h2>{c.heading}</h2>
       {c.intro && <p className="muted">{c.intro}</p>}
       <input type="hidden" name="from" value={from} />
