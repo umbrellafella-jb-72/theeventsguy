@@ -65,7 +65,7 @@ export default async function Speakers({ searchParams }: { searchParams: Promise
     <>
       <PageHero eyebrow="Speakers portal" scene="bridge" title="The speakers worth booking"
         intro="A curated list of the people on stage at UK and European ecommerce events: what they specialise in, where they’re speaking next, and their LinkedIn profile.">
-        <Link className="btn btn-primary" href={viewer ? '/portal/speaker' : '/login?next=/portal/speaker'}>Apply to be listed</Link>
+        <a className="btn btn-primary" href="#apply">Apply to be listed</a>
         {canEnquire ? <Link className="btn btn-secondary" href="/portal/directory">Organiser directory</Link> : null}
       </PageHero>
       <div className="wrap section">

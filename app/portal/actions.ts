@@ -17,6 +17,17 @@ import { fetchLinkedIn, normaliseLinkedIn, type LinkedInPreview } from '@/lib/li
 import { deletePhoto, hasPhoto, isStoredPhoto, photoPath, restylePhoto, storePhoto, storePhotoFromUrl, type PhotoStyle } from '@/lib/photos';
 import { MANAGED_SPEAKER_DOMAIN, speakerByLinkedIn } from '@/lib/portal';
 import { ensureUser } from '@/lib/users';
+import { enquiriesTo, teamAlert } from '@/lib/alerts';
+
+/** Tell the team something is waiting for approval (at most once an hour per item, so a run of
+ *  saves doesn't flood the inbox). Never blocks the save. */
+async function approvalAlert(key: string, what: string, lines: (string | false | null | undefined)[]) {
+  try {
+    if (await tooMany(`approval-alert:${key}`, 1, 3600)) return;
+    const base = siteUrl();
+    await teamAlert(enquiriesTo(), `Waiting for approval: ${what}`, [...lines, '', `Review and approve: ${base}/admin?tab=queue`]);
+  } catch (e) { console.error('[portal] approval alert failed', e); }
+}
 
 const str = (f: FormData, k: string, max = 2000) => String(f.get(k) ?? '').trim().slice(0, max);
 async function me(next = '/account'): Promise<User> {
@@ -39,7 +50,8 @@ export async function toggleRole(f: FormData) {
   if (!SELF.includes(role)) redirect('/account');
   const roles = u.roles.includes(role) ? u.roles.filter(r => r !== role) : [...u.roles, role];
   await saveUser({ ...u, roles });
-  redirect(`/account?role=${role}`);
+  const next = safePath(str(f, 'next', 200));
+  redirect(next !== '/' && roles.includes(role) ? next : `/account?role=${role}`);
 }
 
 // ---------- Profiles ----------
@@ -89,7 +101,11 @@ export async function saveSpeakerProfile(f: FormData) {
     status: isAdmin && ['published', 'hidden', 'pending'].includes(str(f, 'visibility', 20)) ? str(f, 'visibility', 20) as SpeakerProfile['status'] : prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
   };
   // Admin edits keep the current status (or publish it); an owner's edit goes back for approval.
-  await saveSpeaker(p, t.id === u.id && !isAdmin);
+  const saved = await saveSpeaker(p, t.id === u.id && !isAdmin);
+  if (saved.status === 'pending' && !isAdmin) await approvalAlert(`speaker:${t.id}`, `speaker profile — ${saved.name}`, [
+    `${saved.name}${saved.headline ? `, ${saved.headline}` : ''}${saved.company ? ` at ${saved.company}` : ''} ${prev ? 'updated their' : 'created a'} speaker profile.`,
+    `Email: ${t.email}`, saved.linkedin && `LinkedIn: ${saved.linkedin}`, saved.topics.length > 0 && `Topics: ${saved.topics.join(', ')}`,
+    `Edit the profile (Fill from LinkedIn, photo): ${siteUrl()}/portal/speaker?as=${t.id}`]);
   if (filled) {
     const got = (['name', 'headline', 'company', 'about', 'photo'] as const).filter(k => filled![k]);
     redirect(back(filled.ok ? `li=ok&got=${got.join(',')}` : `li=none&why=${encodeURIComponent(filled.reason ?? '')}`));
@@ -133,7 +149,9 @@ export async function saveSponsorProfile(f: FormData) {
     budget: str(f, 'budget', 120) || null, contactName: str(f, 'contactName', 120) || null,
     status: prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
   };
-  await saveSponsor(p, t.id === u.id && !can(u, 'content.moderate'));
+  const savedSp = await saveSponsor(p, t.id === u.id && !can(u, 'content.moderate'));
+  if (savedSp.status === 'pending' && !can(u, 'content.moderate')) await approvalAlert(`sponsor:${t.id}`, `sponsor profile — ${savedSp.company}`, [
+    `${savedSp.company} ${prev ? 'updated their' : 'created a'} sponsor profile.`, `Email: ${t.email}`, savedSp.contactName && `Contact: ${savedSp.contactName}`, savedSp.website && `Website: ${savedSp.website}`]);
   redirect(t.id === u.id ? '/portal/sponsor?saved=1' : `/portal/sponsor?as=${t.id}&saved=1`);
 }
 
@@ -152,7 +170,9 @@ export async function saveOpportunity(f: FormData) {
     deadline: str(f, 'deadline', 20) || null, audience: str(f, 'audience', 300) || null, sectors: f.getAll('sectors').map(String).slice(0, 8),
     status: prev?.status ?? 'pending', createdAt: prev?.createdAt ?? new Date().toISOString(), updatedAt: '',
   };
-  await saveOpp(o, !admin);
+  const savedOpp = await saveOpp(o, !admin);
+  if ((savedOpp as Opportunity | undefined)?.status === 'pending' && !admin) await approvalAlert(`opp:${o.id}`, `sponsorship opportunity — ${o.title}`, [
+    `${u.email} ${prev ? 'updated' : 'posted'} "${o.title}"${o.eventName ? ` for ${o.eventName}` : ''}.`, o.budget && `Budget: ${o.budget}`]);
   redirect(`/portal/opportunities?saved=${o.id}`);
 }
 

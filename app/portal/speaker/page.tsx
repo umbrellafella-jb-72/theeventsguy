@@ -11,12 +11,13 @@ import { EventOptions, StatusBadge } from '@/components/portal/Bits';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'My speaker profile — The Events Guy' };
 import { OPEN_TO } from '@/lib/portal';
+import { toggleRole } from '@/app/portal/actions';
 
 export default async function SpeakerEditor({ searchParams }: { searchParams: Promise<{ saved?: string; as?: string; li?: string; got?: string; why?: string; new?: string; photo?: string }> }) {
   const sp = await searchParams;
   const { me, t } = await pageUser('/portal/speaker', sp.as);
   if (!can(t, 'speakerProfile.publish') && !can(me, 'content.moderate')) {
-    return <div className="wrap section"><h1 className="page-title">Speaker profile</h1><div className="lock-panel"><h2>Add the Speaker role first</h2><p>Speaker profiles are free. Switch on the Speaker role in your account, then come back here.</p><Link className="btn btn-primary" href="/account#roles">Go to my roles</Link></div></div>;
+    return <div className="wrap section"><h1 className="page-title">Speaker profile</h1><div className="lock-panel"><h2>Create your speaker profile</h2><p>Speaker profiles are free. This adds the Speaker role to your account and opens your profile.</p><form action={toggleRole}><input type="hidden" name="role" value="speaker" /><input type="hidden" name="next" value="/portal/speaker" /><button className="btn btn-primary" type="submit">Start my speaker profile</button></form></div></div>;
   }
   const p = await getSpeaker(t.id);
   const admin = can(me, 'content.moderate');

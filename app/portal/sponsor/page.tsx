@@ -4,6 +4,7 @@ import { can } from '@/lib/permissions';
 import { getSponsor } from '@/lib/portal';
 import { saveSponsorProfile } from '../actions';
 import { SectorChecks, StatusBadge } from '@/components/portal/Bits';
+import { toggleRole } from '@/app/portal/actions';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'My sponsor profile — The Events Guy' };
@@ -12,7 +13,7 @@ export default async function SponsorEditor({ searchParams }: { searchParams: Pr
   const sp = await searchParams;
   const { me, t } = await pageUser('/portal/sponsor', sp.as);
   if (!can(t, 'sponsorProfile.publish') && !can(me, 'content.moderate')) {
-    return <div className="wrap section"><h1 className="page-title">Sponsor profile</h1><div className="lock-panel"><h2>Add the Sponsor role first</h2><p>Sponsor profiles are free. Switch on the Sponsor role in your account, then come back here.</p><Link className="btn btn-primary" href="/account#roles">Go to my roles</Link></div></div>;
+    return <div className="wrap section"><h1 className="page-title">Sponsor profile</h1><div className="lock-panel"><h2>Create your sponsor profile</h2><p>Sponsor profiles are free. This adds the Sponsor role to your account and opens your profile.</p><form action={toggleRole}><input type="hidden" name="role" value="sponsor" /><input type="hidden" name="next" value="/portal/sponsor" /><button className="btn btn-primary" type="submit">Start my sponsor profile</button></form></div></div>;
   }
   const p = await getSponsor(t.id);
   return (
