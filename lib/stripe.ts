@@ -1,6 +1,6 @@
 // Minimal Stripe REST client (no SDK). API version pinned so `current_period_end`
 // stays on the subscription object.
-const API = 'https://api.stripe.com/v1';
+const API = process.env.STRIPE_API_BASE || 'https://api.stripe.com/v1'; // override for local tests only
 const VERSION = '2024-06-20';
 
 function key() {

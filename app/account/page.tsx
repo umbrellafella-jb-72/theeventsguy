@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { getSubscriber } from '@/lib/marketing';
 import { getAccess, longToken } from '@/lib/access';
-import { sessionUser, isMember } from '@/lib/users';
+import { sessionUser } from '@/lib/users';
+import { refreshMembership } from '@/lib/membership';
 import { storeReady } from '@/lib/store';
 import { emailReady } from '@/lib/email';
 import { siteUrl } from '@/lib/stripe';
@@ -21,8 +22,11 @@ const NEED: Record<string, string> = {
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ saved?: string; unsubscribed?: string; role?: string; need?: string; welcome?: string; demoBilling?: string }> }) {
   const sp = await searchParams;
+  let u = await sessionUser();
+  // Check Stripe each visit for anyone with a membership on record, so this page never shows one
+  // Stripe no longer has (a cancelled or test-mode subscription, say).
+  if (u && (u.customer || u.paidUntil)) u = await refreshMembership(u);
   const a = await getAccess();
-  const u = await sessionUser();
 
   if (!u) {
     // Accounts not switched on yet: members still get billing from here.
@@ -37,11 +41,11 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
   }  const roundup = storeReady() ? await getSubscriber(u.email).catch(() => null) : null;
 
 
-  const member = isMember(u) || a.paid;
+  const member = a.paid;
   const [spk, spn, msgs] = await Promise.all([getSpeaker(u.id), getSponsor(u.id), inbox(u.id)]);
   const unread = msgs.filter(m => m.unreadBy.includes(u.id)).length;
   const feed = member ? `${siteUrl()}/api/calendar/${longToken(u.id, 'feed')}` : null;
-  const renews = u.paidUntil ? new Date(u.paidUntil * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+  const renews = a.paidUntil ? new Date(a.paidUntil * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
 
   return (
     <div className="wrap section account">
