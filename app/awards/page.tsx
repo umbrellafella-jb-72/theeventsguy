@@ -5,7 +5,7 @@ import { KnotRule } from '@/components/Art';
 import AwardsGuide from '@/components/AwardsGuide';
 import type { AwardView } from '@/components/AwardCard';
 import { getAccess } from '@/lib/access';
-import { RELEASE_DAYS, awards, currentMonthKey, fullFor, judgesFor, monthLabel, taxonomy, todayKey } from '@/lib/data';
+import { YEARLY_MONTHS, awards, currentMonthKey, fullFor, judgesFor, monthLabel, taxonomy, todayKey } from '@/lib/data';
 import { entryInfo, ENTRY_STEPS, JUDGE_TIPS } from '@/lib/awards';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +18,7 @@ export default async function AwardsPage() {
   const all: AwardView[] = awards.filter(a => !isPast(a)).map(a => ({ ...a, entry: entryInfo(a.entryDeadline, today), judgeList: judgesFor(a) }));
 
   // Free visitors see this month's ceremonies (and featured awards). Members see, in full, every
-  // award whose entry deadline or ceremony is in the next RELEASE_DAYS days; the rest are released
+  // award whose entry deadline or ceremony is in the next YEARLY_MONTHS months; the rest are released
   // as they come into range, so the whole year can't be copied out at once.
   const preview = currentMonthKey();
   const visible = all.filter(a => fullFor(a, access.view));
@@ -67,16 +67,16 @@ export default async function AwardsPage() {
 
         <section className="section">
           <div className="section-head">
-            <h2>{access.quarter ? `Awards in ${quarterLabel(access.quarter)}` : access.paid ? `Awards in the next ${RELEASE_DAYS} days` : `Ceremonies in ${monthLabel(preview)}`}</h2>
-            <span className="muted">{access.quarter ? 'Deadline or ceremony in your membership quarter' : access.paid ? `Deadline or ceremony within ${RELEASE_DAYS} days — more are released every day` : `Free preview — subscribers see each award ${RELEASE_DAYS} days ahead`}</span>
+            <h2>{access.quarter ? `Awards in ${quarterLabel(access.quarter)}` : access.paid ? `Awards in the next ${YEARLY_MONTHS} months` : `Ceremonies in ${monthLabel(preview)}`}</h2>
+            <span className="muted">{access.quarter ? 'Deadline or ceremony in your membership quarter' : access.paid ? `Deadline or ceremony in this month or the next five — more open each month` : `Free preview — yearly members see each award ${YEARLY_MONTHS} months ahead`}</span>
           </div>
           <AwardsGuide awards={visible} areas={areas} topics={topics} />
           {access.paid ? (
-            all.length > visible.length && <p className="note" style={{ marginTop: 24 }}>{all.length - visible.length} more awards {access.quarter ? 'fall outside your membership quarter.' : `are released to you as their entry deadline or ceremony comes within ${RELEASE_DAYS} days.`} Each one’s name and date is in <Link href="/guide">the guide</Link>.</p>
+            all.length > visible.length && <p className="note" style={{ marginTop: 24 }}>{all.length - visible.length} more awards {access.quarter ? 'fall outside your membership quarter.' : `open to you as their entry deadline or ceremony comes within ${YEARLY_MONTHS} months.`} Each one’s name and date is in <Link href="/guide">the guide</Link>.</p>
           ) : (
             <div className="lock-panel" style={{ marginTop: 24 }}>
               <h2>{all.length - visible.length} more awards</h2>
-              <p>{open.length} have an entry deadline ahead and {closing30} close in the next 30 days. Members see each award’s deadlines, judges, fees and entry links {RELEASE_DAYS} days ahead.</p>
+              <p>{open.length} have an entry deadline ahead and {closing30} close in the next 30 days. Members see each award’s deadlines, judges, fees and entry links: yearly members {YEARLY_MONTHS} months ahead.</p>
               {access.paymentsReady
                 ? <Link className="btn btn-primary" href="/#pricing">See membership plans</Link>
                 : <p className="note">Payments aren’t switched on yet for this deployment.</p>}

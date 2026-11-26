@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
-import { AHEAD_MONTHS, RELEASE_DAYS, eventById, fullFor, listsOn, openToAll, visibleTo, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
+import { AHEAD_MONTHS, YEARLY_MONTHS, eventById, fullFor, listsOn, openToAll, visibleTo, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
 import { eventDates } from '@/lib/calendar';
 import { EventActions } from '@/components/EventActions';
 import { PrintButton } from '@/components/PrintButton';
@@ -44,10 +44,10 @@ export default async function EventPage({ params, searchParams }: Props) {
         <div className="lock-panel ev-page-lock">
           {signedIn || access.paid ? <>
             <h1>This event isn’t listed yet</h1>
-            <p>Your guide lists this month and the next {AHEAD_MONTHS} months{from ? <>, so this one appears from <b>{releaseLabel(from)}</b></> : '. This one appears once its date is confirmed'}. Members get the full details {RELEASE_DAYS} days ahead.</p>
+            <p>Your guide lists this month and the next {AHEAD_MONTHS} months{from ? <>, so this one appears from <b>{releaseLabel(from)}</b></> : '. This one appears once its date is confirmed'}. Yearly members see {YEARLY_MONTHS} months ahead in full.</p>
           </> : <>
             <h1>Register free to see this event</h1>
-            <p>Visitors see this month’s events. A free account lists the next {AHEAD_MONTHS} months as well, and members get the full details {RELEASE_DAYS} days ahead.</p>
+            <p>Visitors see this month’s events. A free account lists the next {AHEAD_MONTHS} months as well, quarterly members get their quarter in full and yearly members a rolling {YEARLY_MONTHS} months.</p>
           </>}
           <div className="lock-actions">
             {!signedIn && !access.paid && <Link className="btn btn-primary" href={`/login?next=${encodeURIComponent(`/events/${e.id}`)}`}>Register free</Link>}
@@ -141,13 +141,13 @@ export default async function EventPage({ params, searchParams }: Props) {
             access.paid && access.quarter ? (
             <div className="lock-panel ev-page-lock">
               <h2>Outside your membership quarter</h2>
-              <p>Your quarterly membership opens every event in <b>{quarterLabel(access.quarter)}</b> in full. This one falls outside it, so you see the listing only. Switch to the yearly plan for the rolling {RELEASE_DAYS}-day release across the whole year.</p>
+              <p>Your quarterly membership opens every event in <b>{quarterLabel(access.quarter)}</b> in full. This one falls outside it, so you see the listing only. Switch to the yearly plan for a rolling {YEARLY_MONTHS} months in full, all year.</p>
               <div className="ev-actions" style={{ marginTop: 16 }}><EventActions e={teaser(e, access.view)} paid full={false} canSave /></div>
             </div>
             ) : access.paid ? (
             <div className="lock-panel ev-page-lock">
               <h2>{opens ? `Full details released ${releaseLabel(opens)}` : 'Full details released once the date is set'}</h2>
-              <p>Members get each event’s venue, prices, booking link, speakers and sponsors {RELEASE_DAYS} days before it starts{opens ? '' : ' — this one doesn’t have a confirmed date yet'}. Save it now and it’ll fill in on your shortlist and calendar feed automatically.</p>
+              <p>Yearly members get each event’s venue, prices, booking link, speakers and sponsors from {YEARLY_MONTHS} months ahead{opens ? '' : ' — this one doesn’t have a confirmed date yet'}. Save it now and it’ll fill in on your shortlist and calendar feed automatically.</p>
               <div className="ev-actions" style={{ marginTop: 16 }}><EventActions e={teaser(e, true)} paid full={false} canSave /></div>
             </div>
             ) : (

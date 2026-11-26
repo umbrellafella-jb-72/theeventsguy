@@ -1,5 +1,5 @@
 'use client';
-import { RELEASE_DAYS, releaseLabel } from '@/lib/release';
+import { YEARLY_MONTHS, releaseLabel } from '@/lib/release';
 
 import type { EventItem } from '@/lib/data';
 import { BRAND, eventDates, googleUrl, office365Url, outlookUrl } from '@/lib/calendar';
@@ -38,7 +38,7 @@ export function EventActions({ e, paid, full, compact, canSave = paid }: { e: Ev
       ) : paid && e.locked ? (
         e.outside
           ? <span className="btn btn-ghost btn-sm is-disabled" aria-disabled="true" title="Calendar links are for events in your membership quarter">Not in your quarter</span>
-          : <span className="btn btn-ghost btn-sm is-disabled" aria-disabled="true" title={`Full details and calendar links are released ${RELEASE_DAYS} days ahead`}>{e.opensOn ? `Calendar from ${releaseLabel(e.opensOn)}` : 'Calendar once dated'}</span>
+          : <span className="btn btn-ghost btn-sm is-disabled" aria-disabled="true" title={`Full details and calendar links open ${YEARLY_MONTHS} months ahead`}>{e.opensOn ? `Calendar from ${releaseLabel(e.opensOn)}` : 'Calendar once dated'}</span>
       ) : !full || e.locked ? (
         <a className="btn btn-secondary btn-sm" href="/#pricing" title="Members can add any event to Google, Outlook or Apple Calendar">Add to calendar<span className="sr-only"> — members only</span></a>
       ) : (

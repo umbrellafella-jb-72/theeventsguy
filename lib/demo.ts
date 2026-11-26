@@ -40,7 +40,7 @@ export const PERSONAS: Persona[] = [
     tryThis: ['Every event in this quarter open in full', 'Outside the quarter: listings only, like a free account', 'Calendar sync and reminders', '“Manage billing” is disabled for demo members'] },
   { key: 'yearly', label: 'Member (yearly)', name: 'Yan Yearly', roles: [], plan: 'yearly', start: '/guide',
     blurb: 'Yearly member on the rolling release.',
-    tryThis: ['Full details from 30 days out', 'Listings 3 months out', 'Not limited to a quarter'] },
+    tryThis: ['A rolling 6 months in full', 'Nothing further out shown', 'Not limited to a quarter'] },
   { key: 'lapsed', label: 'Lapsed member', name: 'Lee Lapsed', roles: [], plan: 'lapsed', start: '/account',
     blurb: 'Membership ended 10 days ago.',
     tryThis: ['Back to free-account views', 'Renewal prompts', 'Shortlist kept'] },

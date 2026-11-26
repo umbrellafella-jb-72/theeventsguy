@@ -57,7 +57,7 @@ export const MAILS = {
     plan: plan ?? 'membership', until: day(until),
     access: plan === 'quarterly'
       ? 'Every event and award in the calendar quarter you joined is open in full now: venue, prices, booking links and speakers. Save events to your shortlist and they’ll go straight into your calendar.'
-      : 'Every event is listed three months ahead, with venue, prices, booking links and speakers from 30 days. Save events to your shortlist and they’ll go straight into your calendar.',
+      : 'Every event in this month and the next five is open in full: venue, prices, booking links and speakers, moving on a month at a time. Save events to your shortlist and they’ll go straight into your calendar.',
   } }),
   paymentFailed: (base: string, amount: string): Mail => ({ key: 'paymentFailed', url: `${base}/account#membership`, vars: { amount } }),
   renewing: (base: string, amount: string, on: number): Mail => ({ key: 'renewing', url: `${base}/account#membership`, vars: { amount, date: day(on) } }),

@@ -38,7 +38,7 @@ export default function DataProcessing() {
         <ul>
           <li>Everything is sent over HTTPS, and our providers encrypt data at rest.</li>
           <li>Sign-in is by single-use emailed link, so there are no passwords to leak. Sign-in cookies are signed so they can’t be forged.</li>
-          <li>Event details for members are only sent to members, and only as each event comes within 30 days.</li>
+          <li>Event details for members are only sent to members, and only for the months their plan covers (a quarter, or a rolling 6 months).</li>
           <li>Enquiries go through the site, so your email address isn’t shared with the person you’re talking to.</li>
           <li>Only admins can see account lists, and every published profile is reviewed first.</li>
         </ul>

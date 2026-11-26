@@ -66,7 +66,7 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
                           <p className="finder-why"><b>Why it fits:</b> {m.reasons.join(' · ') || 'Broad categories that suit you'}</p>
                           {full
                             ? <p className="finder-entry">{entry.label}{m.e.entryUrl ? <> · <a href={m.e.entryUrl} target="_blank" rel="noopener noreferrer">How to enter<span className="sr-only"> (opens in a new tab)</span></a></> : null}</p>
-                            : <p className="finder-entry muted">{m.entryOpen ? 'Entries open' : 'Entry dates to come'} — {access.paid ? 'deadline, fees and judges are released 30 days ahead' : <>members see the deadline, fees and judges. <Link href="/#pricing">Join</Link></>}</p>}
+                            : <p className="finder-entry muted">{m.entryOpen ? 'Entries open' : 'Entry dates to come'} — {access.paid ? 'deadline, fees and judges open 6 months ahead on the yearly plan' : <>members see the deadline, fees and judges. <Link href="/#pricing">Join</Link></>}</p>}
                         </div>
                       </li>
                     );

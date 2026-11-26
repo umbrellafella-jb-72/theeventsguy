@@ -1,5 +1,5 @@
 'use client';
-import { AHEAD_MONTHS, RELEASE_DAYS, aheadLabel, listUntil, releaseLabel } from '@/lib/release';
+import { AHEAD_MONTHS, YEARLY_MONTHS, aheadLabel, listUntil, releaseLabel, yearlyUntil } from '@/lib/release';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EventItem, Taxonomy } from '@/lib/data';
@@ -69,7 +69,8 @@ export default function Guide(props: {
     strip.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
   }, [month]);
 
-  const lastKey = listUntil(today).slice(0, 7);
+  const yearlyLast = (() => { const [y, m] = yearlyUntil(today).split('-'); return `${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Number(m) - 1]} ${y}`; })();
+  const lastKey = (paid && !props.quarter ? yearlyUntil(today) : listUntil(today)).slice(0, 7);
   const isPast = (e: EventItem) => e.months.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(e.sortKey) && e.months.length === 1 && e.sortKey < today;
 
   // Every filter except `skip`, so chip counts show what you'd get by adding that chip.
@@ -226,7 +227,7 @@ export default function Guide(props: {
                 <p className="note member-note"><span>Your quarterly membership covers <b>{props.quarter}</b>: every event and award in it is open in full. Other months up to {aheadLabel(today).split(' – ')[1]} show as listings only, like a free account.</span></p>
               )}
               {paid && !props.quarter && (
-                <p className="note member-note"><span>Events are listed {AHEAD_MONTHS} months ahead and open in full {RELEASE_DAYS} days before they start (for awards, before the entry deadline or ceremony). Save one now and it fills in on your shortlist and calendar feed when it opens.</span></p>
+                <p className="note member-note"><span>Your yearly membership opens <b>{aheadLabel(today).split(' – ')[0]} – {yearlyLast}</b> in full, and moves on a month at a time (awards go by their entry deadline or ceremony). Save anything you see to your shortlist and calendar feed.</span></p>
               )}
               {props.visitorLocked && month !== previewMonth ? (
                 <div className="lock-panel register-panel">
@@ -246,7 +247,7 @@ export default function Guide(props: {
                   <h2>{summary.key === 'tbc' ? 'Dates to be confirmed' : summary.label}: {summary.count} event{summary.count === 1 ? '' : 's'}</h2>
                   <p>{summary.key === 'tbc' || !summary.listsOn
                     ? 'Events without a confirmed date are listed once the date is set.'
-                    : <>Events are listed {AHEAD_MONTHS} months ahead, so this month’s appear on <b>{releaseLabel(summary.listsOn)}</b>{paid && !props.quarter ? `, with full details from ${RELEASE_DAYS} days before each one` : ''}.</>}</p>
+                    : <>{paid && !props.quarter ? `Your plan opens ${YEARLY_MONTHS} months ahead` : `Events are listed ${AHEAD_MONTHS} months ahead`}, so this month’s appear on <b>{releaseLabel(summary.listsOn)}</b>.</>}</p>
                 </div>
               ) : totalShown === 0 && <div className="empty">No events match these filters. <button className="btn btn-ghost btn-sm" onClick={clearAll}>Clear filters</button></div>}
               {(() => {
@@ -270,7 +271,7 @@ export default function Guide(props: {
                   <button className="btn btn-secondary" onClick={() => setExpanded(true)}>Show all {totalShown} events</button>
                 </div>
               )}
-              {expanded && month === 'all' && !props.visitorLocked && <p className="muted snapshot-note">Later months appear here {AHEAD_MONTHS} months ahead.</p>}
+              {expanded && month === 'all' && !props.visitorLocked && <p className="muted snapshot-note">Later months appear here {paid && !props.quarter ? YEARLY_MONTHS : AHEAD_MONTHS} months ahead.</p>}
               </>}
             </>
           )}

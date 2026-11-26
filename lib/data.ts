@@ -1,8 +1,8 @@
 import dataset from '@/data/events.json';
 import overrides from '@/data/overrides.json';
 import { entryInfo } from './awards';
-import { AHEAD_MONTHS, RELEASE_DAYS, aheadLabel, listUntil, listsFrom, releaseLabel } from './release';
-export { AHEAD_MONTHS, RELEASE_DAYS, aheadLabel, releaseLabel };
+import { AHEAD_MONTHS, YEARLY_MONTHS, aheadLabel, listUntil, listsFrom, releaseLabel, yearlyFrom, yearlyUntil } from './release';
+export { AHEAD_MONTHS, YEARLY_MONTHS, aheadLabel, releaseLabel };
 
 export type EventItem = {
   id: string;
@@ -145,7 +145,7 @@ export function quarterSummaries() {
 }
 
 /** Per-month summary, safe to show to anyone: counts only, no event details. */
-export function monthSummaries() {
+export function monthSummaries(yearly = false) {
   return monthKeys().map(key => {
     const list = eventsIn(key);
     const formats: Record<string, number> = {};
@@ -160,7 +160,7 @@ export function monthSummaries() {
       awards: list.filter(e => e.format === 'Awards').length,
       formats: Object.entries(formats).sort((a, b) => b[1] - a[1]),
       // When this month's events start appearing for signed-in viewers: AHEAD_MONTHS months before.
-      listsOn: key === TBC ? null : listsFrom(`${key}-01`),
+      listsOn: key === TBC ? null : yearly ? yearlyFrom(`${key}-01`) : listsFrom(`${key}-01`),
     };
   });
 }
@@ -192,23 +192,22 @@ export function openToAll(e: EventItem, previewMonth = currentMonthKey()): boole
   return Boolean(e.featured) || e.months.includes(previewMonth);
 }
 
-// ---------- Rolling release ----------
-// Members — quarterly or yearly — get full details only for events starting in the next
-// RELEASE_DAYS days (plus anything already past, featured, or in the free month). Everything
-// further out stays a teaser until it comes into range, so the full year can't be copied out
-// and shared in one go. Undated events stay locked until a date is published.
+// ---------- Rolling release (yearly members) ----------
+// Yearly members see a rolling YEARLY_MONTHS months in full: this month and the next five. An
+// event (or an award, by its entry deadline or ceremony, whichever is first) opens on the 1st of
+// the month five months before. Nothing further out is sent to them, so the whole year can't be
+// copied out in one go. Undated events stay locked until a date is published.
 
-const addDays = (ymd: string, n: number) => { const d = new Date(`${ymd}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
-/** The last start date whose details are released today. */
-export const releaseCutoff = (now = new Date()) => addDays(todayKey(now), RELEASE_DAYS);
+/** The last date open in full to yearly members today. */
+export const releaseCutoff = (now = new Date()) => yearlyUntil(todayKey(now));
 const startOf = (e: EventItem) => (/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(e.sortKey) ? e.sortKey : null);
 /** An award's next entry deadline, if one is published. */
 const deadlineOf = (e: EventItem, now = new Date()) => (e.format === 'Awards' ? (entryInfo(e.entryDeadline, todayKey(now)).next as string | null) : null);
-/** The day this event's details are released to members (null while no date is known). Awards
- *  open on whichever comes first: 30 days before the entry deadline or before the ceremony. */
+/** The day this event opens in full to yearly members (null while no date is known). Awards go by
+ *  whichever comes first, the entry deadline or the ceremony. */
 export const opensOn = (e: EventItem) => {
   const dates = [startOf(e), deadlineOf(e)].filter((d): d is string => !!d).sort();
-  return dates.length ? addDays(dates[0], -RELEASE_DAYS) : null;
+  return dates.length ? yearlyFrom(dates[0]) : null;
 };
 export function released(e: EventItem, now = new Date()): boolean {
   const cut = releaseCutoff(now);
@@ -219,7 +218,7 @@ export function released(e: EventItem, now = new Date()): boolean {
 // ---------- Rolling listing ----------
 // Nothing further out than this month plus AHEAD_MONTHS is sent to anyone (apart from featured
 // events): signed-in viewers see those months as listings, and members get details in full
-// (yearly: 30 days ahead; quarterly: their quarter). Visitors see this month only.
+// (yearly: a rolling 6 months; quarterly: their quarter). Visitors see this month only.
 /** The day an event first appears in the guide (null while no date is known). */
 export const listsOn = (e: EventItem) => {
   const dates = [startOf(e), deadlineOf(e)].filter((d): d is string => !!d).sort();
@@ -243,7 +242,7 @@ export function inQuarter(e: EventItem, w: { from: string; to: string }): boolea
 /** May this viewer see that the event exists at all? Visitors: this month and featured only.
  *  Free accounts and members: this month plus the next AHEAD_MONTHS; quarterly members: also their quarter. */
 export function visibleTo(e: EventItem, paid: Pass, signedIn: boolean, previewMonth = currentMonthKey()): boolean {
-  return openToAll(e, previewMonth) || ((signedIn || paid !== false) && listed(e)) || (isWindow(paid) && inQuarter(e, paid));
+  return openToAll(e, previewMonth) || (paid === true && released(e)) || ((signedIn || paid !== false) && listed(e)) || (isWindow(paid) && inQuarter(e, paid));
 }
 
 /** May this visitor see the whole event? Everyone: featured and the free month. Members: also
