@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Link href="/sponsors">Sponsors</Link>
               {user || access.paid
                 ? <><Link href="/shortlist">My events</Link><Link href="/account">Account</Link>{can(user, 'reporting.view') && <Link href="/admin">Admin</Link>}</>
-                : <><Link href="/#pricing">Pricing</Link><Link href="/login">Sign in</Link></>}
+                : <><Link href="/#pricing">Pricing</Link><Link href="/login">Sign in</Link><Link href="/login?mode=join" className="nav-join">Join free</Link></>}
             </nav>
           </div>
         </header>

@@ -890,3 +890,10 @@ h1, h2, h3, h4, p, li, dd, dt, td, th, a, .badge, label, summary { overflow-wrap
 .sp-apply-body { flex: 1 1 auto; min-width: 0; }
 .sp-apply .enquiry { margin: 0; padding: 0; border: 0; background: none; max-width: none; }
 @media (max-width: 640px) { .sp-apply { text-align: left; align-items: stretch; } .sp-apply-guy { align-self: center; } }
+
+/* Sign-in: code entry, join/sign-in switch */
+.login-form, .code-form { display: grid; gap: 8px; margin: 16px 0; }
+.login-form label:not(.optin), .code-form label { font-weight: 600; }
+.code-form input { font-family: var(--font-mono); font-size: 28px; letter-spacing: .2em; text-align: center; max-width: 240px; }
+.login-switch { margin: 8px 0 16px; }
+.nav-join { border: 1.5px solid currentColor; border-radius: var(--radius-sm); padding: 4px 10px; }

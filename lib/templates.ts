@@ -20,11 +20,12 @@ type Def = Template & { label: string; when: string; group: 'Account' | 'Members
 
 export const TEMPLATES: Record<TemplateKey, Def> = {
   login: {
-    group: 'Account', label: 'Sign-in link', when: 'Someone asks for a sign-in link (also used as “forgotten password”: there are no passwords).',
-    subject: 'Your sign-in link for The Events Guy', heading: 'Sign in to The Events Guy',
-    body: 'Here’s your link to sign in. It works once, for 30 minutes.\n\nIf you didn’t ask for this, you can ignore this email.',
-    button: 'Sign in', vars: {},
+    group: 'Account', label: 'Sign-in code and link', when: 'Someone signs in or creates an account (also used as “forgotten password”: there are no passwords).',
+    subject: 'Your sign-in code: {code}', heading: 'Your sign-in code is {code}',
+    body: 'Type this code on the page where you asked to sign in. It works once, for 30 minutes.\n\nReading this on the device you want to use? Press the button instead.\n\nIf you didn’t ask for this, you can ignore this email.',
+    button: 'Sign in on this device', vars: { code: 'the 6-digit sign-in code (must be in the email: without it people can only use the button)' },
   },
+
   welcome: {
     group: 'Membership', label: 'Membership confirmation', when: 'Someone pays for a membership (sent once per checkout).',
     subject: 'Welcome to The Events Guy', heading: 'Welcome to The Events Guy',
@@ -150,5 +151,5 @@ export async function renderEvents(key: 'reminder' | 'digest', vars: Record<stri
 export const SAMPLE_VARS: Record<string, string> = {
   plan: 'quarterly', until: '17 February 2027', date: '17 February 2027', amount: '£45.00', first_name: 'Alex',
   access: 'Every event and award in the calendar quarter you joined is open in full now: venue, prices, booking links and speakers.',
-  subject: 'Headline sponsorship', company: 'Acme Retail', first_event: 'Retail Expo', headline: 'Retail Expo is tomorrow', count: '3', s: 's',
+  subject: 'Headline sponsorship', company: 'Acme Retail', code: '482 913', first_event: 'Retail Expo', headline: 'Retail Expo is tomorrow', count: '3', s: 's',
 };

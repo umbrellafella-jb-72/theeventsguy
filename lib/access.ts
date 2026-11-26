@@ -8,7 +8,9 @@ export const COOKIE = 'eg_access';
 // feed URL. prefs: the one-click email opt-out link.
 // session: a signed-in account (c = user id). login: a 30-minute emailed sign-in link (c = email).
 // q (access cookies only): the quarter a quarterly member may see in full, e.g. "2026-Q4".
-export type Token = { c: string; e: number; t: 'access' | 'restore' | 'feed' | 'prefs' | 'session' | 'login' | 'news'; q?: string };
+export type Token = { c: string; e: number; t: 'access' | 'restore' | 'feed' | 'prefs' | 'session' | 'login' | 'news' | 'pending'; q?: string };
+// pending: on the device that asked for a sign-in email, which address it's waiting for (so the
+// emailed code can be typed in there). It is NOT a sign-in by itself.
 
 function secret(): string {
   const s = process.env.ACCESS_SECRET;
