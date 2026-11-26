@@ -30,13 +30,17 @@ export function ProtectedForm({ siteKey, action, className, children, id }: { si
         if (sending.current) return; sending.current = true;
         const f = ref.current!; const btn = f.querySelector<HTMLButtonElement>('button[type=submit]');
         if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent || ''; btn.textContent = 'Sending…'; }
+        // Never leave someone stuck on "Sending…": if Google hasn't answered in 8 seconds (blocked by
+        // an ad blocker, or the key isn't set up for this domain) send anyway and let the server decide.
+        const timeout = new Promise<string>((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA timed out')), 8000));
         try {
-          await load(siteKey);
-          (f.elements.namedItem('captcha') as HTMLInputElement).value = await window.grecaptcha!.execute(siteKey, { action });
-        } catch { /* send without a token: the server decides */ }
+          const token = await Promise.race([load(siteKey).then(() => window.grecaptcha!.execute(siteKey, { action })), timeout]);
+          (f.elements.namedItem('captcha') as HTMLInputElement).value = token;
+        } catch (err) { (f.elements.namedItem('captcha_error') as HTMLInputElement).value = String((err as Error)?.message || err).slice(0, 200); }
         HTMLFormElement.prototype.submit.call(f);
       }}>
       <input type="hidden" name="captcha" defaultValue="" />
+      <input type="hidden" name="captcha_error" defaultValue="" />
       {children}
       {siteKey && <p className="form-privacy recaptcha-note">This form is protected by reCAPTCHA, and Google’s <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy<span className="sr-only"> (opens in a new tab)</span></a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Terms of Service<span className="sr-only"> (opens in a new tab)</span></a> apply.</p>}
     </form>

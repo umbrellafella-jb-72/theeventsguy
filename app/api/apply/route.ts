@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   if (get('eg_hp_check')) { await logBlocked(FORM_LABELS[form], who, 'the hidden anti-spam field was filled in'); return done; }
   if (await tooMany(`apply:${clientIp(req)}`, 5, 3600)) { await logBlocked(FORM_LABELS[form], who, 'too many applications from one connection'); return fail('busy'); }
   const captcha = await verifyRecaptcha(get('captcha'), isSponsor ? 'sponsor_profile' : 'speaker_apply', clientIp(req));
-  if (!captcha.ok) { await logBlocked(FORM_LABELS[form], who, `reCAPTCHA: ${captcha.reason ?? 'refused'}${captcha.score !== undefined ? ` (score ${captcha.score})` : ''}`); return fail('captcha'); }
+  if (!captcha.ok) { await logBlocked(FORM_LABELS[form], who, `reCAPTCHA: ${captcha.reason ?? 'refused'}${get('captcha_error') ? ` — in the browser: ${get('captcha_error', 200)}` : ''}${captcha.score !== undefined ? ` (score ${captcha.score})` : ''}`); return fail('captcha'); }
 
   const email = get('email', 200).toLowerCase();
   const name = get('name', 120);
