@@ -2,7 +2,7 @@
 // the device that asked for it. Both are single use and last 30 minutes.
 import { createHash, randomInt, timingSafeEqual } from 'crypto';
 import { NextResponse } from 'next/server';
-import { accessCookie, sign, verify } from './access';
+import { COOKIE, accessCookie, sign, verify } from './access';
 import { ensureUser, isMember, saveUser, sessionCookie, userQuarter } from './users';
 import { refreshMembership } from './membership';
 import { setMarketing } from './marketing';
@@ -52,7 +52,10 @@ export async function completeSignIn(base: string, email: string, o: { next?: st
   await del(K(email)).catch(() => null); // the code can't be used after the link, or the other way round
   const res = NextResponse.redirect(`${base}${safePath(o.next)}`, 303);
   const s = sessionCookie(u.id); res.cookies.set(s.name, s.value, s.options);
+  // The device's membership pass always matches the account signing in: a pass left on this browser
+  // by someone else's membership (or an earlier test checkout) is removed for a free account.
   if (isMember(u) && u.customer) { const c = accessCookie(u.customer, u.paidUntil, userQuarter(u)); res.cookies.set(c.name, c.value, c.options); }
+  else res.cookies.delete(COOKIE);
   res.cookies.delete(PENDING);
   return res;
 }

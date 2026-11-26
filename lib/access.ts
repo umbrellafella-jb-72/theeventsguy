@@ -53,14 +53,16 @@ export async function getAccess(): Promise<Access> {
   if (process.env.ACCESS_MODE === 'open') return { paid: true, open: true, customer: null, paymentsReady, paidUntil: 0, quarter: null, view: true };
   const jar = await cookies();
   const tok = verify(jar.get(COOKIE)?.value, 'access');
-  if (tok) {
+  const { sessionUser } = await import('./users');
+  const u = await sessionUser();
+  // A pass on this device counts for nobody signed in (bought before making an account) or for the
+  // account it belongs to; a different signed-in account goes by its own membership instead.
+  if (tok && (!u || u.customer === tok.c)) {
     // Cancelled or fully refunded early (Stripe webhook): the cookie stops counting at once.
     const { membershipEnded } = await import('./lifecycle');
     if (!(await membershipEnded(tok.c))) { const q = isQuarter(tok.q) ? tok.q : null; return { paid: true, open: false, customer: tok.c, paymentsReady, paidUntil: tok.e - 3 * 86400, quarter: q, view: passFor(true, q) }; }
   }
   // Signed in on a device without the access cookie: the account's membership still counts.
-  const { sessionUser } = await import('./users');
-  const u = await sessionUser();
   const { membershipEnded: ended } = await import('./lifecycle');
   const live = Boolean(u && u.customer && u.paidUntil + 3 * 86400 > Date.now() / 1000 && !(await ended(u.customer)));
   const { userQuarter } = await import('./users');

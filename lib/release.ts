@@ -1,9 +1,15 @@
 // Rolling release window, shared by server and browser code (no event data in here).
 export const RELEASE_DAYS = 30;
-/** Events appear (name, date, city, organiser) this many days ahead; full details at RELEASE_DAYS. */
-export const LISTING_DAYS = 60;
-/** Free accounts (and quarterly members, outside their quarter) see listings this many days ahead. */
-export const FREE_DAYS = 30;
+/** Signed-in viewers see listings (name, date, city, organiser) for this month plus this many
+ *  months ahead. This month is open in full to everyone; members get more in full (below). */
+export const AHEAD_MONTHS = 3;
+const ymdParts = (ymd: string) => ymd.split('-').map(Number);
+/** The last day listed today: the end of the month AHEAD_MONTHS after this one. */
+export const listUntil = (today: string) => { const [y, m] = ymdParts(today); return new Date(Date.UTC(y, m + AHEAD_MONTHS, 0)).toISOString().slice(0, 10); };
+/** The day a date first appears: the 1st of the month AHEAD_MONTHS before its month. */
+export const listsFrom = (ymd: string) => { const [y, m] = ymdParts(ymd); return new Date(Date.UTC(y, m - 1 - AHEAD_MONTHS, 1)).toISOString().slice(0, 10); };
+/** "Nov 2026 – Feb 2027": the months a signed-in viewer can see listed. */
+export const aheadLabel = (today: string) => { const [y, m] = ymdParts(today); const e = ymdParts(listUntil(today)); return `${MONTHS[m - 1]}${y === e[0] ? '' : ` ${y}`} – ${MONTHS[e[1] - 1]} ${e[0]}`; };
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 /** "Fri 4 Dec" for a release date. Built by hand so server and browser render identical text. */

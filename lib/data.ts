@@ -1,8 +1,8 @@
 import dataset from '@/data/events.json';
 import overrides from '@/data/overrides.json';
 import { entryInfo } from './awards';
-import { FREE_DAYS, LISTING_DAYS, RELEASE_DAYS, releaseLabel } from './release';
-export { FREE_DAYS, LISTING_DAYS, RELEASE_DAYS, releaseLabel };
+import { AHEAD_MONTHS, RELEASE_DAYS, aheadLabel, listUntil, listsFrom, releaseLabel } from './release';
+export { AHEAD_MONTHS, RELEASE_DAYS, aheadLabel, releaseLabel };
 
 export type EventItem = {
   id: string;
@@ -145,7 +145,7 @@ export function quarterSummaries() {
 }
 
 /** Per-month summary, safe to show to anyone: counts only, no event details. */
-export function monthSummaries(listDays = LISTING_DAYS) {
+export function monthSummaries() {
   return monthKeys().map(key => {
     const list = eventsIn(key);
     const formats: Record<string, number> = {};
@@ -159,9 +159,8 @@ export function monthSummaries(listDays = LISTING_DAYS) {
       europe: list.filter(e => e.area === 'Europe').length,
       awards: list.filter(e => e.format === 'Awards').length,
       formats: Object.entries(formats).sort((a, b) => b[1] - a[1]),
-      // When this month's events start appearing: each event's date in this month (recurring events
-      // count from the month's first day), less the listing window.
-      listsOn: key === TBC ? null : list.map(e => { const s = startOf(e); return addDays(s && s > `${key}-01` ? s : `${key}-01`, -listDays); }).sort()[0] ?? null,
+      // When this month's events start appearing for signed-in viewers: AHEAD_MONTHS months before.
+      listsOn: key === TBC ? null : listsFrom(`${key}-01`),
     };
   });
 }
@@ -218,16 +217,16 @@ export function released(e: EventItem, now = new Date()): boolean {
 }
 
 // ---------- Rolling listing ----------
-// Nothing further out than LISTING_DAYS is sent to anyone (apart from featured events and the free
-// month): an event appears as a teaser 60 days ahead for yearly members (30 for free accounts) and
-// opens in full for yearly members at 30 days.
+// Nothing further out than this month plus AHEAD_MONTHS is sent to anyone (apart from featured
+// events): signed-in viewers see those months as listings, and members get details in full
+// (yearly: 30 days ahead; quarterly: their quarter). Visitors see this month only.
 /** The day an event first appears in the guide (null while no date is known). */
-export const listsOn = (e: EventItem, days = LISTING_DAYS) => {
+export const listsOn = (e: EventItem) => {
   const dates = [startOf(e), deadlineOf(e)].filter((d): d is string => !!d).sort();
-  return dates.length ? addDays(dates[0], -days) : null;
+  return dates.length ? listsFrom(dates[0]) : null;
 };
-export function listed(e: EventItem, now = new Date(), days = LISTING_DAYS): boolean {
-  const cut = addDays(todayKey(now), days);
+export function listed(e: EventItem, now = new Date()): boolean {
+  const cut = listUntil(todayKey(now));
   const s = startOf(e), dl = deadlineOf(e, now);
   return Boolean((s && s <= cut) || (dl && dl <= cut));
 }
@@ -241,13 +240,11 @@ export function inQuarter(e: EventItem, w: { from: string; to: string }): boolea
   return [startOf(e), deadlineOf(e)].some(d => !!d && d >= w.from && d <= w.to);
 }
 
-/** May this viewer see that the event exists at all? Visitors: free month and featured only.
- *  Free accounts and members: also anything within the listing window; quarterly members: their quarter. */
+/** May this viewer see that the event exists at all? Visitors: this month and featured only.
+ *  Free accounts and members: this month plus the next AHEAD_MONTHS; quarterly members: also their quarter. */
 export function visibleTo(e: EventItem, paid: Pass, signedIn: boolean, previewMonth = currentMonthKey()): boolean {
-  return openToAll(e, previewMonth) || (paid === true && listed(e)) || ((signedIn || isWindow(paid)) && listed(e, undefined, FREE_DAYS)) || (isWindow(paid) && inQuarter(e, paid));
+  return openToAll(e, previewMonth) || ((signedIn || paid !== false) && listed(e)) || (isWindow(paid) && inQuarter(e, paid));
 }
-/** How far ahead this viewer sees listings: yearly members LISTING_DAYS, everyone signed in FREE_DAYS. */
-export const listingDays = (paid: Pass) => (paid === true ? LISTING_DAYS : FREE_DAYS);
 
 /** May this visitor see the whole event? Everyone: featured and the free month. Members: also
  *  anything starting within the release window. */

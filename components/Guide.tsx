@@ -1,5 +1,5 @@
 'use client';
-import { FREE_DAYS, LISTING_DAYS, RELEASE_DAYS, releaseLabel } from '@/lib/release';
+import { AHEAD_MONTHS, RELEASE_DAYS, aheadLabel, listUntil, releaseLabel } from '@/lib/release';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EventItem, Taxonomy } from '@/lib/data';
@@ -23,7 +23,12 @@ const GROUPS: { key: GroupKey; title: string; tax: keyof Taxonomy; membersOnly?:
 
 const emptySel = (): Record<GroupKey, Set<string>> => ({ area: new Set(), format: new Set(), sectors: new Set(), topics: new Set(), region: new Set(), priceTag: new Set(), status: new Set() });
 
-function inMonth(e: EventItem, key: string) { return key === 'tbc' ? e.months.length === 0 : e.months.includes(key); }
+/** Is this event in that month? A series that runs every month only shows in months that are
+ *  listed now (this month plus AHEAD_MONTHS), so later months don't fill up with repeats. */
+function inMonth(e: EventItem, key: string, lastKey: string) {
+  if (key === 'tbc') return e.months.length === 0;
+  return e.months.includes(key) && (key <= lastKey || e.months.length === 1 || Boolean(e.featured));
+}
 
 export default function Guide(props: {
   events: EventItem[]; // as this visitor may see them: whole, or teasers (locked)
@@ -31,7 +36,7 @@ export default function Guide(props: {
   taxonomy: Taxonomy;
   paid: boolean;
   quarter?: string | null;
-  listDays?: number;       // how far ahead this viewer sees listings // a quarterly member's quarter, e.g. "Oct – Dec 2026"
+// a quarterly member's quarter, e.g. "Oct – Dec 2026"
   previewMonth: string;
   initialMonth: string;
   today: string; // YYYY-MM-DD
@@ -64,11 +69,12 @@ export default function Guide(props: {
     strip.current?.querySelector<HTMLElement>('[aria-pressed="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
   }, [month]);
 
+  const lastKey = listUntil(today).slice(0, 7);
   const isPast = (e: EventItem) => e.months.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(e.sortKey) && e.months.length === 1 && e.sortKey < today;
 
   // Every filter except `skip`, so chip counts show what you'd get by adding that chip.
   const matches = (e: EventItem, skip?: GroupKey) => {
-    if (month !== 'all' && !inMonth(e, month)) return false;
+    if (month !== 'all' && !inMonth(e, month, lastKey)) return false;
     if (hidePast && isPast(e)) return false;
     if (from || to) {
       const day = /^\d{4}-\d{2}-\d{2}$/.test(e.sortKey) ? e.sortKey : null;
@@ -121,7 +127,7 @@ export default function Guide(props: {
 
   const monthOrder = summaries.map(s => s.key);
   const grouped = month === 'all'
-    ? monthOrder.map(k => ({ key: k, label: summaries.find(s => s.key === k)!.label, items: results.filter(e => inMonth(e, k)) })).filter(g => g.items.length)
+    ? monthOrder.map(k => ({ key: k, label: summaries.find(s => s.key === k)!.label, items: results.filter(e => inMonth(e, k, lastKey)) })).filter(g => g.items.length)
     : [{ key: month, label: summaries.find(s => s.key === month)?.label ?? '', items: results }];
   const totalShown = month === 'all' ? new Set(results.map(e => e.id)).size : results.length;
   const summary = summaries.find(s => s.key === month);
@@ -207,27 +213,27 @@ export default function Guide(props: {
               </div>
               {props.visitorLocked ? (
                 <div className="note member-note">
-                  <span>You’re seeing <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</b>. <b>Register free</b> to see what’s on over the next {FREE_DAYS} days, save events and searches, and set up a speaker, sponsor or organiser profile.</span>
+                  <span>You’re seeing <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</b>. <b>Register free</b> to see the next {AHEAD_MONTHS} months listed too, save events and searches, and set up a speaker, sponsor or organiser profile.</span>
                   <a className="btn btn-primary btn-sm" href={`/login?next=${encodeURIComponent('/guide')}`}>Register free</a>
                 </div>
               ) : !paid && (
                 <div className="note member-note">
-                  <span>You can see what’s on over the next {FREE_DAYS} days. <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'This month'}</b> and featured events are open in full; members get each event’s venue, price, booking link and speakers {RELEASE_DAYS} days ahead, plus a saved shortlist, calendar sync and reminders.</span>
+                  <span>Your free account shows <b>{summaries.find(x => x.key === previewMonth)?.label ?? 'this month'}</b> in full, and lists events to the end of <b>{aheadLabel(today).split(' – ')[1]}</b> as a snapshot: name, date, city and organiser. Members get each event’s venue, price, booking link and speakers, plus calendar sync and reminders.</span>
                   <a className="btn btn-primary btn-sm" href="/#pricing">See membership plans</a>
                 </div>
               )}
               {paid && props.quarter && (
-                <p className="note member-note"><span>Your quarterly membership covers <b>{props.quarter}</b>: every event and award in it is open in full. Events outside it show as listings only, like a free account.</span></p>
+                <p className="note member-note"><span>Your quarterly membership covers <b>{props.quarter}</b>: every event and award in it is open in full. Other months up to {aheadLabel(today).split(' – ')[1]} show as listings only, like a free account.</span></p>
               )}
               {paid && !props.quarter && (
-                <p className="note member-note"><span>Events are listed {LISTING_DAYS} days ahead and open in full {RELEASE_DAYS} days before they start (for awards, before the entry deadline or ceremony). Save one now and it fills in on your shortlist and calendar feed when it opens.</span></p>
+                <p className="note member-note"><span>Events are listed {AHEAD_MONTHS} months ahead and open in full {RELEASE_DAYS} days before they start (for awards, before the entry deadline or ceremony). Save one now and it fills in on your shortlist and calendar feed when it opens.</span></p>
               )}
               {props.visitorLocked && month !== previewMonth ? (
                 <div className="lock-panel register-panel">
                   <h2>{month === 'all' ? 'Every month' : summary?.key === 'tbc' ? 'Events with dates to be confirmed' : summary?.label} — free with an account</h2>
-                  <p>{summary ? `${summary.count} event${summary.count === 1 ? '' : 's'} listed. ` : ''}Create a free account to see what’s on over the next {FREE_DAYS} days: names, dates, cities and organisers. It takes one email — no password, no card.</p>
+                  <p>{summary ? `${summary.count} event${summary.count === 1 ? '' : 's'} listed. ` : ''}Create a free account to see the next {AHEAD_MONTHS} months listed too: names, dates, cities and organisers. It takes one email — no password, no card.</p>
                   <ul className="ticks">
-                    <li>See every event {FREE_DAYS} days ahead</li>
+                    <li>This month in full, plus the next {AHEAD_MONTHS} months listed</li>
                     <li>Save events to your shortlist and save searches</li>
                     <li>Publish a speaker, sponsor or organiser profile</li>
                   </ul>
@@ -240,7 +246,7 @@ export default function Guide(props: {
                   <h2>{summary.key === 'tbc' ? 'Dates to be confirmed' : summary.label}: {summary.count} event{summary.count === 1 ? '' : 's'}</h2>
                   <p>{summary.key === 'tbc' || !summary.listsOn
                     ? 'Events without a confirmed date are listed once the date is set.'
-                    : <>Events are listed {props.listDays ?? LISTING_DAYS} days ahead, so this month’s start appearing on <b>{releaseLabel(summary.listsOn)}</b>{paid && !props.quarter ? `, with full details from ${RELEASE_DAYS} days before each one` : ''}.</>}</p>
+                    : <>Events are listed {AHEAD_MONTHS} months ahead, so this month’s appear on <b>{releaseLabel(summary.listsOn)}</b>{paid && !props.quarter ? `, with full details from ${RELEASE_DAYS} days before each one` : ''}.</>}</p>
                 </div>
               ) : totalShown === 0 && <div className="empty">No events match these filters. <button className="btn btn-ghost btn-sm" onClick={clearAll}>Clear filters</button></div>}
               {(() => {
@@ -264,7 +270,7 @@ export default function Guide(props: {
                   <button className="btn btn-secondary" onClick={() => setExpanded(true)}>Show all {totalShown} events</button>
                 </div>
               )}
-              {expanded && month === 'all' && !props.visitorLocked && <p className="muted snapshot-note">Later months appear here {props.listDays ?? LISTING_DAYS} days ahead.</p>}
+              {expanded && month === 'all' && !props.visitorLocked && <p className="muted snapshot-note">Later months appear here {AHEAD_MONTHS} months ahead.</p>}
               </>}
             </>
           )}

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
-import { FREE_DAYS, RELEASE_DAYS, listingDays, eventById, fullFor, listsOn, openToAll, visibleTo, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
+import { AHEAD_MONTHS, RELEASE_DAYS, eventById, fullFor, listsOn, openToAll, visibleTo, monthLabel, opensOn, releaseLabel, speakers as allSpeakers, teaser } from '@/lib/data';
 import { eventDates } from '@/lib/calendar';
 import { EventActions } from '@/components/EventActions';
 import { PrintButton } from '@/components/PrintButton';
@@ -38,16 +38,16 @@ export default async function EventPage({ params, searchParams }: Props) {
   const signedIn = Boolean(await sessionUser());
   if (!visibleTo(e, access.view, signedIn)) {
     // Nothing about the event itself: not its name, date or city.
-    const from = listsOn(e, listingDays(access.view));
+    const from = listsOn(e);
     return (
       <div className="wrap section">
         <div className="lock-panel ev-page-lock">
           {signedIn || access.paid ? <>
             <h1>This event isn’t listed yet</h1>
-            <p>Events appear in your guide {listingDays(access.view)} days ahead{from ? <>; this one from <b>{releaseLabel(from)}</b></> : ' of a confirmed date'}. Members get the full details {RELEASE_DAYS} days ahead.</p>
+            <p>Your guide lists this month and the next {AHEAD_MONTHS} months{from ? <>, so this one appears from <b>{releaseLabel(from)}</b></> : '. This one appears once its date is confirmed'}. Members get the full details {RELEASE_DAYS} days ahead.</p>
           </> : <>
             <h1>Register free to see this event</h1>
-            <p>Visitors see this month’s events. A free account shows what’s on over the next {FREE_DAYS} days, and members get the full details {RELEASE_DAYS} days ahead.</p>
+            <p>Visitors see this month’s events. A free account lists the next {AHEAD_MONTHS} months as well, and members get the full details {RELEASE_DAYS} days ahead.</p>
           </>}
           <div className="lock-actions">
             {!signedIn && !access.paid && <Link className="btn btn-primary" href={`/login?next=${encodeURIComponent(`/events/${e.id}`)}`}>Register free</Link>}

@@ -34,7 +34,7 @@ export default async function Speakers({ searchParams }: { searchParams: Promise
   const sp = await searchParams;
   const viewer = await sessionUser();
   const paid = (await getAccess()).view;
-  // Only events this viewer may see (30 days ahead for free accounts, 60 for yearly members, this month for visitors).
+  // Only events this viewer may see (this month plus 3 for anyone signed in, this month for visitors).
   const see = (e: EventItem) => visibleTo(e, paid, Boolean(viewer));
   const canEnquire = can(viewer, 'directory.speakers') && can(viewer, 'enquiry.send');
   const portal = storeReady() ? (await allSpeakers().catch(() => [])).filter(p => p.status === 'published') : [];

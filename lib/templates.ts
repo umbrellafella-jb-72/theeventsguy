@@ -54,7 +54,7 @@ export const TEMPLATES: Record<TemplateKey, Def> = {
   ended: {
     group: 'Membership', label: 'Membership ended', when: 'A membership ends.',
     subject: 'Your membership has ended', heading: 'Your membership has ended',
-    body: 'Your membership has now ended. Your account, shortlist and saved searches are still there, and you can still see what’s on over the next 30 days.\n\nRejoin any time to get full event details again.',
+    body: 'Your membership has now ended. Your account, shortlist and saved searches are still there, and you can still see this month in full and the next three months listed.\n\nRejoin any time to get full event details again.',
     button: 'See membership plans', vars: {},
   },
   refunded: {

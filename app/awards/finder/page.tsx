@@ -6,7 +6,7 @@ import { AwardsQuiz } from '@/components/AwardsQuiz';
 import { MarketingOptIn } from '@/components/MarketingOptIn';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
-import { eventHref, listingDays, fullFor, visibleTo } from '@/lib/data';
+import { AHEAD_MONTHS, eventHref, fullFor, visibleTo } from '@/lib/data';
 import { entryInfo } from '@/lib/awards';
 import { matchAwards } from '@/lib/award-match';
 import { labelFor, readAnswers, summary } from '@/lib/award-quiz';
@@ -75,7 +75,7 @@ export default async function AwardFinder({ searchParams }: { searchParams: Prom
               ) : later > 0 ? null : (
                 <p>Try widening where you want to win, or what you’d like recognised. Or tell us below and we’ll suggest some by hand.</p>
               )}
-              {canSee && later > 0 && <p className="note">{later} more award{later === 1 ? '' : 's'} that fit you {later === 1 ? 'is' : 'are'} listed nearer the time — awards appear {listingDays(access.view)} days before their entry deadline or ceremony. Come back, or ask us below.</p>}
+              {canSee && later > 0 && <p className="note">{later} more award{later === 1 ? '' : 's'} that fit you {later === 1 ? 'is' : 'are'} listed nearer the time — awards appear {AHEAD_MONTHS} months before the month of their entry deadline or ceremony. Come back, or ask us below.</p>}
             </section>
 
             <section id="enquire" className="finder-enquire" aria-labelledby="enq-title">

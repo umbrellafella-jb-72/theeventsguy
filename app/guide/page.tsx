@@ -4,7 +4,7 @@ import { quarterLabel } from '@/lib/release';
 import Guide from '@/components/Guide';
 import { getAccess } from '@/lib/access';
 import { sessionUser } from '@/lib/users';
-import { FREE_DAYS, LISTING_DAYS, RELEASE_DAYS, currentMonthKey, events, eventsFor, listingDays, monthSummaries, speakersByEvent, taxonomy, todayKey } from '@/lib/data';
+import { AHEAD_MONTHS, RELEASE_DAYS, currentMonthKey, events, eventsFor, monthSummaries, speakersByEvent, taxonomy, todayKey } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'The guide — The Events Guy' };
@@ -16,13 +16,13 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
   // Filters from the address (saved searches and shared links): f_<group>=a|b
   const initialSel: Record<string, string[]> = {};
   for (const [k, v] of Object.entries(sp)) if (k.startsWith('f_') && v) initialSel[k.slice(2)] = v.split('|');
-  const summaries = monthSummaries(listingDays(access.view));
+  const summaries = monthSummaries();
   const preview = currentMonthKey();
   // Members get every event in full. Everyone else gets the public teaser of each event, plus
   // the free month's and featured events in full. Locked details never reach the browser.
   // Visitors who haven't registered see only this month (plus featured events) — the rest isn't sent at all.
   const visitorLocked = !access.paid && !user;
-  // Free accounts and members see events up to LISTING_DAYS ahead (full for members from RELEASE_DAYS).
+  // Free accounts and members see this month plus AHEAD_MONTHS listed (full for members from RELEASE_DAYS or in their quarter).
   const visible = eventsFor(access.view, preview, Boolean(user));
   // First landing (no month, search or filters in the address) shows a 3-event snapshot.
   const snapshot = !Object.keys(sp).some(k => k === 'month' || k === 'q' || k === 'from' || k === 'to' || k.startsWith('f_'));
@@ -34,7 +34,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
       <div className="wrap guide-top">
         <h1>Ecommerce events, month by month</h1>
         <p className="muted" style={{ margin: '8px 0 0' }}>
-          {events.length} events and awards across the UK, Ireland and Europe. A free account shows what’s on over the next {FREE_DAYS} days. Yearly members see {LISTING_DAYS} days ahead with full details from {RELEASE_DAYS}; quarterly members get their whole quarter in full.
+          {events.length} events and awards across the UK, Ireland and Europe. Everyone sees this month in full. A free account also lists the next {AHEAD_MONTHS} months; yearly members get full details {RELEASE_DAYS} days ahead and quarterly members get their whole quarter in full.
         </p>
         {sp.welcome && <p className="note banner" role="status">You’re in. Every month is now unlocked — welcome to The Events Guy.</p>}
         {sp.restored && <p className="note banner" role="status">Access restored on this device.</p>}
@@ -45,7 +45,6 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         summaries={summaries}
         taxonomy={taxonomy}
         paid={access.paid}
-        listDays={listingDays(access.view)}
         quarter={access.quarter ? quarterLabel(access.quarter) : null}
         previewMonth={preview}
         initialMonth={initialMonth}
